@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+outputs/
+polymer_gui/ANTECHAMBER_*
+polymer_gui/ATOMTYPE.INF
+polymer_gui/sqm.*
+polymer_gui/leap.log

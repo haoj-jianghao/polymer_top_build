@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Polymer From Monomer</title>
+    <link rel="stylesheet" href="/static/app.css">
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel sketch-panel">
+        <div class="section-head">
+          <h1>Polymer From Monomer</h1>
+        </div>
+        <div class="sketch-workbench">
+          <aside class="sketch-sidebar" aria-label="Molecule drawing tools">
+            <div class="tool-group">
+              <div class="tool-title">Atoms</div>
+              <div class="element-grid" id="atomPalette">
+                <button type="button" data-element="C" class="active">C</button>
+                <button type="button" data-element="O">O</button>
+                <button type="button" data-element="N">N</button>
+                <button type="button" data-element="S">S</button>
+                <button type="button" data-element="H">H</button>
+                <button type="button" data-element="Cl">Cl</button>
+              </div>
+            </div>
+            <div class="tool-group action-group">
+              <button id="loadPeg" type="button">PEG repeat</button>
+              <button id="deleteSelected" type="button">Delete</button>
+              <button id="clearSketch" type="button">New</button>
+            </div>
+          </aside>
+          <div class="sketch-main">
+            <div class="structure-line">
+              <select aria-label="Structure encoding">
+                <option>MOL/SDF</option>
+              </select>
+              <input id="structureLine" readonly value="Drawn_monomer">
+            </div>
+            <canvas id="sketcher" class="sketcher" width="900" height="520"></canvas>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button id="pullMol" type="button">Use drawing</button>
+          <button id="preview" type="button">Preview atom indices</button>
+        </div>
+        <label class="field">
+          <span>Monomer MOL/SDF from drawing</span>
+          <textarea id="sdf" spellcheck="false"></textarea>
+        </label>
+      </section>
+
+      <section class="panel settings-panel">
+        <h2>Build Settings</h2>
+        <div class="grid">
+          <input id="workflow" type="hidden" value="monomer">
+          <label class="field">
+            <span>Previous connection atom</span>
+            <input id="previous_atom" type="number" min="1" value="1">
+          </label>
+          <label class="field">
+            <span>Next connection atom</span>
+            <input id="next_atom" type="number" min="1" value="3">
+          </label>
+          <label class="field">
+            <span>Reference oligomer size</span>
+            <input id="reference_dp" type="number" min="2" value="5">
+          </label>
+          <label class="field">
+            <span>Polymer DP</span>
+            <input id="dp" type="number" min="1" value="12">
+          </label>
+          <label class="field">
+            <span>Reference oligomer formal charge</span>
+            <input id="oligomer_charge" type="number" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>Repeat-unit formal charge</span>
+            <input id="repeat_charge" type="number" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>End-group formal charge</span>
+            <input id="end_charge" type="number" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>Job name</span>
+            <input id="job_name" value="PEG12_gui">
+          </label>
+        </div>
+        <label class="check">
+          <input id="run_external" type="checkbox">
+          <span>Run AmberTools when available</span>
+        </label>
+        <button id="build" class="primary" type="button">Generate GROMACS files</button>
+        <div id="status" class="status"></div>
+      </section>
+
+      <section class="panel atom-panel">
+        <h2>Atom Indices</h2>
+        <div id="summary" class="summary">Draw or paste a monomer, then preview it.</div>
+        <div id="atoms" class="atom-list"></div>
+        <h2>Build Output</h2>
+        <div id="output" class="summary"></div>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
