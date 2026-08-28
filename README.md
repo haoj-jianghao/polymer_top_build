@@ -1,10 +1,11 @@
 # Polymer GROMACS Builder
 
-This project wraps `polymer_from_oligomer.py` with a practical local web GUI.
-The browser page lets a user draw or paste a monomer, preview atom indices,
-mark the atoms that connect to the previous and next monomer, choose the hidden
-reference oligomer size and final polymer DP, then
-call the same Python backend used by the command line.
+This is a project that develops a polymer force field parameterization tools for molecular dynamics (MD) simulations using GROMACS.
+The program allows construction of GROMACS topology files (.top, .itp and .gro) for MD simulation of polymers taken a user input monomer structure. 
+
+The program asks user to draw a monomer structure and assign the atoms for monomer-monomer connectivity, then the program would parameterize a small oligomer of user's choice.
+After the oligomer parameterization (using the Ambertools), the program would construct the polymer with length of user's choice using the oligomer parameters.
+
 
 The default workflow is now monomer-first:
 
