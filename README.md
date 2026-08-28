@@ -1,6 +1,6 @@
 # Polymer GROMACS Builder
 
-This is a project that develops a polymer force field parameterization tools for molecular dynamics (MD) simulations using GROMACS.
+This is a project that develops a polymer force field parameterization tool for molecular dynamics (MD) simulations using GROMACS.
 The program allows construction of GROMACS topology files (.top, .itp and .gro) for MD simulation of polymers taken a user input monomer structure. 
 
 The program asks user to draw a monomer structure and assign the atoms for monomer-monomer connectivity, then the program would parameterize a small oligomer of user's choice.
