@@ -38,13 +38,21 @@ def preview():
         path = Path(handle.name)
     try:
         mol = read_sdf(path)
-        atoms = [{"index": atom.index, "element": atom.element} for atom in mol.atoms]
+        atoms = [
+            {
+                "index": atom.index,
+                "element": atom.element,
+                "formal_charge": atom.formal_charge,
+            }
+            for atom in mol.atoms
+        ]
         bonds = [{"a": bond.a, "b": bond.b, "order": bond.order} for bond in mol.bonds]
         return jsonify(
             {
                 "name": mol.name,
                 "formula": mol.formula(),
                 "molecular_weight": round(mol.molecular_weight(), 3),
+                "formal_charge": mol.total_formal_charge(),
                 "atoms": atoms,
                 "bonds": bonds,
             }
@@ -66,9 +74,6 @@ def build():
         previous_atom = int(request.form.get("previous_atom", "0") or "0")
         next_atom = int(request.form.get("next_atom", "0") or "0")
         reference_dp = int(request.form.get("reference_dp", "5") or "5")
-        oligomer_charge = int(request.form.get("oligomer_charge", "0"))
-        repeat_charge = int(request.form.get("repeat_charge", "0"))
-        end_charge = int(request.form.get("end_charge", "0"))
         run_external = request.form.get("run_external") == "true"
     except Exception as exc:
         return jsonify({"error": f"Invalid settings: {exc}"}), 400
@@ -87,9 +92,6 @@ def build():
                     next_atom=next_atom,
                     reference_dp=reference_dp,
                     polymer_dp=dp,
-                    oligomer_charge=oligomer_charge,
-                    repeat_charge=repeat_charge,
-                    end_charge=end_charge,
                     outdir=outdir,
                     run_external=run_external,
                 ),
@@ -101,9 +103,9 @@ def build():
                 BuildOptions(
                     repeat_atoms=repeat_atoms,
                     dp=dp,
-                    oligomer_charge=oligomer_charge,
-                    repeat_charge=repeat_charge,
-                    end_charge=end_charge,
+                    oligomer_charge=int(request.form.get("oligomer_charge", "0")),
+                    repeat_charge=int(request.form.get("repeat_charge", "0")),
+                    end_charge=int(request.form.get("end_charge", "0")),
                     outdir=outdir,
                     run_external=run_external,
                 ),

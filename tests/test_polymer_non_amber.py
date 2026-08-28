@@ -8,7 +8,9 @@ import unittest
 from unittest import mock
 
 from polymer_from_oligomer import (
+    AmberTargetSpec,
     Atom,
+    add_valence_hydrogens,
     Bond,
     BuildOptions,
     MonomerBuildOptions,
@@ -20,6 +22,8 @@ from polymer_from_oligomer import (
     ensure_explicit_hydrogen_sdf,
     minimize_sdf_geometry,
     parse_index_list,
+    run_ambertools_pipeline,
+    read_mol2_atom_parameters,
     read_sdf,
     write_mol2,
     write_sdf,
@@ -243,6 +247,121 @@ $$$$
             metadata = json.loads((tmp_path / "user_build" / "build_metadata.json").read_text())
             self.assertEqual(metadata["antechamber_source_sdf"], metadata["reference_oligomer_antechamber_sdf"])
 
+    def test_formal_charge_round_trips_through_v2000_m_chg(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ammonium.sdf"
+            molecule = Molecule(
+                "charged",
+                atoms=[Atom(1, "N", formal_charge=1), Atom(2, "Cl", formal_charge=-1)],
+            )
+            write_sdf(molecule, path)
+            text = path.read_text()
+            self.assertIn("M  CHG  2   1   1   2  -1", text)
+            restored = read_sdf(path)
+            self.assertEqual([atom.formal_charge for atom in restored.atoms], [1, -1])
+            self.assertEqual(restored.total_formal_charge(), 0)
+
+    def test_positive_nitrogen_valence_controls_hydrogen_count(self):
+        three_coordinate = Molecule(
+            "protonated_amine",
+            atoms=[
+                Atom(1, "N", formal_charge=1),
+                Atom(2, "C"),
+                Atom(3, "C"),
+                Atom(4, "C"),
+            ],
+            bonds=[Bond(1, 2), Bond(1, 3), Bond(1, 4)],
+        )
+        add_valence_hydrogens(three_coordinate)
+        nitrogen_hydrogens = [
+            bond
+            for bond in three_coordinate.bonds
+            if 1 in (bond.a, bond.b)
+            and three_coordinate.atom(bond.b if bond.a == 1 else bond.a).element == "H"
+        ]
+        self.assertEqual(len(nitrogen_hydrogens), 1)
+
+        four_coordinate = Molecule(
+            "quaternary_ammonium",
+            atoms=[
+                Atom(1, "N", formal_charge=1),
+                Atom(2, "C"),
+                Atom(3, "C"),
+                Atom(4, "C"),
+                Atom(5, "C"),
+            ],
+            bonds=[Bond(1, 2), Bond(1, 3), Bond(1, 4), Bond(1, 5)],
+        )
+        add_valence_hydrogens(four_coordinate)
+        nitrogen_hydrogens = [
+            bond
+            for bond in four_coordinate.bonds
+            if 1 in (bond.a, bond.b)
+            and four_coordinate.atom(bond.b if bond.a == 1 else bond.a).element == "H"
+        ]
+        self.assertEqual(len(nitrogen_hydrogens), 0)
+
+
+    def test_ionic_monomer_charge_is_inferred_for_reference_and_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            monomer_sdf = tmp_path / "quaternary_repeat.sdf"
+            write_sdf(
+                Molecule(
+                    "quaternary_repeat",
+                    atoms=[
+                        Atom(1, "N", formal_charge=1),
+                        Atom(2, "C", 1.5, 0),
+                        Atom(3, "C", -1.5, 0),
+                        Atom(4, "C", 0, 1.5),
+                        Atom(5, "C", 0, -1.5),
+                    ],
+                    bonds=[Bond(1, 2), Bond(1, 3), Bond(1, 4), Bond(1, 5)],
+                ),
+                monomer_sdf,
+            )
+            result = build_polymer_from_monomer(
+                monomer_sdf,
+                MonomerBuildOptions(
+                    previous_atom=2,
+                    next_atom=3,
+                    reference_dp=4,
+                    polymer_dp=12,
+                    outdir=tmp_path / "ionic_build",
+                    run_external=False,
+                ),
+            )
+            self.assertEqual(result.target_charge, 12)
+            charged_nitrogens = [
+                atom
+                for atom in result.molecule.atoms
+                if atom.element == "N" and atom.formal_charge == 1
+            ]
+            self.assertEqual(len(charged_nitrogens), 12)
+            for nitrogen in charged_nitrogens:
+                neighbors = [
+                    result.molecule.atom(bond.b if bond.a == nitrogen.index else bond.a)
+                    for bond in result.molecule.bonds
+                    if nitrogen.index in (bond.a, bond.b)
+                ]
+                self.assertFalse(any(atom.element == "H" for atom in neighbors))
+            metadata = json.loads((tmp_path / "ionic_build" / "build_metadata.json").read_text())
+            self.assertEqual(metadata["monomer_atom_formal_charge"], 1)
+            self.assertEqual(metadata["antechamber_formal_charge"], 4)
+            self.assertEqual(metadata["target_polymer_formal_charge"], 12)
+            atom_lines = []
+            in_atoms = False
+            for line in (tmp_path / "ionic_build" / "polymer.itp").read_text().splitlines():
+                if line.strip() == "[ atoms ]":
+                    in_atoms = True
+                    continue
+                if in_atoms and line.lstrip().startswith("["):
+                    break
+                if in_atoms and line.strip() and not line.lstrip().startswith(";"):
+                    atom_lines.append(line)
+            itp_charge = sum(float(line.split()[6]) for line in atom_lines)
+            self.assertAlmostEqual(itp_charge, 12.0, places=7)
+            self.assertTrue(metadata["formal_charge_inferred_from_atoms"])
     def test_explicit_hydrogen_sdf_helper_adds_missing_hydrogens(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -355,9 +474,109 @@ $$$$
                 else:
                     sys.modules[name] = module
 
-    def test_ambertools_pipeline_uses_explicit_hydrogen_mol2_input(self):
-        from polymer_from_oligomer import run_ambertools_pipeline
+    def test_reference_parameters_are_applied_to_target_before_tleap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            monomer = Molecule(
+                "ethylene_repeat",
+                atoms=[Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0)],
+                bonds=[Bond(1, 2)],
+            )
+            reference, _ = build_reference_oligomer_from_monomer(monomer, 1, 2, 4)
+            add_valence_hydrogens(reference)
+            reference_sdf = tmp_path / "reference.sdf"
+            write_sdf(reference, reference_sdf)
 
+            target, _ = build_reference_oligomer_from_monomer(monomer, 1, 2, 6)
+            add_valence_hydrogens(target)
+            typed_reference = Molecule(
+                reference.name,
+                atoms=[
+                    Atom(
+                        atom.index,
+                        atom.element,
+                        atom.x,
+                        atom.y,
+                        atom.z,
+                        atom_type="c3" if atom.element == "C" else "hc",
+                        charge=(atom.index / 1000.0) * (1 if atom.element == "C" else -1),
+                    )
+                    for atom in reference.atoms
+                ],
+                bonds=[Bond(bond.a, bond.b, bond.order) for bond in reference.bonds],
+            )
+            commands = []
+
+            def fake_run(cmd, **kwargs):
+                commands.append((cmd, kwargs))
+                if cmd[0] == "antechamber":
+                    write_mol2(typed_reference, Path(cmd[cmd.index("-o") + 1]))
+                elif cmd[0] == "parmchk2":
+                    Path(cmd[cmd.index("-o") + 1]).write_text("# fake frcmod\n")
+                elif cmd[0] == "tleap":
+                    cwd = Path(kwargs["cwd"])
+                    (cwd / "polymer.prmtop").write_text("fake\n")
+                    (cwd / "polymer.inpcrd").write_text("fake\n")
+                return types.SimpleNamespace(returncode=0)
+
+            class FakeStructure:
+                atoms = [None] * len(target.atoms)
+
+                def save(self, path, overwrite=False):
+                    path = Path(path)
+                    if path.suffix == ".top":
+                        path.write_text(
+                            "[ defaults ]\n1 2 yes 0.5 0.833333\n\n"
+                            "[ moleculetype ]\nPOL 3\n\n"
+                            f"[ atoms ]\n; target atoms: {len(self.atoms)}\n\n"
+                            "[ system ]\nPolymer\n\n[ molecules ]\nPOL 1\n"
+                        )
+                    else:
+                        path.write_text(f"target atoms: {len(self.atoms)}\n")
+
+            fake_parmed = types.ModuleType("parmed")
+            fake_parmed.load_file = lambda *_args, **_kwargs: FakeStructure()
+            original_parmed = sys.modules.get("parmed")
+            sys.modules["parmed"] = fake_parmed
+            try:
+                spec = AmberTargetSpec(
+                    molecule=target,
+                    target_charge=0,
+                    unit_atom_count=2,
+                    reference_dp=4,
+                    target_dp=6,
+                )
+                with mock.patch("polymer_from_oligomer.shutil.which", return_value="/usr/bin/tool"):
+                    with mock.patch("polymer_from_oligomer.subprocess.run", side_effect=fake_run):
+                        files, _ = run_ambertools_pipeline(
+                            reference_sdf,
+                            tmp_path / "amber",
+                            formal_charge=0,
+                            minimize_geometry=False,
+                            target_spec=spec,
+                        )
+            finally:
+                if original_parmed is None:
+                    sys.modules.pop("parmed", None)
+                else:
+                    sys.modules["parmed"] = original_parmed
+
+            target_mol2 = tmp_path / "amber" / "polymer_typed_charged.mol2"
+            reference_mol2 = tmp_path / "amber" / "reference_typed_charged.mol2"
+            self.assertEqual(len(read_mol2_atom_parameters(reference_mol2)), len(reference.atoms))
+            self.assertEqual(len(read_mol2_atom_parameters(target_mol2)), len(target.atoms))
+            self.assertEqual(target_mol2.read_text().splitlines()[1], "POLYMER")
+            self.assertTrue(all(atom.atom_type in {"c3", "hc"} for atom in target.atoms))
+            self.assertAlmostEqual(spec.final_charge, 0.0, places=10)
+            self.assertIn("mol = loadmol2 polymer_typed_charged.mol2", (tmp_path / "amber" / "tleap.in").read_text())
+            top_path = tmp_path / "amber" / "polymer.top"
+            itp_path = tmp_path / "amber" / "polymer.itp"
+            self.assertIn(top_path, files)
+            self.assertIn(itp_path, files)
+            self.assertIn('#include "polymer.itp"', top_path.read_text())
+            self.assertIn(f"; target atoms: {len(target.atoms)}", itp_path.read_text())
+
+    def test_ambertools_pipeline_uses_explicit_hydrogen_mol2_input(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             heavy_sdf = tmp_path / "heavy.sdf"

@@ -39,6 +39,23 @@ DEFAULT_VALENCE = {
     "I": 1,
 }
 
+FORMAL_VALENCE = {
+    ("C", -1): 3,
+    ("C", 1): 3,
+    ("N", -1): 2,
+    ("N", 0): 3,
+    ("N", 1): 4,
+    ("O", -1): 1,
+    ("O", 0): 2,
+    ("O", 1): 3,
+    ("P", 1): 4,
+    ("S", -1): 1,
+    ("S", 0): 2,
+    ("S", 1): 3,
+}
+
+V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
+
 ATOMIC_MASS = {
     "H": 1.008,
     "C": 12.011,
@@ -63,6 +80,7 @@ class Atom:
     atom_type: str = ""
     charge: float = 0.0
     repeat_atom: bool = False
+    formal_charge: int = 0
 
 
 @dataclass
@@ -104,6 +122,9 @@ class Molecule:
     def molecular_weight(self) -> float:
         return sum(ATOMIC_MASS.get(atom.element, 0.0) for atom in self.atoms)
 
+    def total_formal_charge(self) -> int:
+        return sum(atom.formal_charge for atom in self.atoms)
+
 
 @dataclass
 class BuildOptions:
@@ -123,9 +144,6 @@ class MonomerBuildOptions:
     next_atom: int
     polymer_dp: int
     reference_dp: int = 5
-    oligomer_charge: int = 0
-    repeat_charge: int = 0
-    end_charge: int = 0
     outdir: Path = Path("polymer_out")
     run_external: bool = True
     minimize_geometry: bool = True
@@ -142,6 +160,20 @@ class BuildResult:
     correction_per_repeat_atom: float
     files: list[Path]
     missing_tools: list[str]
+
+
+@dataclass
+class AmberTargetSpec:
+    """Describe how AmberTools reference parameters are applied to a target."""
+
+    molecule: Molecule
+    target_charge: int
+    unit_atom_count: int | None = None
+    reference_dp: int | None = None
+    target_dp: int | None = None
+    raw_charge: float = 0.0
+    final_charge: float = 0.0
+    correction_per_repeat_atom: float = 0.0
 
 
 @dataclass
@@ -185,6 +217,8 @@ def read_sdf(path: Path) -> Molecule:
 
     atoms: list[Atom] = []
     for idx, line in enumerate(lines[4 : 4 + natoms], start=1):
+        charge_code_text = line[36:39].strip() if len(line) >= 39 else ""
+        charge_code = int(charge_code_text) if charge_code_text else 0
         atoms.append(
             Atom(
                 index=idx,
@@ -192,12 +226,31 @@ def read_sdf(path: Path) -> Molecule:
                 y=float(line[10:20]),
                 z=float(line[20:30]),
                 element=line[31:34].strip(),
+                formal_charge=V2000_CHARGE_CODE.get(charge_code, 0),
             )
         )
 
     bonds: list[Bond] = []
     for line in lines[4 + natoms : 4 + natoms + nbonds]:
         bonds.append(Bond(a=int(line[0:3]), b=int(line[3:6]), order=int(line[6:9])))
+
+    for line in lines[4 + natoms + nbonds :]:
+        if not line.startswith("M  CHG"):
+            continue
+        fields = line.split()
+        try:
+            count = int(fields[2])
+            pairs = fields[3:]
+            if len(pairs) != count * 2:
+                raise ValueError
+            for pair_index in range(count):
+                atom_index = int(pairs[pair_index * 2])
+                formal_charge = int(pairs[pair_index * 2 + 1])
+                if atom_index < 1 or atom_index > len(atoms):
+                    raise ValueError
+                atoms[atom_index - 1].formal_charge = formal_charge
+        except ValueError as exc:
+            raise ValueError(f"Malformed V2000 M  CHG record in {path}: {line}") from exc
     return Molecule(name=name, atoms=atoms, bonds=bonds)
 
 
@@ -212,6 +265,15 @@ def write_sdf(mol: Molecule, path: Path) -> None:
         )
     for bond in mol.bonds:
         lines.append(f"{bond.a:>3}{bond.b:>3}{bond.order:>3}  0  0  0  0")
+    charged_atoms = [
+        (atom.index, atom.formal_charge) for atom in mol.atoms if atom.formal_charge
+    ]
+    for start_index in range(0, len(charged_atoms), 8):
+        chunk = charged_atoms[start_index : start_index + 8]
+        lines.append(
+            f"M  CHG{len(chunk):>3}"
+            + "".join(f"{atom_index:>4}{charge:>4}" for atom_index, charge in chunk)
+        )
     lines.extend(["M  END", "$$$$"])
     path.write_text("\n".join(lines) + "\n")
 
@@ -236,6 +298,8 @@ def _sybyl_atom_type(mol: Molecule, atom: Atom) -> str:
             return "C.2"
         return "C.3"
     if element == "N":
+        if atom.formal_charge > 0 and sum(attached_orders) >= 4:
+            return "N.4"
         if has_triple:
             return "N.1"
         if has_double:
@@ -252,9 +316,17 @@ def _sybyl_atom_type(mol: Molecule, atom: Atom) -> str:
     return element
 
 
-def write_mol2(mol: Molecule, path: Path, residue_name: str = "MOL") -> None:
+def write_mol2(
+    mol: Molecule,
+    path: Path,
+    residue_name: str = "MOL",
+    molecule_name: str | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    name = re.sub(r"\s+", "_", mol.name.strip() or path.stem)
+    raw_name = molecule_name or mol.name.strip() or path.stem
+    # TLeap corrupts prmtop output and can segfault with molecule names longer
+    # than its legacy fixed-width internal buffer.
+    name = re.sub(r"[^A-Za-z0-9_.-]", "_", raw_name)[:30] or "MOL"
     residue = re.sub(r"[^A-Za-z0-9_]", "", residue_name.upper())[:8] or "MOL"
     lines = [
         "@<TRIPOS>MOLECULE",
@@ -271,7 +343,7 @@ def write_mol2(mol: Molecule, path: Path, residue_name: str = "MOL") -> None:
         lines.append(
             f"{atom.index:>7} {atom_name:<8} "
             f"{atom.x:>10.4f} {atom.y:>10.4f} {atom.z:>10.4f} "
-            f"{atom_type:<6} 1 {residue:<8} {atom.charge:>10.6f}"
+            f"{atom_type:<6} 1 {residue:<8} {atom.charge:>12.8f}"
         )
     lines.extend(["", "@<TRIPOS>BOND"])
     for idx, bond in enumerate(mol.bonds, start=1):
@@ -279,6 +351,169 @@ def write_mol2(mol: Molecule, path: Path, residue_name: str = "MOL") -> None:
     lines.append("")
     path.write_text("\n".join(lines))
     return None
+
+
+def read_mol2_atom_parameters(path: Path) -> list[tuple[str, float]]:
+    """Read atom types and charges from the ATOM section of a Tripos MOL2."""
+
+    parameters: list[tuple[str, float]] = []
+    in_atoms = False
+    for line in path.read_text().splitlines():
+        if line.startswith("@<TRIPOS>ATOM"):
+            in_atoms = True
+            continue
+        if line.startswith("@<TRIPOS>"):
+            if in_atoms:
+                break
+            continue
+        if not in_atoms or not line.strip():
+            continue
+        fields = line.split()
+        if len(fields) < 9:
+            raise ValueError(f"Malformed MOL2 atom record in {path}: {line}")
+        expected_index = len(parameters) + 1
+        try:
+            atom_index = int(fields[0])
+            charge = float(fields[8])
+        except ValueError as exc:
+            raise ValueError(f"Malformed MOL2 atom record in {path}: {line}") from exc
+        if atom_index != expected_index:
+            raise ValueError(
+                f"MOL2 atoms in {path} must be sequential and 1-based; "
+                f"expected {expected_index}, found {atom_index}."
+            )
+        parameters.append((fields[5], charge))
+    if not parameters:
+        raise ValueError(f"No MOL2 atom parameters were found in {path}.")
+    return parameters
+
+
+def copy_typed_parameters_by_index(
+    reference: Molecule,
+    parameters: list[tuple[str, float]],
+    target: Molecule,
+) -> None:
+    """Copy Antechamber results when reference and target are the same graph."""
+
+    if len(reference.atoms) != len(parameters) or len(target.atoms) != len(parameters):
+        raise ValueError(
+            "AmberTools atom count mismatch: "
+            f"reference={len(reference.atoms)}, typed MOL2={len(parameters)}, "
+            f"target={len(target.atoms)}."
+        )
+    for target_atom, (atom_type, charge) in zip(target.atoms, parameters):
+        target_atom.atom_type = atom_type
+        target_atom.charge = charge
+
+
+def _generated_hydrogens_by_parent(mol: Molecule, base_atom_count: int) -> dict[int, list[int]]:
+    """Index valence-added hydrogens by their base atom, preserving atom order."""
+
+    generated = {atom.index for atom in mol.atoms[base_atom_count:]}
+    by_parent: dict[int, list[int]] = {idx: [] for idx in range(1, base_atom_count + 1)}
+    for bond in mol.bonds:
+        if bond.a in generated and bond.b <= base_atom_count:
+            by_parent[bond.b].append(bond.a)
+        elif bond.b in generated and bond.a <= base_atom_count:
+            by_parent[bond.a].append(bond.b)
+    for indices in by_parent.values():
+        indices.sort()
+    return by_parent
+
+
+def transfer_reference_atom_parameters(
+    reference: Molecule,
+    parameters: list[tuple[str, float]],
+    target: Molecule,
+    unit_atom_count: int,
+    reference_dp: int,
+    target_dp: int,
+) -> None:
+    """Map reference head/interior/tail GAFF types and charges to a target."""
+
+    if unit_atom_count < 1:
+        raise ValueError("The monomer must contain at least one atom.")
+    if reference_dp < 2 or target_dp < 1:
+        raise ValueError("Reference DP must be at least 2 and target DP at least 1.")
+    if target_dp > 2 and reference_dp < 3:
+        raise ValueError("A target with interior units requires a reference oligomer of at least 3 units.")
+
+    reference_base_count = unit_atom_count * reference_dp
+    target_base_count = unit_atom_count * target_dp
+    if len(reference.atoms) != len(parameters):
+        raise ValueError(
+            "Antechamber reference atom count mismatch: "
+            f"reference has {len(reference.atoms)}, typed MOL2 has {len(parameters)}."
+        )
+    if len(reference.atoms) < reference_base_count:
+        raise ValueError("Reference molecule is missing one or more monomer base atoms.")
+    if len(target.atoms) < target_base_count:
+        raise ValueError("Target molecule is missing one or more monomer base atoms.")
+
+    reference_h = _generated_hydrogens_by_parent(reference, reference_base_count)
+    target_h = _generated_hydrogens_by_parent(target, target_base_count)
+
+    def reference_units_for(target_unit: int) -> list[int]:
+        if target_dp == 1:
+            return [0, reference_dp - 1]
+        if target_unit == 0:
+            return [0]
+        if target_unit == target_dp - 1:
+            return [reference_dp - 1]
+        return list(range(1, reference_dp - 1))
+
+    def averaged_parameter(reference_indices: list[int], description: str) -> tuple[str, float]:
+        values = [parameters[index - 1] for index in reference_indices]
+        atom_types = {atom_type for atom_type, _ in values}
+        if len(atom_types) != 1:
+            raise ValueError(
+                f"Reference GAFF atom types disagree for {description}: "
+                + ", ".join(sorted(atom_types))
+            )
+        atom_type = values[0][0]
+        return atom_type, sum(charge for _, charge in values) / len(values)
+
+    for target_unit in range(target_dp):
+        reference_units = reference_units_for(target_unit)
+        for local_position in range(unit_atom_count):
+            target_index = target_unit * unit_atom_count + local_position + 1
+            candidate_indices = [
+                reference_unit * unit_atom_count + local_position + 1
+                for reference_unit in reference_units
+            ]
+            target_hydrogens = target_h[target_index]
+            reference_indices = [
+                index
+                for index in candidate_indices
+                if len(reference_h[index]) == len(target_hydrogens)
+            ]
+            if not reference_indices:
+                reference_counts = sorted({len(reference_h[index]) for index in candidate_indices})
+                raise ValueError(
+                    "Reference/target hydrogen environments disagree for "
+                    f"unit atom {local_position + 1} in target unit {target_unit + 1}: "
+                    f"reference counts={reference_counts}, target count={len(target_hydrogens)}."
+                )
+            atom_type, charge = averaged_parameter(
+                reference_indices,
+                f"unit atom {local_position + 1} in target unit {target_unit + 1}",
+            )
+            target_atom = target.atom(target_index)
+            target_atom.atom_type = atom_type
+            target_atom.charge = charge
+
+            reference_hydrogen_lists = [reference_h[index] for index in reference_indices]
+            for hydrogen_position, target_hydrogen in enumerate(target_hydrogens):
+                hydrogen_references = [
+                    indices[hydrogen_position] for indices in reference_hydrogen_lists
+                ]
+                atom_type, charge = averaged_parameter(
+                    hydrogen_references,
+                    f"hydrogen {hydrogen_position + 1} on unit atom {local_position + 1}",
+                )
+                target_atom = target.atom(target_hydrogen)
+                target_atom.atom_type = atom_type
+                target_atom.charge = charge
 
 
 def clone_molecule(mol: Molecule, name: str | None = None) -> Molecule:
@@ -294,6 +529,7 @@ def clone_molecule(mol: Molecule, name: str | None = None) -> Molecule:
                 atom_type=atom.atom_type,
                 charge=atom.charge,
                 repeat_atom=atom.repeat_atom,
+                formal_charge=atom.formal_charge,
             )
             for atom in mol.atoms
         ],
@@ -323,7 +559,13 @@ def selected_bond_orders(mol: Molecule, atoms: list[int]) -> dict[tuple[int, int
 def find_repeat_matches(mol: Molecule, repeat_atoms: list[int]) -> list[list[int]]:
     query_orders = selected_bond_orders(mol, repeat_atoms)
     candidates = [
-        [atom.index for atom in mol.atoms if atom.element == mol.atom(query_atom).element and atom.element != "H"]
+        [
+            atom.index
+            for atom in mol.atoms
+            if atom.element == mol.atom(query_atom).element
+            and atom.formal_charge == mol.atom(query_atom).formal_charge
+            and atom.element != "H"
+        ]
         for query_atom in repeat_atoms
     ]
     order = sorted(range(len(repeat_atoms)), key=lambda pos: len(candidates[pos]))
@@ -494,6 +736,7 @@ def copy_source_atoms(mol: Molecule, source_atoms: Iterable[int], out: Molecule,
                 y=source.y,
                 z=source.z,
                 repeat_atom=repeat_atom,
+                formal_charge=source.formal_charge,
             )
         )
         mapping[source_idx] = new_idx
@@ -606,6 +849,15 @@ def build_polymer_graph(mol: Molecule, plan: RepeatPlan, dp: int) -> Molecule:
     return out
 
 
+def maximum_valence(atom: Atom) -> int | None:
+    """Return the supported bond-order valence for an element/formal-charge pair."""
+
+    return FORMAL_VALENCE.get(
+        (atom.element, atom.formal_charge),
+        DEFAULT_VALENCE.get(atom.element),
+    )
+
+
 def add_valence_hydrogens(mol: Molecule) -> None:
     degree = {atom.index: 0 for atom in mol.atoms}
     for bond in mol.bonds:
@@ -616,10 +868,11 @@ def add_valence_hydrogens(mol: Molecule) -> None:
     for atom in list(mol.atoms):
         if atom.element == "H":
             continue
-        valence = DEFAULT_VALENCE.get(atom.element)
+        valence = maximum_valence(atom)
         if valence is None:
             continue
-        needed = max(0, valence - degree[atom.index])
+        bond_order_sum = degree[atom.index]
+        needed = max(0, valence - bond_order_sum)
         for h_num in range(needed):
             angle = (2 * math.pi * h_num / max(1, needed)) + 0.7
             mol.atoms.append(
@@ -643,7 +896,7 @@ def assign_placeholder_gaff(mol: Molecule) -> None:
             "C": "c3",
             "H": "h1",
             "O": "oh" if sum(1 for b in mol.bonds if atom.index in (b.a, b.b)) == 2 else "os",
-            "N": "n3",
+            "N": "n4" if atom.formal_charge > 0 else "n3",
         }.get(atom.element, atom.element.lower())
         atom.charge = 0.0
 
@@ -656,6 +909,14 @@ def normalize_repeat_charges(mol: Molecule, target_charge: int) -> tuple[float, 
     correction = (target_charge - raw) / len(eligible)
     for atom in eligible:
         atom.charge += correction
+
+    # MOL2 and placeholder ITP charges are written with eight decimal places.
+    # Quantize here, then put the rounding residual on one repeat atom so the
+    # serialized atomic charges still sum to the requested integer charge.
+    for atom in mol.atoms:
+        atom.charge = round(atom.charge, 8)
+    rounding_residual = target_charge - sum(atom.charge for atom in mol.atoms)
+    eligible[-1].charge = round(eligible[-1].charge + rounding_residual, 8)
     final = sum(atom.charge for atom in mol.atoms)
     return raw, final, correction
 
@@ -719,6 +980,33 @@ def write_gromacs_placeholders(mol: Molecule, outdir: Path, target_charge: int) 
     return files, raw, final, correction
 
 
+def split_gromacs_topology(top_path: Path, itp_path: Path) -> None:
+    """Split a ParmEd GROMACS topology into an includable ITP and wrapper TOP."""
+
+    lines = top_path.read_text().splitlines()
+    system_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if re.fullmatch(r"\s*\[\s*system\s*\]\s*", line, flags=re.IGNORECASE)
+        ),
+        None,
+    )
+    if system_index is None:
+        raise ValueError(f"ParmEd topology does not contain a [ system ] section: {top_path}")
+    molecular_lines = lines[:system_index]
+    system_lines = lines[system_index:]
+    if not any(
+        re.fullmatch(r"\s*\[\s*moleculetype\s*\]\s*", line, flags=re.IGNORECASE)
+        for line in molecular_lines
+    ):
+        raise ValueError(f"ParmEd topology does not contain a [ moleculetype ] section: {top_path}")
+    itp_path.write_text("\n".join(molecular_lines).rstrip() + "\n")
+    top_path.write_text(
+        f'#include "{itp_path.name}"\n\n' + "\n".join(system_lines).rstrip() + "\n"
+    )
+
+
 def missing_external_tools() -> list[str]:
     return [tool for tool in ["antechamber", "parmchk2", "tleap"] if shutil.which(tool) is None]
 
@@ -779,7 +1067,13 @@ def ensure_explicit_hydrogen_sdf(input_sdf: Path, output_sdf: Path) -> Path:
     return output_sdf
 
 
-def run_ambertools_pipeline(reference_sdf: Path, outdir: Path, formal_charge: int, minimize_geometry: bool = True) -> tuple[list[Path], Path]:
+def run_ambertools_pipeline(
+    reference_sdf: Path,
+    outdir: Path,
+    formal_charge: int,
+    minimize_geometry: bool = True,
+    target_spec: AmberTargetSpec | None = None,
+) -> tuple[list[Path], Path]:
     missing = missing_external_tools()
     if missing:
         raise RuntimeError("Required AmberTools executable(s) not found on PATH: " + ", ".join(missing))
@@ -815,7 +1109,9 @@ def run_ambertools_pipeline(reference_sdf: Path, outdir: Path, formal_charge: in
     write_mol2(antechamber_mol, antechamber_mol2)
     files.append(antechamber_mol2)
 
-    mol2 = outdir / "polymer_typed_charged.mol2"
+    reference_mol2 = outdir / (
+        "reference_typed_charged.mol2" if target_spec is not None else "polymer_typed_charged.mol2"
+    )
     frcmod = outdir / "polymer.frcmod"
     prmtop = outdir / "polymer.prmtop"
     inpcrd = outdir / "polymer.inpcrd"
@@ -828,7 +1124,7 @@ def run_ambertools_pipeline(reference_sdf: Path, outdir: Path, formal_charge: in
             "-fi",
             "mol2",
             "-o",
-            str(mol2),
+            str(reference_mol2),
             "-fo",
             "mol2",
             "-c",
@@ -842,13 +1138,56 @@ def run_ambertools_pipeline(reference_sdf: Path, outdir: Path, formal_charge: in
         ],
         check=True,
     )
-    subprocess.run(["parmchk2", "-i", str(mol2), "-f", "mol2", "-o", str(frcmod)], check=True)
+    subprocess.run(
+        ["parmchk2", "-i", str(reference_mol2), "-f", "mol2", "-o", str(frcmod)],
+        check=True,
+    )
+
+    final_mol2 = reference_mol2
+    if target_spec is not None:
+        parameters = read_mol2_atom_parameters(reference_mol2)
+        mapping_values = (
+            target_spec.unit_atom_count,
+            target_spec.reference_dp,
+            target_spec.target_dp,
+        )
+        if all(value is None for value in mapping_values):
+            copy_typed_parameters_by_index(antechamber_mol, parameters, target_spec.molecule)
+        elif all(value is not None for value in mapping_values):
+            transfer_reference_atom_parameters(
+                antechamber_mol,
+                parameters,
+                target_spec.molecule,
+                unit_atom_count=target_spec.unit_atom_count,
+                reference_dp=target_spec.reference_dp,
+                target_dp=target_spec.target_dp,
+            )
+        else:
+            raise ValueError(
+                "unit_atom_count, reference_dp, and target_dp must be supplied together "
+                "for reference-to-target parameter transfer."
+            )
+        raw, final, correction = normalize_repeat_charges(
+            target_spec.molecule,
+            target_spec.target_charge,
+        )
+        target_spec.raw_charge = raw
+        target_spec.final_charge = final
+        target_spec.correction_per_repeat_atom = correction
+        final_mol2 = outdir / "polymer_typed_charged.mol2"
+        write_mol2(
+            target_spec.molecule,
+            final_mol2,
+            residue_name="POL",
+            molecule_name="POLYMER",
+        )
+
     leap_in.write_text(
         "\n".join(
             [
                 "source leaprc.gaff2",
                 f"loadamberparams {frcmod.name}",
-                f"mol = loadmol2 {mol2.name}",
+                f"mol = loadmol2 {final_mol2.name}",
                 f"saveamberparm mol {prmtop.name} {inpcrd.name}",
                 "quit",
             ]
@@ -857,9 +1196,25 @@ def run_ambertools_pipeline(reference_sdf: Path, outdir: Path, formal_charge: in
     )
     subprocess.run(["tleap", "-f", str(leap_in.name)], cwd=outdir, check=True)
     structure = pmd.load_file(str(prmtop), str(inpcrd))
-    structure.save(str(outdir / "polymer.top"), overwrite=True)
-    structure.save(str(outdir / "polymer.gro"), overwrite=True)
-    return files + [mol2, frcmod, leap_in, prmtop, inpcrd, outdir / "polymer.top", outdir / "polymer.gro"], antechamber_mol2
+    if target_spec is not None and len(structure.atoms) != len(target_spec.molecule.atoms):
+        raise RuntimeError(
+            "TLeap target atom count mismatch: "
+            f"expected {len(target_spec.molecule.atoms)}, found {len(structure.atoms)}."
+        )
+    top_path = outdir / "polymer.top"
+    gro_path = outdir / "polymer.gro"
+    structure.save(str(top_path), overwrite=True)
+    structure.save(str(gro_path), overwrite=True)
+    itp_path = outdir / "polymer.itp"
+    if target_spec is not None:
+        split_gromacs_topology(top_path, itp_path)
+    generated = [reference_mol2, frcmod]
+    if final_mol2 != reference_mol2:
+        generated.append(final_mol2)
+    generated.extend([leap_in, prmtop, inpcrd, top_path, gro_path])
+    if target_spec is not None:
+        generated.append(itp_path)
+    return files + generated, antechamber_mol2
 
 
 def write_outputs_for_polymer(
@@ -871,6 +1226,8 @@ def write_outputs_for_polymer(
     extra_metadata: dict | None = None,
     external_sdf: Path | None = None,
     external_formal_charge: int | None = None,
+    reference_unit_atom_count: int | None = None,
+    reference_dp: int | None = None,
 ) -> BuildResult:
     target_charge = options.dp * options.repeat_charge + options.end_charge
     options.outdir.mkdir(parents=True, exist_ok=True)
@@ -882,16 +1239,31 @@ def write_outputs_for_polymer(
     requested_antechamber_sdf = external_sdf or polymer_sdf
     actual_antechamber_input = requested_antechamber_sdf
     antechamber_charge = target_charge if external_formal_charge is None else external_formal_charge
+    parameterization_mode = "placeholder"
     if options.run_external and not missing:
+        if (reference_unit_atom_count is None) != (reference_dp is None):
+            raise ValueError("reference_unit_atom_count and reference_dp must be supplied together.")
+        parameterization_mode = (
+            "reference_to_target" if reference_dp is not None else "direct_target"
+        )
+        target_spec = AmberTargetSpec(
+            molecule=polymer,
+            target_charge=target_charge,
+            unit_atom_count=reference_unit_atom_count,
+            reference_dp=reference_dp,
+            target_dp=options.dp if reference_dp is not None else None,
+        )
         external_files, actual_antechamber_input = run_ambertools_pipeline(
             requested_antechamber_sdf,
             options.outdir,
             antechamber_charge,
             minimize_geometry=options.minimize_geometry,
+            target_spec=target_spec,
         )
         files.extend(external_files)
-        assign_placeholder_gaff(polymer)
-        raw, final, correction = normalize_repeat_charges(polymer, target_charge)
+        raw = target_spec.raw_charge
+        final = target_spec.final_charge
+        correction = target_spec.correction_per_repeat_atom
     else:
         placeholder_files, raw, final, correction = write_gromacs_placeholders(polymer, options.outdir, target_charge)
         files.extend(placeholder_files)
@@ -905,6 +1277,9 @@ def write_outputs_for_polymer(
         "atoms": len(polymer.atoms),
         "bonds": len(polymer.bonds),
         "target_charge": target_charge,
+        "raw_charge": raw,
+        "charge_correction_per_repeat_atom": correction,
+        "parameterization_mode": parameterization_mode,
         "antechamber_source_sdf": str(requested_antechamber_sdf),
         "antechamber_input": str(actual_antechamber_input),
         "antechamber_input_format": actual_antechamber_input.suffix.lstrip(".").lower() or "unknown",
@@ -943,6 +1318,7 @@ def build_polymer_from_oligomer(input_sdf: Path, options: BuildOptions) -> Build
 
 def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) -> BuildResult:
     monomer = read_sdf(input_sdf)
+    monomer_formal_charge = monomer.total_formal_charge()
     options.outdir.mkdir(parents=True, exist_ok=True)
     reference_oligomer, repeat_atoms = build_reference_oligomer_from_monomer(
         monomer,
@@ -951,6 +1327,7 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
         reference_dp=options.reference_dp,
         junction_order=options.junction_order,
     )
+    reference_formal_charge = reference_oligomer.total_formal_charge()
     reference_sdf = options.outdir / "reference_oligomer_from_monomer.sdf"
     write_sdf(reference_oligomer, reference_sdf)
     reference_for_antechamber = clone_molecule(reference_oligomer, name=f"{reference_oligomer.name}_H")
@@ -980,9 +1357,7 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
         BuildOptions(
             repeat_atoms=repeat_atoms,
             dp=options.polymer_dp,
-            oligomer_charge=options.oligomer_charge,
-            repeat_charge=options.repeat_charge,
-            end_charge=options.end_charge,
+            repeat_charge=monomer_formal_charge,
             outdir=options.outdir,
             run_external=options.run_external,
             minimize_geometry=options.minimize_geometry,
@@ -996,9 +1371,15 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             "reference_oligomer_sdf": str(reference_sdf),
             "reference_oligomer_antechamber_sdf": str(reference_antechamber_sdf),
             "reference_repeat_atoms": repeat_atoms,
+            "monomer_atom_formal_charge": monomer_formal_charge,
+            "reference_oligomer_formal_charge": reference_formal_charge,
+            "target_polymer_formal_charge": monomer_formal_charge * options.polymer_dp,
+            "formal_charge_inferred_from_atoms": True,
         },
         external_sdf=reference_antechamber_sdf,
-        external_formal_charge=options.reference_dp * options.repeat_charge + options.end_charge,
+        external_formal_charge=reference_formal_charge,
+        reference_unit_atom_count=len(monomer_atom_order),
+        reference_dp=options.reference_dp,
     )
     for path in [reference_sdf, reference_antechamber_sdf]:
         if path not in result.files:
@@ -1015,9 +1396,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reference-dp", type=int, default=5, help="Monomer mode: hidden reference oligomer size.")
     parser.add_argument("--junction-order", type=int, default=1, help="Monomer mode: monomer-monomer bond order.")
     parser.add_argument("--dp", type=int, required=True, help="Degree of polymerization")
-    parser.add_argument("--oligomer-charge", type=int, default=0)
-    parser.add_argument("--repeat-charge", type=int, default=0)
-    parser.add_argument("--end-charge", type=int, default=0)
+    parser.add_argument("--oligomer-charge", type=int, default=0, help="Legacy oligomer mode only.")
+    parser.add_argument("--repeat-charge", type=int, default=0, help="Legacy oligomer mode only.")
+    parser.add_argument("--end-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--outdir", type=Path, default=Path("polymer_out"))
     parser.add_argument(
         "--no-minimize-geometry",
@@ -1045,9 +1426,6 @@ def main(argv: Iterable[str] | None = None) -> int:
                 next_atom=args.next_atom,
                 reference_dp=args.reference_dp,
                 polymer_dp=args.dp,
-                oligomer_charge=args.oligomer_charge,
-                repeat_charge=args.repeat_charge,
-                end_charge=args.end_charge,
                 outdir=args.outdir,
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,

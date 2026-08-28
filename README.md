@@ -3,7 +3,7 @@
 This project wraps `polymer_from_oligomer.py` with a practical local web GUI.
 The browser page lets a user draw or paste a monomer, preview atom indices,
 mark the atoms that connect to the previous and next monomer, choose the hidden
-reference oligomer size, choose the final polymer DP and charge settings, then
+reference oligomer size and final polymer DP, then
 call the same Python backend used by the command line.
 
 The default workflow is now monomer-first:
@@ -85,6 +85,18 @@ Antechamber is run with `-fi mol2` on `antechamber_input.mol2`; this avoids
 AmberTools SDF parser failures for larger hidden oligomers whose atom and bond
 counts exceed two digits.
 
+For monomer mode, `reference_typed_charged.mol2` stores the GAFF2 atom types
+and AM1-BCC charges assigned to the reference oligomer. The first and last
+reference units supply terminal templates, while equivalent interior-unit
+charges are averaged. The parameters are expanded onto the requested target
+in `polymer_typed_charged.mol2`.
+
+`parmchk2` runs on the reference. TLeap then loads the target MOL2 with GAFF2
+and the reference-derived `polymer.frcmod`, generating target bonds, angles,
+dihedrals, and impropers. The production `polymer.itp`, `polymer.top`, and
+`polymer.gro` therefore describe the final requested DP and have the same atom
+count as `polymer.sdf`.
+
 ## Run the GUI
 
 ```bash
@@ -119,6 +131,14 @@ Manual drawing workflow:
    previous/next connection atom fields.
 9. Click `Use drawing` to export the canvas to MOL/SDF text, then build.
 
+For an ionic repeat, choose `-1` or `+1` under **Formal charge**, then click
+the charged atom. Choose `0` and click it again to remove the assignment. The
+charge is stored in the MOL/SDF `M  CHG` records, displayed in the preview, and
+used to infer both the reference-oligomer Antechamber charge and the requested
+polymer charge. Hydrogen completion is formal-charge aware: for example, N+ is
+allowed four bond orders, so a quaternary nitrogen with four single bonds gets
+no additional hydrogen, while a three-coordinate N+ gets one.
+
 The GUI writes job folders under `outputs/`.
 
 ## Run the CLI
@@ -131,9 +151,6 @@ python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
   --next-atom 3 \
   --reference-dp 5 \
   --dp 12 \
-  --oligomer-charge 0 \
-  --repeat-charge 0 \
-  --end-charge 0 \
   --outdir outputs/PEG_repeat_DP12_cli \
   --no-external
 ```
@@ -146,9 +163,6 @@ python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
   --next-atom 3 \
   --reference-dp 5 \
   --dp 12 \
-  --oligomer-charge 0 \
-  --repeat-charge 0 \
-  --end-charge 0 \
   --outdir outputs/PEG_repeat_DP12_amber
 ```
 
@@ -190,6 +204,7 @@ The tests do not require RDKit, AmberTools, ParmEd, Flask, or GROMACS.
 - Neighboring repeats must be connected by one inferred backbone junction bond.
 - Side groups must be included in the selected repeat atom list if they should
   be replicated on every repeat.
-- Placeholder `.itp/.top/.gro` files are suitable for testing data flow, atom
-  counts, and charge normalization, not production simulation.
+- When external parameterization is disabled or AmberTools is unavailable,
+  placeholder `.itp/.top/.gro` files are suitable only for testing data flow,
+  atom counts, and charge normalization.
 - Real force-field assignment still depends on AmberTools, ParmEd, and RDKit.

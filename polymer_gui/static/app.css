@@ -121,6 +121,31 @@ h2 {
   gap: 4px;
 }
 
+.charge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.charge-grid button {
+  min-width: 0;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.charge-grid button.active {
+  background: linear-gradient(#3f91d2, #1d6dab);
+  border-color: #084d85;
+  color: #ffffff;
+}
+
+.tool-hint {
+  margin-top: 5px;
+  color: #526679;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
 .element-grid button,
 .action-group button {
   min-width: 0;
@@ -247,6 +272,14 @@ textarea {
 .atom strong {
   display: block;
   font-size: 17px;
+}
+
+.atom-charge {
+  margin-left: 2px;
+  color: #8b1e3f;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: super;
 }
 
 a {

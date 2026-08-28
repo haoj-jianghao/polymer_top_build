@@ -25,6 +25,15 @@
                 <button type="button" data-element="Cl">Cl</button>
               </div>
             </div>
+            <div class="tool-group">
+              <div class="tool-title">Formal charge</div>
+              <div class="charge-grid" id="chargePalette">
+                <button type="button" data-charge="-1">−1</button>
+                <button type="button" data-charge="0">0</button>
+                <button type="button" data-charge="1">+1</button>
+              </div>
+              <div class="tool-hint">Choose a charge, then click an atom.</div>
+            </div>
             <div class="tool-group action-group">
               <button id="loadPeg" type="button">PEG repeat</button>
               <button id="deleteSelected" type="button">Delete</button>
@@ -70,18 +79,6 @@
           <label class="field">
             <span>Polymer DP</span>
             <input id="dp" type="number" min="1" value="12">
-          </label>
-          <label class="field">
-            <span>Reference oligomer formal charge</span>
-            <input id="oligomer_charge" type="number" step="1" value="0">
-          </label>
-          <label class="field">
-            <span>Repeat-unit formal charge</span>
-            <input id="repeat_charge" type="number" step="1" value="0">
-          </label>
-          <label class="field">
-            <span>End-group formal charge</span>
-            <input id="end_charge" type="number" step="1" value="0">
           </label>
           <label class="field">
             <span>Job name</span>

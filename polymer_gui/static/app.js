@@ -14,6 +14,8 @@ const sketch = {
   atoms: [],
   bonds: [],
   element: "C",
+  tool: "atom",
+  formalCharge: 0,
   selectedAtom: null,
   selectedBond: null,
   pointerStart: null,
@@ -70,7 +72,7 @@ function bondAt(point) {
 }
 
 function addAtom(element, x, y) {
-  sketch.atoms.push({ id: sketch.atoms.length + 1, element, x, y });
+  sketch.atoms.push({ id: sketch.atoms.length + 1, element, x, y, formalCharge: 0 });
 }
 
 function addBond(a, b) {
@@ -126,9 +128,20 @@ function elementColor(element) {
   return { C: "#111111", O: "#cf2f2f", N: "#2356c4", S: "#9a6b00", H: "#64717b", Cl: "#11824c" }[element] || "#111111";
 }
 
+function formalChargeLabel(charge) {
+  if (!charge) return "";
+  const magnitude = Math.abs(charge);
+  return (magnitude === 1 ? "" : String(magnitude)) + (charge > 0 ? "+" : "−");
+}
+
+
 function updateStructureLine() {
   const line = document.getElementById("structureLine");
-  if (line) line.value = `Drawn_monomer    atoms=${sketch.atoms.length}    bonds=${sketch.bonds.length}`;
+  const formalCharge = sketch.atoms.reduce((sum, atom) => sum + (atom.formalCharge || 0), 0);
+  if (line) {
+    line.value = "Drawn_monomer    atoms=" + sketch.atoms.length
+      + "    bonds=" + sketch.bonds.length + "    charge=" + formalCharge;
+  }
 }
 
 function molBlockFromSketch() {
@@ -142,6 +155,14 @@ function molBlockFromSketch() {
   }
   for (const bond of sketch.bonds) {
     lines.push(`${String(bond.a).padStart(3)}${String(bond.b).padStart(3)}${String(bond.order).padStart(3)}  0  0  0  0`);
+  }
+  const chargedAtoms = sketch.atoms.filter(atom => atom.formalCharge);
+  for (let start = 0; start < chargedAtoms.length; start += 8) {
+    const chunk = chargedAtoms.slice(start, start + 8);
+    const pairs = chunk
+      .map(atom => String(atom.id).padStart(4) + String(atom.formalCharge).padStart(4))
+      .join("");
+    lines.push("M  CHG" + String(chunk.length).padStart(3) + pairs);
   }
   lines.push("M  END", "$$$$");
   return lines.join("\n");
@@ -240,6 +261,11 @@ function drawSketch() {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(atom.element, atom.x, atom.y - 1);
+    if (atom.formalCharge) {
+      ctx.fillStyle = "#8b1e3f";
+      ctx.font = "bold 12px Arial, sans-serif";
+      ctx.fillText(formalChargeLabel(atom.formalCharge), atom.x + 15, atom.y - 12);
+    }
     ctx.fillStyle = "#0b5cab";
     ctx.font = "12px Arial, sans-serif";
     ctx.fillText(String(atom.id), atom.x + 18, atom.y + 18);
@@ -259,11 +285,14 @@ function loadMolIntoSketch(sdfText) {
     const line = lines[4 + i];
     const x = Number.parseFloat(line.slice(0, 10));
     const y = Number.parseFloat(line.slice(10, 20));
+    const chargeCode = Number.parseInt(line.slice(36, 39).trim(), 10) || 0;
+    const chargeFromCode = { 1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3 };
     sketch.atoms.push({
       id: i + 1,
       element: line.slice(31, 34).trim(),
       x: 100 + x * 60,
       y: canvas.height / 2 - y * 60,
+      formalCharge: chargeFromCode[chargeCode] || 0,
     });
   }
   for (let i = 0; i < bondCount; i += 1) {
@@ -273,6 +302,18 @@ function loadMolIntoSketch(sdfText) {
       b: Number.parseInt(line.slice(3, 6), 10),
       order: Number.parseInt(line.slice(6, 9), 10) || 1,
     });
+  }
+  for (let i = 4 + atomCount + bondCount; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!line.startsWith("M  CHG")) continue;
+    const fields = line.trim().split(/\s+/);
+    const count = Number.parseInt(fields[2], 10) || 0;
+    for (let pair = 0; pair < count; pair += 1) {
+      const atomIndex = Number.parseInt(fields[3 + pair * 2], 10);
+      const formalCharge = Number.parseInt(fields[4 + pair * 2], 10);
+      const atom = sketch.atoms[atomIndex - 1];
+      if (atom && Number.isFinite(formalCharge)) atom.formalCharge = formalCharge;
+    }
   }
   sketch.selectedAtom = null;
   sketch.selectedBond = null;
@@ -317,6 +358,25 @@ canvas.addEventListener("mouseup", event => {
   const endAtom = atomAt(point);
   const startAtom = sketch.pointerStart.atom;
   const dragged = Math.hypot(point.x - sketch.pointerStart.x, point.y - sketch.pointerStart.y) > 8;
+
+  if (sketch.tool === "charge") {
+    if (endAtom) {
+      endAtom.formalCharge = sketch.formalCharge;
+      sketch.selectedAtom = endAtom;
+      sketch.selectedBond = null;
+      setStatus(
+        "Assigned formal charge " + formalChargeLabel(sketch.formalCharge)
+        + (sketch.formalCharge ? "" : "0") + " to atom " + endAtom.id + "."
+      );
+    } else {
+      setStatus("Choose an existing atom to assign its formal charge.");
+    }
+    sketch.pointerStart = null;
+    sketch.previewPoint = null;
+    sketch.isDragging = false;
+    drawSketch();
+    return;
+  }
 
   if (dragged) {
     let a = startAtom;
@@ -386,8 +446,23 @@ window.addEventListener("mouseup", () => {
 
 document.querySelectorAll("#atomPalette button").forEach(button => {
   button.addEventListener("click", () => {
+    sketch.tool = "atom";
     sketch.element = button.dataset.element;
     setActiveButton("atomPalette", "element", sketch.element);
+    document.querySelectorAll("#chargePalette button").forEach(item => item.classList.remove("active"));
+  });
+});
+
+document.querySelectorAll("#chargePalette button").forEach(button => {
+  button.addEventListener("click", () => {
+    sketch.tool = "charge";
+    sketch.formalCharge = Number.parseInt(button.dataset.charge, 10) || 0;
+    setActiveButton("chargePalette", "charge", String(sketch.formalCharge));
+    if (sketch.selectedAtom) {
+      sketch.selectedAtom.formalCharge = sketch.formalCharge;
+      drawSketch();
+    }
+    setStatus("Formal-charge tool active. Click an atom to assign " + formalChargeLabel(sketch.formalCharge) + (sketch.formalCharge ? "" : "0") + ".");
   });
 });
 
@@ -402,7 +477,6 @@ document.getElementById("clearSketch").addEventListener("click", () => {
 });
 
 document.getElementById("deleteSelected").addEventListener("click", deleteSelected);
-
 window.addEventListener("keydown", event => {
   if (event.key !== "Delete" && event.key !== "Backspace") return;
   const tag = document.activeElement ? document.activeElement.tagName : "";
@@ -420,9 +494,6 @@ function formData() {
     "next_atom",
     "reference_dp",
     "dp",
-    "oligomer_charge",
-    "repeat_charge",
-    "end_charge",
     "job_name",
   ]) {
     data.append(id, document.getElementById(id).value);
@@ -440,15 +511,20 @@ async function postForm(url) {
 
 function renderPreview(payload) {
   document.getElementById("summary").textContent =
-    `${payload.name}\nFormula: ${payload.formula}\nMolecular weight: ${payload.molecular_weight}\n` +
-    `Atoms: ${payload.atoms.length}\nBonds: ${payload.bonds.length}`;
+    payload.name + "\nFormula: " + payload.formula
+    + "\nMolecular weight: " + payload.molecular_weight
+    + "\nFormal charge: " + payload.formal_charge
+    + "\nAtoms: " + payload.atoms.length
+    + "\nBonds: " + payload.bonds.length;
   const atoms = document.getElementById("atoms");
   atoms.innerHTML = "";
   for (const atom of payload.atoms) {
     const div = document.createElement("button");
     div.type = "button";
     div.className = "atom";
-    div.innerHTML = `<strong>${atom.index}</strong>${atom.element}`;
+    const charge = formalChargeLabel(atom.formal_charge);
+    div.innerHTML = "<strong>" + atom.index + "</strong>" + atom.element
+      + (charge ? '<span class="atom-charge">' + charge + "</span>" : "");
     div.addEventListener("click", () => chooseConnectionAtom(atom.index));
     atoms.appendChild(div);
   }
