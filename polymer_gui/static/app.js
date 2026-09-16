@@ -16,6 +16,7 @@ const sketch = {
   element: "C",
   tool: "atom",
   formalCharge: 0,
+  bondStereo: 0,
   selectedAtom: null,
   selectedBond: null,
   pointerStart: null,
@@ -81,9 +82,16 @@ function addBond(a, b) {
     (bond.a === a.id && bond.b === b.id) || (bond.a === b.id && bond.b === a.id)
   );
   if (existing) {
-    existing.order = existing.order === 1 ? 2 : 1;
+    if (sketch.tool === "stereo") {
+      if (existing.order === 1) existing.stereo = sketch.bondStereo;
+    } else {
+      cycleBondOrder(existing);
+    }
   } else {
-    sketch.bonds.push({ a: a.id, b: b.id, order: 1 });
+    sketch.bonds.push({
+      a: a.id, b: b.id, order: 1,
+      stereo: sketch.tool === "stereo" ? sketch.bondStereo : 0,
+    });
   }
 }
 
@@ -94,7 +102,10 @@ function renumberAtoms() {
     atom.id = index + 1;
   });
   sketch.bonds = sketch.bonds
-    .map(bond => ({ a: oldToNew.get(bond.a), b: oldToNew.get(bond.b), order: bond.order }))
+    .map(bond => ({
+      a: oldToNew.get(bond.a), b: oldToNew.get(bond.b),
+      order: bond.order, stereo: bond.stereo || 0,
+    }))
     .filter(bond => bond.a && bond.b);
 }
 
@@ -125,7 +136,16 @@ function deleteSelected() {
 }
 
 function elementColor(element) {
-  return { C: "#111111", O: "#cf2f2f", N: "#2356c4", S: "#9a6b00", H: "#64717b", Cl: "#11824c" }[element] || "#111111";
+  return {
+    C: "#111111", O: "#cf2f2f", N: "#2356c4", S: "#9a6b00",
+    H: "#64717b", Cl: "#11824c", Si: "#8a5a44", P: "#db6f00",
+    F: "#5a9c3f", Br: "#8b3a10", I: "#5e2f8a",
+  }[element] || "#111111";
+}
+
+function cycleBondOrder(bond) {
+  bond.order = bond.order >= 3 ? 1 : bond.order + 1;
+  bond.stereo = 0;
 }
 
 function formalChargeLabel(charge) {
@@ -154,7 +174,11 @@ function molBlockFromSketch() {
     lines.push(`${x}${y}${"0.0000".padStart(10)} ${atom.element.padEnd(3)} 0  0  0  0  0  0  0  0  0  0  0  0`);
   }
   for (const bond of sketch.bonds) {
-    lines.push(`${String(bond.a).padStart(3)}${String(bond.b).padStart(3)}${String(bond.order).padStart(3)}  0  0  0  0`);
+    lines.push(
+      String(bond.a).padStart(3) + String(bond.b).padStart(3)
+      + String(bond.order).padStart(3) + String(bond.stereo || 0).padStart(3)
+      + "  0  0  0"
+    );
   }
   const chargedAtoms = sketch.atoms.filter(atom => atom.formalCharge);
   for (let start = 0; start < chargedAtoms.length; start += 8) {
@@ -174,15 +198,35 @@ function updateMolTextFromSketch() {
   sdfBox.value = sketch.atoms.length > 0 ? molBlockFromSketch() : "";
 }
 
-function drawBondLine(a, b, order) {
+function drawBondLine(a, b, order, stereo = 0) {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const length = Math.hypot(dx, dy) || 1;
   const ox = (-dy / length) * 4;
   const oy = (dx / length) * 4;
   ctx.strokeStyle = "#111111";
+  ctx.fillStyle = "#111111";
   ctx.lineWidth = 2.4;
-  if (order === 2) {
+  ctx.setLineDash([]);
+  if (order === 1 && stereo === 1) {
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x + ox * 2, b.y + oy * 2);
+    ctx.lineTo(b.x - ox * 2, b.y - oy * 2);
+    ctx.closePath();
+    ctx.fill();
+  } else if (order === 1 && stereo === 6) {
+    for (let step = 1; step <= 7; step += 1) {
+      const fraction = step / 8;
+      const centerX = a.x + dx * fraction;
+      const centerY = a.y + dy * fraction;
+      const widthScale = fraction * 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX - ox * widthScale, centerY - oy * widthScale);
+      ctx.lineTo(centerX + ox * widthScale, centerY + oy * widthScale);
+      ctx.stroke();
+    }
+  } else if (order === 2) {
     ctx.beginPath();
     ctx.moveTo(a.x + ox, a.y + oy);
     ctx.lineTo(b.x + ox, b.y + oy);
@@ -190,6 +234,19 @@ function drawBondLine(a, b, order) {
     ctx.beginPath();
     ctx.moveTo(a.x - ox, a.y - oy);
     ctx.lineTo(b.x - ox, b.y - oy);
+    ctx.stroke();
+  } else if (order === 3) {
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(a.x + ox * 1.6, a.y + oy * 1.6);
+    ctx.lineTo(b.x + ox * 1.6, b.y + oy * 1.6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(a.x - ox * 1.6, a.y - oy * 1.6);
+    ctx.lineTo(b.x - ox * 1.6, b.y - oy * 1.6);
     ctx.stroke();
   } else {
     ctx.beginPath();
@@ -231,7 +288,7 @@ function drawSketch() {
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
     }
-    drawBondLine(a, b, bond.order);
+    drawBondLine(a, b, bond.order, bond.stereo || 0);
   }
 
   if (sketch.isDragging && sketch.pointerStart && sketch.previewPoint) {
@@ -301,6 +358,7 @@ function loadMolIntoSketch(sdfText) {
       a: Number.parseInt(line.slice(0, 3), 10),
       b: Number.parseInt(line.slice(3, 6), 10),
       order: Number.parseInt(line.slice(6, 9), 10) || 1,
+      stereo: Number.parseInt(line.slice(9, 12), 10) || 0,
     });
   }
   for (let i = 4 + atomCount + bondCount; i < lines.length; i += 1) {
@@ -378,6 +436,27 @@ canvas.addEventListener("mouseup", event => {
     return;
   }
 
+  if (sketch.tool === "stereo" && !dragged) {
+    const hitBond = bondAt(point);
+    if (hitBond) {
+      if (hitBond.order === 1) {
+        hitBond.stereo = sketch.bondStereo;
+        sketch.selectedBond = hitBond;
+        sketch.selectedAtom = null;
+        setStatus("Assigned stereochemical bond style.");
+      } else {
+        setStatus("Wedge and dash styles can only be assigned to single bonds.");
+      }
+    } else {
+      setStatus("Choose an existing single bond, or drag to draw a stereochemical bond.");
+    }
+    sketch.pointerStart = null;
+    sketch.previewPoint = null;
+    sketch.isDragging = false;
+    drawSketch();
+    return;
+  }
+
   if (dragged) {
     let a = startAtom;
     let b = endAtom;
@@ -400,7 +479,7 @@ canvas.addEventListener("mouseup", event => {
   } else {
     const hitBond = bondAt(point);
     if (hitBond) {
-      hitBond.order = hitBond.order === 1 ? 2 : 1;
+      cycleBondOrder(hitBond);
       sketch.selectedBond = hitBond;
       sketch.selectedAtom = null;
     } else {
@@ -450,6 +529,7 @@ document.querySelectorAll("#atomPalette button").forEach(button => {
     sketch.element = button.dataset.element;
     setActiveButton("atomPalette", "element", sketch.element);
     document.querySelectorAll("#chargePalette button").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll("#stereoPalette button").forEach(item => item.classList.remove("active"));
   });
 });
 
@@ -458,11 +538,24 @@ document.querySelectorAll("#chargePalette button").forEach(button => {
     sketch.tool = "charge";
     sketch.formalCharge = Number.parseInt(button.dataset.charge, 10) || 0;
     setActiveButton("chargePalette", "charge", String(sketch.formalCharge));
+    document.querySelectorAll("#atomPalette button").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll("#stereoPalette button").forEach(item => item.classList.remove("active"));
     if (sketch.selectedAtom) {
       sketch.selectedAtom.formalCharge = sketch.formalCharge;
       drawSketch();
     }
     setStatus("Formal-charge tool active. Click an atom to assign " + formalChargeLabel(sketch.formalCharge) + (sketch.formalCharge ? "" : "0") + ".");
+  });
+});
+
+document.querySelectorAll("#stereoPalette button").forEach(button => {
+  button.addEventListener("click", () => {
+    sketch.tool = "stereo";
+    sketch.bondStereo = Number.parseInt(button.dataset.stereo, 10) || 0;
+    setActiveButton("stereoPalette", "stereo", String(sketch.bondStereo));
+    document.querySelectorAll("#atomPalette button").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll("#chargePalette button").forEach(item => item.classList.remove("active"));
+    setStatus("Bond-stereo tool active. Draw or click a single bond to apply the selected style.");
   });
 });
 
@@ -553,7 +646,7 @@ document.getElementById("loadPeg").addEventListener("click", () => {
   document.getElementById("previous_atom").value = "1";
   document.getElementById("next_atom").value = "3";
   loadMolIntoSketch(pegRepeatSdf);
-  setStatus("Loaded PEG repeat monomer. The hidden reference oligomer size controls the AmberTools training structure.");
+  setStatus("Loaded PEG example monomer. The hidden reference oligomer size controls the AmberTools training structure.");
 });
 
 document.getElementById("pullMol").addEventListener("click", () => {

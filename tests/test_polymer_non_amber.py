@@ -169,6 +169,68 @@ class PolymerNonAmberTests(unittest.TestCase):
         self.assertEqual(len(oligomer.bonds), 14)
         self.assertEqual([bond.order for bond in oligomer.bonds[-4:]], [1, 1, 1, 1])
 
+    def test_silicon_phosphorus_valence_and_mass_are_supported(self):
+        molecule = Molecule(
+            "silicon_phosphate",
+            atoms=[
+                Atom(1, "Si"),
+                Atom(2, "C"), Atom(3, "C"), Atom(4, "C"), Atom(5, "C"),
+                Atom(6, "P"),
+                Atom(7, "O"), Atom(8, "O"), Atom(9, "O"), Atom(10, "O"),
+            ],
+            bonds=[
+                Bond(1, 2), Bond(1, 3), Bond(1, 4), Bond(1, 5),
+                Bond(6, 7, 2), Bond(6, 8), Bond(6, 9), Bond(6, 10),
+            ],
+        )
+        add_valence_hydrogens(molecule)
+        for center in (1, 6):
+            neighbors = [
+                molecule.atom(bond.b if bond.a == center else bond.a)
+                for bond in molecule.bonds
+                if center in (bond.a, bond.b)
+            ]
+            self.assertFalse(any(atom.element == "H" for atom in neighbors))
+        self.assertGreater(molecule.molecular_weight(), 28.085 + 30.974)
+
+    def test_wedge_and_dash_stereo_round_trip_and_repeat(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "chiral_monomer.sdf"
+            monomer = Molecule(
+                "chiral_monomer",
+                atoms=[
+                    Atom(1, "C"), Atom(2, "C", 1.5, 0),
+                    Atom(3, "N", -1.5, 0), Atom(4, "O", 0, 1.5),
+                ],
+                bonds=[Bond(1, 2, 1, 1), Bond(1, 3, 1, 6), Bond(1, 4)],
+            )
+            write_sdf(monomer, path)
+            restored = read_sdf(path)
+            self.assertEqual([bond.stereo for bond in restored.bonds], [1, 6, 0])
+            oligomer, _ = build_reference_oligomer_from_monomer(
+                restored, previous_atom=2, next_atom=3, reference_dp=3
+            )
+            self.assertEqual(sum(bond.stereo == 1 for bond in oligomer.bonds), 3)
+            self.assertEqual(sum(bond.stereo == 6 for bond in oligomer.bonds), 3)
+
+            result = build_polymer_from_monomer(
+                path,
+                MonomerBuildOptions(
+                    previous_atom=2,
+                    next_atom=3,
+                    reference_dp=3,
+                    polymer_dp=4,
+                    outdir=Path(tmp) / "chiral_DP4",
+                    run_external=False,
+                ),
+            )
+            self.assertEqual(sum(bond.stereo == 1 for bond in result.molecule.bonds), 4)
+            self.assertEqual(sum(bond.stereo == 6 for bond in result.molecule.bonds), 4)
+            self.assertTrue(
+                all(abs(atom.z) < 1e-12 for atom in result.molecule.atoms),
+                "Generated hydrogens must not override a 2D wedge drawing.",
+            )
+
     def test_builds_polymer_from_monomer_workflow(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -394,9 +456,10 @@ $$$$
 
     def test_rdkit_mmff_optimizer_called_with_variant_keyword(self):
         calls = []
+        embedding_params = []
 
         class FakePoint:
-            z = 1.0
+            z = 0.0
 
         class FakeConformer:
             def GetAtomPosition(self, _idx):
@@ -411,6 +474,9 @@ $$$$
 
             def GetNumAtoms(self):
                 return 1
+
+            def RemoveAllConformers(self):
+                pass
 
         class FakeSupplier:
             def __init__(self, *_args, **_kwargs):
@@ -444,8 +510,15 @@ $$$$
         fake_chem.SDMolSupplier = FakeSupplier
         fake_chem.SDWriter = FakeWriter
         fake_all_chem = types.ModuleType("rdkit.Chem.AllChem")
-        fake_all_chem.ETKDGv3 = lambda: types.SimpleNamespace(randomSeed=0)
-        fake_all_chem.EmbedMolecule = lambda *_args, **_kwargs: 0
+        fake_all_chem.ETKDGv3 = lambda: types.SimpleNamespace(
+            randomSeed=0, useRandomCoords=False, maxIterations=0
+        )
+
+        def fake_embed(_mol, params):
+            embedding_params.append(params)
+            return -1 if len(embedding_params) == 1 else 0
+
+        fake_all_chem.EmbedMolecule = fake_embed
         fake_all_chem.MMFFHasAllMoleculeParams = lambda _mol: True
         fake_all_chem.MMFFOptimizeMolecule = fake_mmff_optimize
         fake_all_chem.UFFHasAllMoleculeParams = lambda _mol: False

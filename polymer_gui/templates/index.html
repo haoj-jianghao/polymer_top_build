@@ -23,6 +23,11 @@
                 <button type="button" data-element="S">S</button>
                 <button type="button" data-element="H">H</button>
                 <button type="button" data-element="Cl">Cl</button>
+                <button type="button" data-element="Si">Si</button>
+                <button type="button" data-element="P">P</button>
+                <button type="button" data-element="F">F</button>
+                <button type="button" data-element="Br">Br</button>
+                <button type="button" data-element="I">I</button>
               </div>
             </div>
             <div class="tool-group">
@@ -34,8 +39,17 @@
               </div>
               <div class="tool-hint">Choose a charge, then click an atom.</div>
             </div>
+            <div class="tool-group">
+              <div class="tool-title">Bond stereochemistry</div>
+              <div class="stereo-grid" id="stereoPalette">
+                <button type="button" data-stereo="0">Plain</button>
+                <button type="button" data-stereo="1">Wedge</button>
+                <button type="button" data-stereo="6">Dash</button>
+              </div>
+              <div class="tool-hint">Choose a style, then draw or click a single bond.</div>
+            </div>
             <div class="tool-group action-group">
-              <button id="loadPeg" type="button">PEG repeat</button>
+              <button id="loadPeg" type="button">PEG example</button>
               <button id="deleteSelected" type="button">Delete</button>
               <button id="clearSketch" type="button">New</button>
             </div>

@@ -121,19 +121,30 @@ h2 {
   gap: 4px;
 }
 
-.charge-grid {
+.charge-grid,
+.stereo-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
 }
 
-.charge-grid button {
+.charge-grid button,
+.stereo-grid button {
   min-width: 0;
   padding: 0 4px;
   font-weight: 700;
 }
 
-.charge-grid button.active {
+.stereo-grid button {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.15;
+  min-height: 34px;
+}
+
+.charge-grid button.active,
+.stereo-grid button.active {
   background: linear-gradient(#3f91d2, #1d6dab);
   border-color: #084d85;
   color: #ffffff;

@@ -113,7 +113,7 @@ http://127.0.0.1:8501
 
 Basic PEG workflow:
 
-1. Click `PEG repeat`.
+1. Click `PEG example`.
 2. Click `Preview atom indices`.
 3. Keep previous connection atom as `1` and next connection atom as `3`.
 4. Keep reference oligomer size as `5`.
@@ -122,16 +122,23 @@ Basic PEG workflow:
 
 Manual drawing workflow:
 
-1. Use the left toolbar to choose an atom type such as `C`, `O`, `N`, `S`, `H`, or `Cl`.
+1. Use the left toolbar to choose an atom type such as `C`, `O`, `N`, `S`, `H`, `Cl`, `Si`, `P`, `F`, `Br`, or `I`.
 2. Drag a line on the canvas to create a single carbon-carbon bond.
 3. Drag from an existing atom to an empty point to sprout a new carbon atom and bond.
 4. Click an atom to change it to the currently selected element.
-5. Click an existing single bond to toggle it into a double bond; click again to return to single.
+5. Click an existing bond to cycle it single -> double -> triple -> single.
 6. Click an atom or bond to select it, then press `Delete`/`Backspace` or click `Delete` in the toolbar to remove it.
 7. Right-click an atom or bond to remove it immediately.
 8. Atom numbers are drawn beside each atom. Click atom tiles to fill the
    previous/next connection atom fields.
 9. Click `Use drawing` to export the canvas to MOL/SDF text, then build.
+
+For a stereogenic single bond, choose `Wedge` or `Dash` under **Bond
+stereochemistry**, then draw the directed bond from its narrow end to its wide
+end. You can also select a style and click an existing single bond. The GUI
+stores solid wedges as V2000 stereo code `1` and hashed wedges as code `6`;
+these codes are replicated with the monomer and used by RDKit when generating
+the three-dimensional AmberTools input geometry.
 
 For an ionic repeat, choose `-1` or `+1` under **Formal charge**, then click
 the charged atom. Choose `0` and click it again to remove the assignment. The

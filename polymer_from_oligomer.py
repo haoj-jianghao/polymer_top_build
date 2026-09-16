@@ -29,10 +29,11 @@ from typing import Iterable
 DEFAULT_VALENCE = {
     "H": 1,
     "C": 4,
+    "Si": 4,
     "N": 3,
     "O": 2,
     "F": 1,
-    "P": 3,
+    "P": 5,
     "S": 2,
     "Cl": 1,
     "Br": 1,
@@ -59,6 +60,7 @@ V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
 ATOMIC_MASS = {
     "H": 1.008,
     "C": 12.011,
+    "Si": 28.085,
     "N": 14.007,
     "O": 15.999,
     "F": 18.998,
@@ -88,6 +90,7 @@ class Bond:
     a: int
     b: int
     order: int = 1
+    stereo: int = 0
 
 
 @dataclass
@@ -232,7 +235,15 @@ def read_sdf(path: Path) -> Molecule:
 
     bonds: list[Bond] = []
     for line in lines[4 + natoms : 4 + natoms + nbonds]:
-        bonds.append(Bond(a=int(line[0:3]), b=int(line[3:6]), order=int(line[6:9])))
+        stereo_text = line[9:12].strip() if len(line) >= 12 else ""
+        bonds.append(
+            Bond(
+                a=int(line[0:3]),
+                b=int(line[3:6]),
+                order=int(line[6:9]),
+                stereo=int(stereo_text) if stereo_text else 0,
+            )
+        )
 
     for line in lines[4 + natoms + nbonds :]:
         if not line.startswith("M  CHG"):
@@ -264,7 +275,9 @@ def write_sdf(mol: Molecule, path: Path) -> None:
             f"{atom.element:<3} 0  0  0  0  0  0  0  0  0  0  0  0"
         )
     for bond in mol.bonds:
-        lines.append(f"{bond.a:>3}{bond.b:>3}{bond.order:>3}  0  0  0  0")
+        lines.append(
+            f"{bond.a:>3}{bond.b:>3}{bond.order:>3}{bond.stereo:>3}  0  0  0"
+        )
     charged_atoms = [
         (atom.index, atom.formal_charge) for atom in mol.atoms if atom.formal_charge
     ]
@@ -311,7 +324,7 @@ def _sybyl_atom_type(mol: Molecule, atom: Atom) -> str:
         return "O.3"
     if element == "S":
         return "S.3"
-    if element in {"F", "Cl", "Br", "I", "H", "P"}:
+    if element in {"F", "Cl", "Br", "I", "H", "P", "Si"}:
         return element
     return element
 
@@ -533,7 +546,7 @@ def clone_molecule(mol: Molecule, name: str | None = None) -> Molecule:
             )
             for atom in mol.atoms
         ],
-        bonds=[Bond(bond.a, bond.b, bond.order) for bond in mol.bonds],
+        bonds=[Bond(bond.a, bond.b, bond.order, bond.stereo) for bond in mol.bonds],
     )
 
 
@@ -747,7 +760,9 @@ def copy_bonds_between(mol: Molecule, out: Molecule, mapping: dict[int, int]) ->
     source_set = set(mapping)
     for bond in mol.bonds:
         if bond.a in source_set and bond.b in source_set:
-            out.bonds.append(Bond(mapping[bond.a], mapping[bond.b], bond.order))
+            out.bonds.append(
+                Bond(mapping[bond.a], mapping[bond.b], bond.order, bond.stereo)
+            )
 
 
 def monomer_spacing(monomer: Molecule, previous_atom: int, next_atom: int) -> float:
@@ -831,19 +846,19 @@ def build_polymer_graph(mol: Molecule, plan: RepeatPlan, dp: int) -> Molecule:
     first_repeat_mapping = repeat_mappings[0]
     for bond in mol.bonds:
         if bond.a in head_mapping and bond.b in template_set:
-            out.bonds.append(Bond(head_mapping[bond.a], first_repeat_mapping[bond.b], bond.order))
+            out.bonds.append(Bond(head_mapping[bond.a], first_repeat_mapping[bond.b], bond.order, bond.stereo))
         elif bond.b in head_mapping and bond.a in template_set:
-            out.bonds.append(Bond(head_mapping[bond.b], first_repeat_mapping[bond.a], bond.order))
+            out.bonds.append(Bond(first_repeat_mapping[bond.a], head_mapping[bond.b], bond.order, bond.stereo))
 
     last_repeat_mapping = repeat_mappings[-1]
     last_occurrence = plan.occurrences[-1]
     for bond in mol.bonds:
         if bond.a in tail_mapping and bond.b in last_occurrence.atom_set:
             pos = last_occurrence.atoms.index(bond.b)
-            out.bonds.append(Bond(tail_mapping[bond.a], last_repeat_mapping[template.atoms[pos]], bond.order))
+            out.bonds.append(Bond(tail_mapping[bond.a], last_repeat_mapping[template.atoms[pos]], bond.order, bond.stereo))
         elif bond.b in tail_mapping and bond.a in last_occurrence.atom_set:
             pos = last_occurrence.atoms.index(bond.a)
-            out.bonds.append(Bond(tail_mapping[bond.b], last_repeat_mapping[template.atoms[pos]], bond.order))
+            out.bonds.append(Bond(last_repeat_mapping[template.atoms[pos]], tail_mapping[bond.b], bond.order, bond.stereo))
 
     add_valence_hydrogens(out)
     return out
@@ -881,7 +896,7 @@ def add_valence_hydrogens(mol: Molecule) -> None:
                     element="H",
                     x=atom.x + 0.85 * math.cos(angle),
                     y=atom.y + 0.85 * math.sin(angle),
-                    z=0.15 * (h_num % 2),
+                    z=atom.z,
                     repeat_atom=atom.repeat_atom,
                 )
             )
@@ -897,6 +912,8 @@ def assign_placeholder_gaff(mol: Molecule) -> None:
             "H": "h1",
             "O": "oh" if sum(1 for b in mol.bonds if atom.index in (b.a, b.b)) == 2 else "os",
             "N": "n4" if atom.formal_charge > 0 else "n3",
+            "Si": "si",
+            "P": "p5" if maximum_valence(atom) == 5 else "p3",
         }.get(atom.element, atom.element.lower())
         atom.charge = 0.0
 
@@ -1023,7 +1040,17 @@ def minimize_sdf_geometry(input_sdf: Path, output_sdf: Path, max_iters: int = 10
     if mol is None:
         raise RuntimeError(f"RDKit could not read SDF for minimization: {input_sdf}")
 
-    needs_embed = mol.GetNumConformers() == 0
+    assign_stereochemistry = getattr(Chem, "AssignStereochemistry", None)
+    if callable(assign_stereochemistry):
+        assign_stereochemistry(mol, cleanIt=True, force=True)
+    get_atoms = getattr(mol, "GetAtoms", None)
+    chiral_type = getattr(Chem, "ChiralType", None)
+    has_defined_stereo = bool(
+        callable(get_atoms)
+        and chiral_type is not None
+        and any(atom.GetChiralTag() != chiral_type.CHI_UNSPECIFIED for atom in get_atoms())
+    )
+    needs_embed = mol.GetNumConformers() == 0 or has_defined_stereo
     if not needs_embed:
         conf = mol.GetConformer()
         z_values = [abs(conf.GetAtomPosition(idx).z) for idx in range(mol.GetNumAtoms())]
@@ -1034,7 +1061,21 @@ def minimize_sdf_geometry(input_sdf: Path, output_sdf: Path, max_iters: int = 10
         params.randomSeed = 0xC0DEF
         status = AllChem.EmbedMolecule(mol, params)
         if status != 0:
-            raise RuntimeError("RDKit ETKDG embedding failed before minimization.")
+            # Large, flexible polymers (especially polysiloxanes) can fail the
+            # default distance-geometry initialization even when the molecular
+            # graph and stereochemistry are valid. Random-coordinate ETKDG is
+            # slower, but is substantially more robust for those targets.
+            mol.RemoveAllConformers()
+            fallback_params = AllChem.ETKDGv3()
+            fallback_params.randomSeed = 0xC0DEF
+            fallback_params.useRandomCoords = True
+            fallback_params.maxIterations = 2000
+            status = AllChem.EmbedMolecule(mol, fallback_params)
+        if status != 0:
+            raise RuntimeError(
+                "RDKit ETKDG embedding failed before minimization using both "
+                "distance-geometry and random-coordinate initialization."
+            )
 
     if AllChem.MMFFHasAllMoleculeParams(mol):
         method = "MMFF94s"
@@ -1057,6 +1098,24 @@ def minimize_sdf_geometry(input_sdf: Path, output_sdf: Path, max_iters: int = 10
     writer.write(mol)
     writer.close()
     return output_sdf, method
+
+
+def copy_coordinates_by_index(source: Molecule, target: Molecule) -> None:
+    """Copy a prepared conformer without disturbing target types or charges."""
+
+    if len(source.atoms) != len(target.atoms):
+        raise ValueError(
+            f"Geometry atom count mismatch: source={len(source.atoms)}, target={len(target.atoms)}."
+        )
+    for source_atom, target_atom in zip(source.atoms, target.atoms):
+        if source_atom.element != target_atom.element:
+            raise ValueError(
+                "Geometry atom order mismatch at atom "
+                f"{target_atom.index}: source={source_atom.element}, target={target_atom.element}."
+            )
+        target_atom.x = source_atom.x
+        target_atom.y = source_atom.y
+        target_atom.z = source_atom.z
 
 
 def ensure_explicit_hydrogen_sdf(input_sdf: Path, output_sdf: Path) -> Path:
@@ -1174,6 +1233,41 @@ def run_ambertools_pipeline(
         target_spec.raw_charge = raw
         target_spec.final_charge = final
         target_spec.correction_per_repeat_atom = correction
+
+        stereo_bonds = [
+            bond for bond in target_spec.molecule.bonds if bond.stereo in {1, 6}
+        ]
+        if stereo_bonds:
+            if not minimize_geometry:
+                raise RuntimeError(
+                    "Stereochemical wedge/dash bonds require geometry minimization "
+                    "so the assembled target polymer receives a defined 3D configuration."
+                )
+            target_stereo_input = outdir / "polymer_stereo_input.sdf"
+            target_stereo_minimized = outdir / "polymer_stereo_minimized.sdf"
+            write_sdf(target_spec.molecule, target_stereo_input)
+            minimized_target_path, target_minimizer = minimize_sdf_geometry(
+                target_stereo_input,
+                target_stereo_minimized,
+            )
+            minimized_target = read_sdf(minimized_target_path)
+            copy_coordinates_by_index(minimized_target, target_spec.molecule)
+            write_sdf(target_spec.molecule, outdir / "polymer.sdf")
+            stereo_report = outdir / "STEREOCHEMISTRY_REPORT.txt"
+            stereo_report.write_text(
+                "\n".join(
+                    [
+                        f"stereochemical_bonds: {len(stereo_bonds)}",
+                        f"target_geometry_input: {target_stereo_input}",
+                        f"target_geometry_output: {target_stereo_minimized}",
+                        f"method: RDKit {target_minimizer}",
+                        "stage: assembled target-polymer 3D stereochemistry preparation",
+                    ]
+                )
+                + "\n"
+            )
+            files.extend([target_stereo_input, target_stereo_minimized, stereo_report])
+
         final_mol2 = outdir / "polymer_typed_charged.mol2"
         write_mol2(
             target_spec.molecule,

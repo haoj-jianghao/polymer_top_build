@@ -46,7 +46,10 @@ def preview():
             }
             for atom in mol.atoms
         ]
-        bonds = [{"a": bond.a, "b": bond.b, "order": bond.order} for bond in mol.bonds]
+        bonds = [
+            {"a": bond.a, "b": bond.b, "order": bond.order, "stereo": bond.stereo}
+            for bond in mol.bonds
+        ]
         return jsonify(
             {
                 "name": mol.name,
