@@ -18,6 +18,7 @@ from polymer_from_oligomer import (
     BuildOptions,
     MonomerBuildOptions,
     build_polymer_from_monomer,
+    engine_problem_lines,
     build_polymer_from_oligomer,
     parse_index_list,
     read_sdf,
@@ -84,6 +85,10 @@ def build():
         ff_engine = request.form.get("ff_engine", DEFAULT_FF_ENGINE) or DEFAULT_FF_ENGINE
         if ff_engine not in FF_ENGINES:
             raise ValueError(f"unknown force field {ff_engine!r}")
+        engine_settings = {}
+        sage_python = request.form.get("sage_python", "").strip()
+        if sage_python:
+            engine_settings["sage_python"] = str(Path(sage_python).expanduser())
     except Exception as exc:
         return jsonify({"error": f"Invalid settings: {exc}"}), 400
 
@@ -104,6 +109,7 @@ def build():
                     outdir=outdir,
                     run_external=run_external,
                     ff_engine=ff_engine,
+                    engine_settings=engine_settings,
                 ),
             )
         else:
@@ -119,6 +125,7 @@ def build():
                     outdir=outdir,
                     run_external=run_external,
                     ff_engine=ff_engine,
+                    engine_settings=engine_settings,
                 ),
             )
         metadata = _read_metadata(outdir)
@@ -132,13 +139,15 @@ def build():
                 "target_charge": result.target_charge,
                 "final_charge": result.final_charge,
                 "missing_tools": result.missing_tools,
-                "missing_details": _missing_details(ff_engine) if result.missing_tools else "",
+                "missing_details": _missing_details(ff_engine, engine_settings) if result.missing_tools else "",
                 "ff_engine": ff_engine,
                 "ff_engine_label": FF_ENGINES[ff_engine],
                 "parameterization_mode": metadata.get("parameterization_mode"),
                 "charge_model": engine_info.get("charge_model"),
                 "atom_types": engine_info.get("merged_atom_types"),
-                "warnings": engine_info.get("transfer_warnings", []) + engine_info.get("engine_warnings", []),
+                "warnings": engine_info.get("transfer_warnings", [])
+                + [warning for warning in engine_info.get("engine_warnings", []) if warning],
+                "openff_python": engine_info.get("openff_python"),
                 "files": [str(path.relative_to(PROJECT_ROOT)) for path in result.files],
                 "download_base": f"/outputs/{outdir.name}",
             }
@@ -154,15 +163,8 @@ def _read_metadata(outdir: Path) -> dict:
         return {}
 
 
-def _missing_details(ff_engine: str) -> str:
-    if ff_engine != "opls":
-        return ""
-    import opls_engine
-
-    errors = opls_engine.preflight()[0]
-    return " | ".join(error.splitlines()[0] for error in errors) + (
-        f" | install the SI with: {opls_engine.INSTALL_SI_HINT}" if any("SI" in error for error in errors) else ""
-    )
+def _missing_details(ff_engine: str, engine_settings: dict) -> str:
+    return " | ".join(line.strip().splitlines()[0] for line in engine_problem_lines(ff_engine, engine_settings))
 
 
 @app.get("/outputs/<job>/<path:filename>")

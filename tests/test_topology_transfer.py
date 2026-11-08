@@ -286,7 +286,7 @@ class OplsPipelineWithFakeEngineTests(unittest.TestCase):
         monomer_sdf = tmp_path / "monomer.sdf"
         write_sdf(monomer, monomer_sdf)
 
-        def fake_parameterize(structure_sdf, outdir, *, net_charge, name="reference"):
+        def fake_parameterize(structure_sdf, outdir, *, net_charge, name="reference", settings=None):
             outdir.mkdir(parents=True, exist_ok=True)
             top = outdir / f"{name}.top"
             fake_engine_topology(read_sdf(structure_sdf), top)

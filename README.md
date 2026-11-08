@@ -24,17 +24,25 @@ draw monomer
 | engine | `--ff-engine` | force field and charges | needs |
 |---|---|---|---|
 | **OPLS-AA/2020** (default) | `opls` | OPLS/2020 atom types and bonded terms; CM1A charges (ions) or 1.14*CM1A-LBCC (neutral) | bundled opls-ff-lite, MOPAC, the OPLS/2020 SI files |
+| OpenFF Sage | `sage` | Sage 2.3.0 (`openff-2.3.0.offxml`) by default; NAGL (AshGC) charges | your own OpenFF installation (openff-toolkit, openff-interchange, openff-nagl + models); nothing is installed for it |
 | GAFF2 | `gaff2` | GAFF2 types; AM1-BCC charges | AmberTools (`antechamber`, `parmchk2`, `tleap`), ParmEd |
 
-Every engine parameterizes only the hidden reference oligomer. OPLS-AA/2020
-uses the bundled [opls-ff-lite](third_party/opls-ff-lite/README.md). It covers
-H, C, N, O, F, P, S, Cl, Br and I. Atoms that OPLS cannot type, such as Si,
-get GAFF2 types.
+Every engine parameterizes only the hidden reference oligomer. OPLS and Sage
+parameters reach the polymer through the same transfer step (see below).
+
+- **OPLS-AA/2020** uses the bundled
+  [opls-ff-lite](third_party/opls-ff-lite/README.md). It covers H, C, N, O,
+  F, P, S, Cl, Br and I. Atoms that OPLS cannot type, such as Si, get GAFF2
+  types.
+- **Sage** covers the same elements but not Si; a Si-containing polymer
+  stops with a message to use OPLS.
 
 ## What is included
 
 - `polymer_from_oligomer.py`: importable backend plus CLI.
 - `opls_engine.py`: runs the bundled opls-ff-lite on the reference oligomer.
+- `sage_engine.py`: finds the user's OpenFF installation and runs
+  `sage_worker.py` in it on the reference oligomer.
 - `topology_transfer.py`: transfers a reference-oligomer GROMACS topology to
   the polymer. The transfer works the same way for every engine.
 - `third_party/opls-ff-lite/`: bundled copy of opls-ff-lite, without the
@@ -47,6 +55,7 @@ get GAFF2 types.
 - `examples/PEG_5mer.sdf`: older oligomer-mode pentaethylene glycol example.
 - `tests/test_polymer_non_amber.py`: tests for repeat detection, DP build, and charge normalization.
 - `tests/test_topology_transfer.py`: tests for the topology transfer and the OPLS engine.
+- `tests/test_sage_engine.py`: tests for the Sage engine and the search for an OpenFF interpreter.
 
 The GUI includes a small built-in sketcher, so it does not depend on an
 external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
@@ -77,11 +86,42 @@ python third_party/opls-ff-lite/run_opls_ff_lite.py doctor     # exit 0 = ready
 - If a requirement is missing, a build writes placeholder files and the GUI
   or CLI names what is missing.
 
+### Using your OpenFF installation for Sage
+
+The builder never imports OpenFF and never installs it. `sage_worker.py`
+runs as a subprocess with the Python interpreter of an existing OpenFF
+environment, so the builder's own environment stays small (no PyTorch, no
+NAGL weights). The OpenFF Python is chosen in this order:
+
+1. `--sage-python PATH` (CLI), or the "OpenFF Python" field in the GUI;
+2. the environment variable `POLYMER_SAGE_PYTHON`;
+3. the builder's own interpreter, if it can import OpenFF;
+4. a conda/mamba environment with `openff-toolkit` and `openff-interchange`
+   installed. The search covers the installations in `CONDA_EXE`,
+   `CONDA_PREFIX`, `MAMBA_ROOT_PREFIX` and `~/miniforge3`, `~/mambaforge`,
+   `~/miniconda3`, `~/anaconda3`.
+
+An explicitly given interpreter (1 or 2) is never silently replaced by
+another one. Each candidate is checked once per session: the imports, the
+force field and its charge model. To see which installation is used:
+
+```bash
+python polymer_from_oligomer.py --check-engine --ff-engine sage
+```
+
+`--sage-forcefield` selects another SMIRNOFF file, for example
+`openff-2.2.1.offxml`. Sage 2.2 uses toolkit AM1-BCC charges, which are slow
+and need AmberTools or OpenEye in the OpenFF environment, so a warning is
+shown. Sage is fitted with X-H bond constraints: use `constraints = h-bonds`
+in the `.mdp`.
+
 ## How the parameters reach the polymer
 
-1. The engine writes a GROMACS topology of the reference oligomer:
-   `opls_reference/reference.top` and `.itp`, plus the per-atom assignment
-   and MOPAC files.
+1. The engine writes a GROMACS topology of the reference oligomer.
+   - OPLS: `opls_reference/reference.top` and `.itp`, plus the per-atom
+     assignment and MOPAC files.
+   - Sage: `sage_reference/reference.top` (Interchange) and
+     `reference.sage.json` (versions, charge model, vdW parameter ids).
 2. Atoms are addressed as (repeat unit, index within the unit). The
    reference and the polymer are built unit by unit from the same monomer.
    Each unit's hydrogens are numbered after its monomer atoms, by parent
@@ -136,8 +176,11 @@ python third_party/opls-ff-lite/run_opls_ff_lite.py doctor     # exit 0 = ready
   0.02 e (a longer reference converges the interior charges better);
 - any warnings.
 
-The OPLS `polymer.top` carries the OPLS `[ defaults ]`: `1 3 yes 0.5 0.5`
-(geometric combination rule, fudgeLJ = fudgeQQ = 0.5). `polymer.itp` holds
+`polymer.top` carries the engine's own `[ defaults ]`:
+- OPLS: `1 3 yes 0.5 0.5` (geometric combination rule, fudgeLJ = fudgeQQ = 0.5);
+- Sage: `1 2 yes 0.5 0.833333` (Lorentz-Berthelot, fudgeQQ = 1/1.2).
+
+Sage atom types are named by their vdW parameter id, for example `n16`. `polymer.itp` holds
 the `[ atomtypes ]` and the `[ moleculetype ]`. Each repeat unit is one
 residue, and atoms are named element + number within the unit.
 
@@ -295,7 +338,7 @@ The older oligomer mode is still available for compatibility by passing
 ## Test
 
 ```bash
-python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer
+python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine
 ```
 
 - `tests.test_polymer_non_amber` and the first two groups of
@@ -307,7 +350,12 @@ python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer
   - a polymer as long as the reference reproduces opls-ff-lite's own
     topology term for term;
   - a DP-20 PEG has an exact integer charge and passes `gmx grompp` when
-    GROMACS is on `PATH`.
+    GROMACS is on `PATH`;
+  - an 8-mer built from a 5-mer reference has exactly the terms, parameters
+    and atom types of an 8-mer built independently from SMILES and
+    parameterized directly.
+- `SageIntegrationTests` run the same checks through your OpenFF
+  installation and are skipped when none is found.
 
 ## V1 limitations
 

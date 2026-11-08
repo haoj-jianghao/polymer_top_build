@@ -589,6 +589,7 @@ function formData() {
     "dp",
     "job_name",
     "ff_engine",
+    "sage_python",
   ]) {
     data.append(id, document.getElementById(id).value);
   }
@@ -641,6 +642,7 @@ function renderBuild(payload) {
     `Reference repeat units: ${JSON.stringify(payload.repeat_units)}<br>` +
     `Final charge: ${payload.final_charge}<br>` +
     (payload.charge_model ? `Charge model: ${payload.charge_model}<br>` : "") +
+    (payload.openff_python ? `OpenFF Python: ${payload.openff_python}<br>` : "") +
     (payload.atom_types ? `Atom types: ${payload.atom_types}<br>` : "") +
     (payload.warnings && payload.warnings.length
       ? `Warnings:<br>- ${payload.warnings.join("<br>- ")}<br>` : "") +

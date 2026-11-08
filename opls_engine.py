@@ -46,7 +46,11 @@ def _import_lite():
     return opls_ff_lite
 
 
-def preflight() -> tuple[list[str], list[str]]:
+def description(settings: dict | None = None) -> str:
+    return DESCRIPTION
+
+
+def preflight(settings: dict | None = None) -> tuple[list[str], list[str]]:
     """(errors, warnings): everything opls-ff-lite needs before a run."""
 
     try:
@@ -76,8 +80,8 @@ def summarize_problems(errors: list[str]) -> list[str]:
     return list(dict.fromkeys(names))
 
 
-def missing_requirements() -> list[str]:
-    return summarize_problems(preflight()[0])
+def missing_requirements(settings: dict | None = None) -> list[str]:
+    return summarize_problems(preflight(settings)[0])
 
 
 @dataclass
@@ -93,6 +97,7 @@ def parameterize_reference(
     *,
     net_charge: int,
     name: str = "reference",
+    settings: dict | None = None,
 ) -> ReferenceParameterization:
     """Run opls-ff-lite on an explicit-H, 3D structure; atom order is kept."""
 

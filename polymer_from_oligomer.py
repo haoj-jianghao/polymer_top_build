@@ -11,9 +11,11 @@ V1 scope:
 * automatic repeat occurrence detection from one user-selected example
 * simple valence-based hydrogen completion
 * force-field engines that parameterize a hidden reference oligomer:
-  OPLS-AA/2020 via the bundled opls-ff-lite (default, ``opls_engine``) and
-  GAFF2 via AmberTools/ParmEd (``gaff2``); OPLS parameters are transferred to
-  the requested polymer by the engine-neutral ``topology_transfer`` module
+  OPLS-AA/2020 via the bundled opls-ff-lite (default, ``opls_engine``),
+  OpenFF Sage via the user's own OpenFF installation (``sage_engine``), and
+  GAFF2 via AmberTools/ParmEd (``gaff2``); OPLS and Sage parameters are
+  transferred to the requested polymer by the engine-neutral
+  ``topology_transfer`` module
 """
 
 from __future__ import annotations
@@ -64,8 +66,25 @@ V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
 # oligomer and the parameters are transferred to the requested polymer.
 FF_ENGINES = {
     "opls": "OPLS-AA/2020 with CM1A/1.14*CM1A-LBCC charges (bundled opls-ff-lite + MOPAC)",
+    "sage": "OpenFF Sage (default openff-2.3.0 with NAGL charges) from your own OpenFF installation",
     "gaff2": "GAFF2 with AM1-BCC charges (AmberTools antechamber/parmchk2/tleap + ParmEd)",
 }
+# Engines whose reference topology is transferred by topology_transfer.
+TRANSFER_ENGINES = ("opls", "sage")
+
+
+def engine_module(engine: str):
+    """The module that parameterizes the reference oligomer for a transfer engine."""
+
+    if engine == "opls":
+        import opls_engine
+
+        return opls_engine
+    if engine == "sage":
+        import sage_engine
+
+        return sage_engine
+    raise ValueError(f"{engine!r} is not a reference-transfer engine")
 DEFAULT_FF_ENGINE = "opls"
 
 ATOMIC_MASS = {
@@ -151,6 +170,7 @@ class BuildOptions:
     run_external: bool = True
     minimize_geometry: bool = True
     ff_engine: str = DEFAULT_FF_ENGINE
+    engine_settings: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -164,6 +184,7 @@ class MonomerBuildOptions:
     minimize_geometry: bool = True
     junction_order: int = 1
     ff_engine: str = DEFAULT_FF_ENGINE
+    engine_settings: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -1363,15 +1384,13 @@ def run_ambertools_pipeline(
     return files + generated, antechamber_mol2
 
 
-def missing_engine_requirements(engine: str) -> list[str]:
+def missing_engine_requirements(engine: str, settings: dict | None = None) -> list[str]:
     """Short names of what the chosen force-field engine still needs."""
 
     if engine == "gaff2":
         return missing_external_tools()
-    if engine == "opls":
-        import opls_engine
-
-        return opls_engine.missing_requirements()
+    if engine in TRANSFER_ENGINES:
+        return engine_module(engine).missing_requirements(settings or {})
     raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
 
 
@@ -1423,28 +1442,33 @@ def write_gro(
     path.write_text("\n".join(lines) + "\n")
 
 
-def run_opls_pipeline(
+def run_reference_engine_pipeline(
+    engine: str,
     reference_sdf: Path,
     outdir: Path,
     formal_charge: int,
     minimize_geometry: bool = True,
     target_spec: AmberTargetSpec | None = None,
+    engine_settings: dict | None = None,
 ) -> tuple[list[Path], Path, dict]:
-    """OPLS-AA/2020 engine: parameterize the reference with opls-ff-lite, transfer to the target.
+    """Parameterize the reference oligomer with ``engine`` and transfer it to the target.
 
-    Returns (files, structure given to opls-ff-lite, metadata).
+    Shared by every engine that writes a GROMACS topology of the reference
+    (opls: bundled opls-ff-lite; sage: the user's OpenFF installation).
+    Returns (files, structure given to the engine, metadata).
     """
 
-    import opls_engine
     import topology_transfer
 
-    errors, warnings = opls_engine.preflight()
+    module = engine_module(engine)
+    engine_settings = engine_settings or {}
+    errors, warnings = module.preflight(engine_settings)
     if errors:
-        raise RuntimeError("opls-ff-lite is not ready:\n" + "\n".join(errors))
+        raise RuntimeError(f"The {engine} engine is not ready:\n" + "\n".join(errors))
 
     outdir.mkdir(parents=True, exist_ok=True)
     files: list[Path] = []
-    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / "opls_input_with_h.sdf")
+    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / f"{engine}_input_with_h.sdf")
     files.append(hydrogenated_sdf)
     engine_input = hydrogenated_sdf
     if minimize_geometry:
@@ -1457,13 +1481,13 @@ def run_opls_pipeline(
                     f"input_sdf: {hydrogenated_sdf}",
                     f"output_sdf: {minimized_sdf}",
                     f"method: RDKit {minimizer}",
-                    "stage: explicit-H geometry before opls-ff-lite OPLS-AA/2020 + CM1A parameterization",
+                    f"stage: explicit-H geometry of the reference before {engine} parameterization",
                 ]
             )
             + "\n"
         )
         files.extend([minimized_sdf, report])
-    else:
+    elif engine == "opls":
         unminimized = read_sdf(hydrogenated_sdf)
         if max((abs(atom.z) for atom in unminimized.atoms), default=0.0) < 1e-4:
             raise RuntimeError(
@@ -1472,14 +1496,18 @@ def run_opls_pipeline(
             )
 
     reference_mol = read_sdf(engine_input)
-    parameterization = opls_engine.parameterize_reference(
-        engine_input, outdir / "opls_reference", net_charge=formal_charge, name="reference"
+    parameterization = module.parameterize_reference(
+        engine_input,
+        outdir / f"{engine}_reference",
+        net_charge=formal_charge,
+        name="reference",
+        settings=engine_settings,
     )
     reference_top = parameterization.topology
     files.extend(parameterization.files)
     if len(reference_top.atoms) != len(reference_mol.atoms):
         raise RuntimeError(
-            f"opls-ff-lite returned {len(reference_top.atoms)} atoms for a {len(reference_mol.atoms)}-atom reference."
+            f"The {engine} engine returned {len(reference_top.atoms)} atoms for a {len(reference_mol.atoms)}-atom reference."
         )
 
     target = target_spec.molecule if target_spec is not None else clone_molecule(reference_mol)
@@ -1543,8 +1571,8 @@ def run_opls_pipeline(
     typed_mol2 = outdir / "polymer_typed_charged.mol2"
     info = dict(parameterization.info)
     header = [
-        "Generated by polymer_from_oligomer (force-field engine: opls)",
-        f"Force field: {opls_engine.DESCRIPTION}; charge model {info.get('charge_model')}",
+        f"Generated by polymer_from_oligomer (force-field engine: {engine})",
+        f"Force field: {module.description(engine_settings)}; charge model {info.get('charge_model')}",
         f"Reference oligomer topology: {reference_top.path}",
         f"Parameterization mode: {mode}",
     ]
@@ -1571,7 +1599,7 @@ def run_opls_pipeline(
     report_path.write_text(
         "\n".join(
             [
-                "engine: opls (opls-ff-lite)",
+                f"engine: {engine} ({module.description(engine_settings)})",
                 f"mode: {mode}",
                 f"charge_model: {info.get('charge_model')}",
                 f"reference_atoms: {len(reference_top.atoms)}",
@@ -1582,12 +1610,12 @@ def run_opls_pipeline(
                 f"final_charge: {final:.12g}",
                 f"correction_per_repeat_atom: {correction:.12g}",
                 f"max_reference_charge_spread_e: {charge_spread:.6f}",
-                f"reference_bonded_rule_counts: {info.get('bonded_rule_counts')}",
+                *([f"reference_bonded_rule_counts: {info['bonded_rule_counts']}"] if "bonded_rule_counts" in info else []),
                 f"reference_atom_type_rules: {info.get('atom_type_rules')}",
                 *transfer.report.lines(),
                 *(f"charge warning: {warning}" for warning in charge_warnings),
-                *(f"opls-ff-lite warning: {warning}" for warning in info.get("engine_warnings", [])),
-                *(f"opls-ff-lite preflight warning: {warning}" for warning in warnings),
+                *(f"{engine} engine note: {warning}" for warning in info.get("engine_warnings", []) if warning),
+                *(f"{engine} preflight warning: {warning}" for warning in warnings),
             ]
         )
         + "\n"
@@ -1626,8 +1654,8 @@ def write_outputs_for_polymer(
     engine = options.ff_engine
     if engine not in FF_ENGINES:
         raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
-    missing = missing_engine_requirements(engine)
-    if engine == "opls" and reference_dp is not None and options.dp < reference_dp:
+    missing = missing_engine_requirements(engine, options.engine_settings)
+    if engine in TRANSFER_ENGINES and reference_dp is not None and options.dp < reference_dp:
         # A target shorter than the reference oligomer is itself a small
         # oligomer: parameterize it directly. (Near-junction atoms of very
         # short chains, e.g. DP 2, see both chain ends at once, an environment
@@ -1652,13 +1680,15 @@ def write_outputs_for_polymer(
             reference_dp=reference_dp,
             target_dp=options.dp if reference_dp is not None else None,
         )
-        if engine == "opls":
-            external_files, actual_antechamber_input, engine_info = run_opls_pipeline(
+        if engine in TRANSFER_ENGINES:
+            external_files, actual_antechamber_input, engine_info = run_reference_engine_pipeline(
+                engine,
                 requested_antechamber_sdf,
                 options.outdir,
                 antechamber_charge,
                 minimize_geometry=options.minimize_geometry,
                 target_spec=target_spec,
+                engine_settings=options.engine_settings,
             )
         else:
             external_files, actual_antechamber_input = run_ambertools_pipeline(
@@ -1778,6 +1808,7 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             run_external=options.run_external,
             minimize_geometry=options.minimize_geometry,
             ff_engine=options.ff_engine,
+            engine_settings=options.engine_settings,
         ),
         extra_metadata={
             "workflow": "monomer",
@@ -1806,13 +1837,13 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input_sdf", type=Path)
+    parser.add_argument("input_sdf", type=Path, nargs="?")
     parser.add_argument("--repeat-atoms", help="Oligomer mode: comma-separated 1-based repeat atom indices, e.g. 2,3,4")
     parser.add_argument("--previous-atom", type=int, help="Monomer mode: atom that connects to the previous monomer.")
     parser.add_argument("--next-atom", type=int, help="Monomer mode: atom that connects to the next monomer.")
     parser.add_argument("--reference-dp", type=int, default=5, help="Monomer mode: hidden reference oligomer size.")
     parser.add_argument("--junction-order", type=int, default=1, help="Monomer mode: monomer-monomer bond order.")
-    parser.add_argument("--dp", type=int, required=True, help="Degree of polymerization")
+    parser.add_argument("--dp", type=int, help="Degree of polymerization (required for a build)")
     parser.add_argument("--oligomer-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--repeat-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--end-charge", type=int, default=0, help="Legacy oligomer mode only.")
@@ -1824,6 +1855,21 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Force-field engine for the reference oligomer: "
         + "; ".join(f"{name} = {text}" for name, text in FF_ENGINES.items())
         + f" (default: {DEFAULT_FF_ENGINE}).",
+    )
+    parser.add_argument(
+        "--sage-python",
+        help="sage engine: Python interpreter of your OpenFF environment (default: "
+        "$POLYMER_SAGE_PYTHON, then auto-detected conda environments with openff-toolkit + openff-interchange).",
+    )
+    parser.add_argument(
+        "--sage-forcefield",
+        default=None,
+        help="sage engine: SMIRNOFF force field file (default: openff-2.3.0.offxml, NAGL charges).",
+    )
+    parser.add_argument(
+        "--check-engine",
+        action="store_true",
+        help="Only report whether the chosen --ff-engine is ready (and which OpenFF install is used), then exit.",
     )
     parser.add_argument(
         "--no-minimize-geometry",
@@ -1838,8 +1884,53 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def engine_settings_from_args(args: argparse.Namespace) -> dict:
+    settings = {}
+    if args.sage_python:
+        settings["sage_python"] = args.sage_python
+    if args.sage_forcefield:
+        settings["sage_forcefield"] = args.sage_forcefield
+    return settings
+
+
+def engine_problem_lines(engine: str, settings: dict) -> list[str]:
+    """Human-readable preflight problems of an engine (empty if ready)."""
+
+    if engine == "gaff2":
+        missing = missing_external_tools()
+        return [f"missing AmberTools executable(s): {', '.join(missing)}"] if missing else []
+    module = engine_module(engine)
+    lines = [error for error in module.preflight(settings)[0]]
+    if engine == "opls" and any("SI" in line for line in lines):
+        lines.append("With the bundled copy, install the SI files with:\n    " + module.INSTALL_SI_HINT)
+    return lines
+
+
+def check_engine(engine: str, settings: dict) -> int:
+    print(f"Force-field engine: {engine} - {FF_ENGINES[engine]}")
+    problems = engine_problem_lines(engine, settings)
+    if engine == "sage":
+        import sage_engine
+
+        interpreter, _ = sage_engine.find_interpreter(settings)
+        if interpreter is not None:
+            probe = interpreter.probe
+            print(f"  OpenFF Python: {interpreter.python} ({interpreter.source})")
+            print(f"  versions: {probe.get('versions')}")
+            print(f"  charges: {probe.get('charges')}")
+    for line in problems:
+        print("  " + line.replace("\n", "\n  "))
+    print("  ready" if not problems else "  NOT ready")
+    return 0 if not problems else 1
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+    settings = engine_settings_from_args(args)
+    if args.check_engine:
+        return check_engine(args.ff_engine, settings)
+    if args.input_sdf is None or args.dp is None:
+        raise SystemExit("input_sdf and --dp are required for a build (or use --check-engine).")
     monomer_mode = args.previous_atom is not None or args.next_atom is not None
     if monomer_mode:
         if args.previous_atom is None or args.next_atom is None:
@@ -1856,6 +1947,7 @@ def main(argv: Iterable[str] | None = None) -> int:
                 minimize_geometry=not args.no_minimize_geometry,
                 junction_order=args.junction_order,
                 ff_engine=args.ff_engine,
+                engine_settings=settings,
             ),
         )
     else:
@@ -1873,6 +1965,7 @@ def main(argv: Iterable[str] | None = None) -> int:
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,
                 ff_engine=args.ff_engine,
+                engine_settings=settings,
             ),
         )
     print(f"Detected repeat units: {result.repeat_units}")
@@ -1883,13 +1976,8 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(f"Force-field engine: {args.ff_engine}")
     if result.missing_tools:
         print(f"{args.ff_engine} engine blocked: missing " + ", ".join(result.missing_tools))
-        if args.ff_engine == "opls":
-            import opls_engine
-
-            for error in opls_engine.preflight()[0]:
-                print("  " + error.replace("\n", "\n  "))
-            if "OPLS/2020 SI files" in result.missing_tools:
-                print("  With the bundled copy, install the SI files with:\n    " + opls_engine.INSTALL_SI_HINT)
+        for line in engine_problem_lines(args.ff_engine, settings):
+            print("  " + line.replace("\n", "\n  "))
         print("Wrote placeholder GROMACS-shaped files for non-external validation.")
     print(f"Output directory: {result.files[0].parent}")
     return 0
