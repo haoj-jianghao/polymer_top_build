@@ -72,7 +72,6 @@ reach the polymer through the same transfer step (see below).
   opls-ff-gen repository.
 - `polymer_gui/desktop.py`: desktop GUI (Tkinter): sketcher, build settings, background builds.
 - `polymer_gui/sketch_model.py`: the sketcher's drawing model (no GUI code; unit-tested).
-- `polymer_gui/app.py`, `templates/`, `static/`: the earlier browser GUI (Flask).
 - `examples/PEG_repeat_monomer.sdf`: PEG-like repeat monomer example.
 - `examples/PEG_5mer.sdf`: older oligomer-mode pentaethylene glycol example.
 - `tests/test_polymer_non_amber.py`: tests for repeat detection, DP build, and charge normalization.
@@ -359,9 +358,6 @@ the charged atom; choose 0 and click again to remove it.
 - Hydrogen completion takes formal charges into account. N+ is allowed
   four bond orders, so a quaternary nitrogen with four single bonds gets
   no hydrogen, while a three-coordinate N+ gets one.
-
-The earlier browser GUI is still available with `python polymer_gui/app.py`
-(needs Flask) at `http://127.0.0.1:8501`.
 
 ## Run the CLI
 

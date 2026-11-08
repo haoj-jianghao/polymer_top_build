@@ -10,6 +10,5 @@ dependencies:
   - mopac=23.2.5
   - ambertools           # antechamber, parmchk2, tleap (GAFF2 engine)
   - parmed               # AMBER -> GROMACS conversion (GAFF2 engine)
-  - flask
   - pytest
   - pip

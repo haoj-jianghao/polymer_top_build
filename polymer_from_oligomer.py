@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build a homopolymer model from a drawn/reference oligomer.
 
-This module is intentionally importable.  The CLI and the local web GUI both
-call ``build_polymer_from_oligomer`` so the UI does not duplicate chemistry
-logic.
+This module is intentionally importable.  The CLI and the desktop GUI
+(``polymer_gui/desktop.py``) both call it, so the UI does not duplicate
+chemistry logic.
 
 V1 scope:
 * linear homopolymer backbones with branched or ring-containing repeat units
