@@ -1,0 +1,57 @@
+{
+ "description": "Package data of opls-ff-lite: path relative to data/, size and SHA-256 (src/opls_ff_lite/datafiles.py). The OPLS/2020 SI (data/opls2020/) is user-installed and not listed.",
+ "files": {
+  "atomtype_archive.json": {
+   "size": 79863,
+   "sha256": "711714196154807804c72ff0bd96de27ba08f7f86d2643f9eda41306ea403cce"
+  },
+  "gaff2_bonded.json": {
+   "size": 608592,
+   "sha256": "62cefe97e7c7050ef84b39f19667a814607c70306f302e38832e6638365151b2"
+  },
+  "gaff2_display_types.json": {
+   "size": 2586,
+   "sha256": "5f193f26181d397ff0c58e7033506dd6118ab9996e1a1e42a15087b921e75b35"
+  },
+  "gaff2_general_torsions.par": {
+   "size": 37166,
+   "sha256": "9ed6d0a12a4a28ceb59606665463e8232099b2a1f7dd15baa321e5639fe05e65"
+  },
+  "gaff2_lj.json": {
+   "size": 21415,
+   "sha256": "bfbadd8a8749442ddc24388d0f7d32e430182ba893ee6c205bdc52af3a7631c9"
+  },
+  "gaff2_opls_analogs.json": {
+   "size": 10182,
+   "sha256": "756640859d7ccfd122edf13fadacc1213cea17793c774bf13e106bd0ac1ac5b2"
+  },
+  "opls_rules.json": {
+   "size": 139648,
+   "sha256": "164e125932b042dcbc3a680e659af08dc758c1601294b2235d2f062b87e344c1"
+  },
+  "parmchk/AmberTools-LICENSE.txt": {
+   "size": 38042,
+   "sha256": "912af0215a173b10e44c254b1ee2ed844393298a503bea4596216afcb42ec509"
+  },
+  "parmchk/PARMCHK.DAT": {
+   "size": 55582,
+   "sha256": "5fc9aa69b118b58dfb377817de7ba0c2b08cd2a50542d63c83b70a62c8385a43"
+  },
+  "parmchk/PARM_BLBA_GAFF2.DAT": {
+   "size": 13540,
+   "sha256": "a3c1e51a38c8c9c2132278c66785df0df8f88d25bf2a9ab34b5c1c87484fb0e3"
+  },
+  "parmchk/README.txt": {
+   "size": 681,
+   "sha256": "e763221e1a9b9d59cffc1d18c7b9ca52ae1e4143dcc643af7da11dae958146eb"
+  },
+  "qm_bonded_terms.json": {
+   "size": 664662,
+   "sha256": "5213d5dc8af937e700ed838267f14345adffc2ee1ed82fc76743debd495346ee"
+  },
+  "qm_bonded_terms.par": {
+   "size": 70479,
+   "sha256": "663dc10ff3df392de35f829fd30155fc7d8c3a7b1567b8b1e572b6435660e004"
+  }
+ }
+}

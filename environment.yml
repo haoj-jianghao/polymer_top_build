@@ -1,12 +1,16 @@
+# Polymer GROMACS Builder with the default OPLS-AA/2020 engine (bundled opls-ff-lite).
+#   conda env create -f environment.yml && conda activate polymer-gui
+# Then install the OPLS/2020 SI files once (they may not be redistributed):
+#   python third_party/opls-ff-lite/run_opls_ff_lite.py install-si jp3c06602_si_002.txt jp3c06602_si_003.txt
+# For the optional GAFF2/AmberTools engine use environment-amber.yml instead.
 name: polymer-gui
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  - python=3.12          # opls-ff-lite needs 3.12+
+  - rdkit>=2025.9
+  - numpy
+  - mopac=23.2.5         # AM1 for the CM1A charges of opls-ff-lite
   - flask
   - pytest
-  - ambertools
-  - parmed
-  - rdkit
   - pip
-

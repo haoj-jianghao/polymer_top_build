@@ -1,51 +1,147 @@
 # Polymer GROMACS Builder
 
-This is a project that develops a tool to assign Amber GAFF force field to polymers for molecular dynamics (MD) simulations using GROMACS.
-The program allows construction of GROMACS topology files (.top, .itp and .gro) for MD simulation of a polymer. 
-The main input is simply the monomer structure, which user I can input by drawing the structure through a GUI.
+A tool to build force-field topologies of polymers for molecular dynamics (MD)
+simulations with GROMACS. It writes ready-to-use `.top`, `.itp` and `.gro`
+files. The main input is the monomer structure, which you draw in a GUI.
 
-The program asks user to draw a monomer structure and assign the atoms for monomer-monomer connectivity, then the program would parameterize a small oligomer of user's choice.
-After the oligomer parameterization (using the Ambertools), the program would construct the polymer with length of user's choice using the oligomer parameters.
-
-
-The default workflow is now monomer-first:
+You draw a monomer and choose the atoms that connect it to the previous and
+next monomer. The program builds a small hidden reference oligomer (5 units by
+default), parameterizes that oligomer with a force-field engine, and transfers
+the parameters to a polymer of the length you choose.
 
 ```text
 draw monomer
   -> choose previous/next connection atoms
   -> generate hidden reference oligomer, e.g. 5-mer
-  -> add hydrogens to that reference oligomer
-  -> run geometry minimization + AmberTools on that oligomer
-  -> generate final polymer GROMACS files
+  -> add hydrogens, minimize the geometry (RDKit)
+  -> parameterize the reference oligomer with the chosen force-field engine
+  -> transfer its parameters to the requested polymer
+  -> write polymer.itp / polymer.top / polymer.gro
 ```
+
+## Force-field engines
+
+| engine | `--ff-engine` | force field and charges | needs |
+|---|---|---|---|
+| **OPLS-AA/2020** (default) | `opls` | OPLS/2020 atom types and bonded terms; CM1A charges (ions) or 1.14*CM1A-LBCC (neutral) | bundled opls-ff-lite, MOPAC, the OPLS/2020 SI files |
+| GAFF2 | `gaff2` | GAFF2 types; AM1-BCC charges | AmberTools (`antechamber`, `parmchk2`, `tleap`), ParmEd |
+
+Every engine parameterizes only the hidden reference oligomer. OPLS-AA/2020
+uses the bundled [opls-ff-lite](third_party/opls-ff-lite/README.md). It covers
+H, C, N, O, F, P, S, Cl, Br and I. Atoms that OPLS cannot type, such as Si,
+get GAFF2 types.
 
 ## What is included
 
 - `polymer_from_oligomer.py`: importable backend plus CLI.
+- `opls_engine.py`: runs the bundled opls-ff-lite on the reference oligomer.
+- `topology_transfer.py`: transfers a reference-oligomer GROMACS topology to
+  the polymer. The transfer works the same way for every engine.
+- `third_party/opls-ff-lite/`: bundled copy of opls-ff-lite, without the
+  OPLS/2020 SI files. `scripts/sync_opls_ff_lite.sh` updates it from the
+  opls-ff-gen repository.
 - `polymer_gui/app.py`: Flask web server.
 - `polymer_gui/templates/index.html`: local browser interface.
 - `polymer_gui/static/app.js`: built-in 2D sketcher and backend calls.
 - `examples/PEG_repeat_monomer.sdf`: PEG-like repeat monomer example.
 - `examples/PEG_5mer.sdf`: older oligomer-mode pentaethylene glycol example.
 - `tests/test_polymer_non_amber.py`: tests for repeat detection, DP build, and charge normalization.
+- `tests/test_topology_transfer.py`: tests for the topology transfer and the OPLS engine.
 
 The GUI includes a small built-in sketcher, so it does not depend on an
 external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
 
 ## Install
 
-For the GUI only:
-
 ```bash
-python -m pip install -r requirements.txt
-```
-
-For real GAFF2/AM1-BCC parameterization and GROMACS-ready output:
-
-```bash
-conda env create -f environment.yml
+conda env create -f environment.yml          # OPLS-AA/2020 engine
 conda activate polymer-gui
+# or, to also have the GAFF2/AmberTools engine:
+conda env create -f environment-amber.yml
+conda activate polymer-gui-amber
 ```
+
+The OPLS/2020 parameters are the Supporting Information of W. L. Jorgensen et
+al., *J. Phys. Chem. B* 2024, https://doi.org/10.1021/acs.jpcb.3c06602. They
+may not be redistributed. Download `jp3c06602_si_002.txt` and
+`jp3c06602_si_003.txt` from the article page, then install them once:
+
+```bash
+python third_party/opls-ff-lite/run_opls_ff_lite.py install-si jp3c06602_si_002.txt jp3c06602_si_003.txt
+python third_party/opls-ff-lite/run_opls_ff_lite.py doctor     # exit 0 = ready
+```
+
+- The files go to `~/.local/share/opls-ff-lite/opls2020/`. Set
+  `OPLS_FF_LITE_SI_DIR` to read them from another directory.
+- MOPAC is found on `PATH`, or through `OPLS_FF_LITE_MOPAC`.
+- If a requirement is missing, a build writes placeholder files and the GUI
+  or CLI names what is missing.
+
+## How the parameters reach the polymer
+
+1. The engine writes a GROMACS topology of the reference oligomer:
+   `opls_reference/reference.top` and `.itp`, plus the per-atom assignment
+   and MOPAC files.
+2. Atoms are addressed as (repeat unit, index within the unit). The
+   reference and the polymer are built unit by unit from the same monomer.
+   Each unit's hydrogens are numbered after its monomer atoms, by parent
+   atom and slot.
+3. **Bonded terms and atom types are copied by index shift.**
+   - A reference term in units r..r+s is copied to polymer units p..p+s, and
+     each atom keeps its index within its unit.
+   - The source window follows a fixed rule. Polymer terms within the first
+     or last E units come from the same position at the reference head or
+     tail; E = 2 for the default 5-unit reference. All other terms come from
+     the most central reference window.
+   - Example with a 5-mer reference and a 12-mer polymer: unit 1 ← 1, unit 2
+     ← 2, units 3–10 ← 3, unit 11 ← 4, unit 12 ← 5. The junction between
+     units 6 and 7 is copied from the junction between reference units 2
+     and 3.
+4. **Cross-check:** an independent method places every reference term
+   pattern at every polymer position. For each one it picks the reference
+   copy whose bonded neighbourhood (up to 4 bond shells) matches the
+   polymer's best.
+   - The build is accepted only if both methods give exactly the same atom
+     types and term lines: same atoms, function, parameter text and comment.
+     Any difference stops the build and lists the differences.
+   - The build also checks that every bond, angle, 1-4 pair and proper
+     dihedral the polymer's graph requires is present.
+5. **Reference size:** interior terms are copied from windows of interior
+   reference units only. A term spanning n repeat units therefore needs a
+   reference of at least n + 2 units, and smaller references are rejected
+   with that number.
+   - Monomers with a two-atom backbone (vinyl polymers, PE, PDMS) have
+     torsions and 1-4 pairs spanning 3 units, so they need 5 units.
+   - Larger repeat units need 4.
+   - The default of 5 covers both.
+6. **Charges:** each atom gets its charge averaged over the equivalent
+   reference atoms, as for GAFF2.
+   - The first unit uses the reference head unit, the last unit the tail
+     unit, and middle units all reference interior units.
+   - The charges are then corrected so the total equals the formal charge
+     exactly.
+7. **Atom types** are merged by their complete non-bonded parameter set:
+   atomic number, mass, sigma and epsilon. Every bonded term is written with
+   explicit parameters, so merging changes no energy. A PEG polymer needs 8
+   types and PMMA 10. A type label used with different parameters gets a
+   suffix, for example `opls_135_2`.
+8. A polymer shorter than the reference oligomer is parameterized directly.
+
+`PARAMETER_TRANSFER_REPORT.txt` records the following:
+- the shift rule used and the cross-check result;
+- term counts and coverage checks;
+- the environment-match depth histogram;
+- the opls-ff-lite rule counts;
+- the charge spread between equivalent reference atoms, with a warning above
+  0.02 e (a longer reference converges the interior charges better);
+- any warnings.
+
+The OPLS `polymer.top` carries the OPLS `[ defaults ]`: `1 3 yes 0.5 0.5`
+(geometric combination rule, fudgeLJ = fudgeQQ = 0.5). `polymer.itp` holds
+the `[ atomtypes ]` and the `[ moleculetype ]`. Each repeat unit is one
+residue, and atoms are named element + number within the unit.
+
+## GAFF2 engine (AmberTools)
 
 AmberTools must provide these executables on `PATH`:
 
@@ -70,7 +166,7 @@ oligomer, not the final requested polymer DP. The relevant files are:
 
 ```text
 reference_oligomer_from_monomer.sdf      heavy-atom reference oligomer
-reference_oligomer_for_antechamber.sdf   hydrogenated reference oligomer
+reference_oligomer_for_antechamber.sdf   hydrogenated reference oligomer (all engines)
 polymer.sdf                              final requested polymer structure
 ```
 
@@ -118,7 +214,8 @@ Basic PEG workflow:
 3. Keep previous connection atom as `1` and next connection atom as `3`.
 4. Keep reference oligomer size as `5`.
 5. Keep polymer DP as `12`.
-6. Click `Generate GROMACS files`.
+6. Keep the force field as `OPLS-AA/2020` (or choose `GAFF2`).
+7. Click `Generate GROMACS files`.
 
 Manual drawing workflow:
 
@@ -138,12 +235,12 @@ stereochemistry**, then draw the directed bond from its narrow end to its wide
 end. You can also select a style and click an existing single bond. The GUI
 stores solid wedges as V2000 stereo code `1` and hashed wedges as code `6`;
 these codes are replicated with the monomer and used by RDKit when generating
-the three-dimensional AmberTools input geometry.
+the three-dimensional geometry of the reference oligomer and the polymer.
 
 For an ionic repeat, choose `-1` or `+1` under **Formal charge**, then click
 the charged atom. Choose `0` and click it again to remove the assignment. The
 charge is stored in the MOL/SDF `M  CHG` records, displayed in the preview, and
-used to infer both the reference-oligomer Antechamber charge and the requested
+used to infer both the reference-oligomer net charge and the requested
 polymer charge. Hydrogen completion is formal-charge aware: for example, N+ is
 allowed four bond orders, so a quaternary nitrogen with four single bonds gets
 no additional hydrogen, while a three-coordinate N+ gets one.
@@ -164,7 +261,7 @@ python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
   --no-external
 ```
 
-Monomer-mode AmberTools path:
+Monomer-mode OPLS-AA/2020 build (default engine):
 
 ```bash
 python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
@@ -172,13 +269,15 @@ python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
   --next-atom 3 \
   --reference-dp 5 \
   --dp 12 \
-  --outdir outputs/PEG_repeat_DP12_amber
+  --outdir outputs/PEG_repeat_DP12_opls
 ```
 
-If AmberTools is missing, the backend reports the missing executables and still
-writes placeholder GROMACS-shaped files for non-external GUI/backend testing.
+Add `--ff-engine gaff2` to use AmberTools instead. If the engine's
+requirements are missing, the backend reports them and still writes
+placeholder GROMACS-shaped files for non-external GUI/backend testing.
 
-Geometry minimization before Antechamber is enabled by default. To bypass it:
+Geometry minimization of the reference oligomer is enabled by default. To bypass it
+(GAFF2 only; OPLS CM1A charges need a 3D geometry):
 
 ```bash
 python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
@@ -196,10 +295,19 @@ The older oligomer mode is still available for compatibility by passing
 ## Test
 
 ```bash
-python -m unittest tests.test_polymer_non_amber
+python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer
 ```
 
-The tests do not require RDKit, AmberTools, ParmEd, Flask, or GROMACS.
+- `tests.test_polymer_non_amber` and the first two groups of
+  `tests.test_topology_transfer` need neither AmberTools, MOPAC nor GROMACS.
+  The transfer tests use a synthetic reference topology whose parameters
+  encode each atom's local chemistry.
+- `OplsLiteIntegrationTests` run the real opls-ff-lite and are skipped
+  unless it is ready (MOPAC and the SI files). They check two things:
+  - a polymer as long as the reference reproduces opls-ff-lite's own
+    topology term for term;
+  - a DP-20 PEG has an exact integer charge and passes `gmx grompp` when
+    GROMACS is on `PATH`.
 
 ## V1 limitations
 
@@ -213,7 +321,10 @@ The tests do not require RDKit, AmberTools, ParmEd, Flask, or GROMACS.
 - Neighboring repeats must be connected by one inferred backbone junction bond.
 - Side groups must be included in the selected repeat atom list if they should
   be replicated on every repeat.
-- When external parameterization is disabled or AmberTools is unavailable,
-  placeholder `.itp/.top/.gro` files are suitable only for testing data flow,
-  atom counts, and charge normalization.
-- Real force-field assignment still depends on AmberTools, ParmEd, and RDKit.
+- When external parameterization is disabled or the engine's requirements are
+  missing, placeholder `.itp/.top/.gro` files are suitable only for testing
+  data flow, atom counts, and charge normalization.
+- The polymer coordinates in `polymer.gro` come from the 2D monomer layout,
+  except with wedge/dash stereochemistry or a polymer shorter than the
+  reference, which get a 3D RDKit geometry. Minimize the structure before
+  running dynamics.

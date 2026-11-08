@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import sys
 from pathlib import Path
@@ -12,6 +13,8 @@ OUTPUT_ROOT = PROJECT_ROOT / "outputs"
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from polymer_from_oligomer import (
+    DEFAULT_FF_ENGINE,
+    FF_ENGINES,
     BuildOptions,
     MonomerBuildOptions,
     build_polymer_from_monomer,
@@ -78,6 +81,9 @@ def build():
         next_atom = int(request.form.get("next_atom", "0") or "0")
         reference_dp = int(request.form.get("reference_dp", "5") or "5")
         run_external = request.form.get("run_external") == "true"
+        ff_engine = request.form.get("ff_engine", DEFAULT_FF_ENGINE) or DEFAULT_FF_ENGINE
+        if ff_engine not in FF_ENGINES:
+            raise ValueError(f"unknown force field {ff_engine!r}")
     except Exception as exc:
         return jsonify({"error": f"Invalid settings: {exc}"}), 400
 
@@ -97,6 +103,7 @@ def build():
                     polymer_dp=dp,
                     outdir=outdir,
                     run_external=run_external,
+                    ff_engine=ff_engine,
                 ),
             )
         else:
@@ -111,8 +118,11 @@ def build():
                     end_charge=int(request.form.get("end_charge", "0")),
                     outdir=outdir,
                     run_external=run_external,
+                    ff_engine=ff_engine,
                 ),
             )
+        metadata = _read_metadata(outdir)
+        engine_info = metadata.get("engine", {})
         return jsonify(
             {
                 "formula": result.molecule.formula(),
@@ -122,12 +132,37 @@ def build():
                 "target_charge": result.target_charge,
                 "final_charge": result.final_charge,
                 "missing_tools": result.missing_tools,
+                "missing_details": _missing_details(ff_engine) if result.missing_tools else "",
+                "ff_engine": ff_engine,
+                "ff_engine_label": FF_ENGINES[ff_engine],
+                "parameterization_mode": metadata.get("parameterization_mode"),
+                "charge_model": engine_info.get("charge_model"),
+                "atom_types": engine_info.get("merged_atom_types"),
+                "warnings": engine_info.get("transfer_warnings", []) + engine_info.get("engine_warnings", []),
                 "files": [str(path.relative_to(PROJECT_ROOT)) for path in result.files],
                 "download_base": f"/outputs/{outdir.name}",
             }
         )
     except Exception as exc:
         return jsonify({"error": str(exc)}), 400
+
+
+def _read_metadata(outdir: Path) -> dict:
+    try:
+        return json.loads((outdir / "build_metadata.json").read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def _missing_details(ff_engine: str) -> str:
+    if ff_engine != "opls":
+        return ""
+    import opls_engine
+
+    errors = opls_engine.preflight()[0]
+    return " | ".join(error.splitlines()[0] for error in errors) + (
+        f" | install the SI with: {opls_engine.INSTALL_SI_HINT}" if any("SI" in error for error in errors) else ""
+    )
 
 
 @app.get("/outputs/<job>/<path:filename>")

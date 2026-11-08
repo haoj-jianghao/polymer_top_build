@@ -588,6 +588,7 @@ function formData() {
     "reference_dp",
     "dp",
     "job_name",
+    "ff_engine",
   ]) {
     data.append(id, document.getElementById(id).value);
   }
@@ -628,15 +629,21 @@ function renderBuild(payload) {
     const name = file.split("/").pop();
     return `<a href="/${file}" download>${name}</a>`;
   }).join("\n");
+  const engine = payload.ff_engine_label || payload.ff_engine || "force field";
   const blocked = payload.missing_tools.length
-    ? `\nAmberTools blocked: missing ${payload.missing_tools.join(", ")}`
-    : "\nAmberTools found.";
+    ? `${engine}: placeholder files only, missing ${payload.missing_tools.join(", ")}`
+      + (payload.missing_details ? `<br><small>${payload.missing_details}</small>` : "")
+    : `${engine}: ${payload.parameterization_mode || "ready"}`;
   document.getElementById("output").innerHTML =
     `Formula: ${payload.formula}<br>` +
     `Atoms: ${payload.atoms}<br>` +
     `Bonds: ${payload.bonds}<br>` +
     `Reference repeat units: ${JSON.stringify(payload.repeat_units)}<br>` +
     `Final charge: ${payload.final_charge}<br>` +
+    (payload.charge_model ? `Charge model: ${payload.charge_model}<br>` : "") +
+    (payload.atom_types ? `Atom types: ${payload.atom_types}<br>` : "") +
+    (payload.warnings && payload.warnings.length
+      ? `Warnings:<br>- ${payload.warnings.join("<br>- ")}<br>` : "") +
     `${blocked}<br><br>` +
     files.replaceAll("\n", "<br>");
 }
@@ -646,7 +653,7 @@ document.getElementById("loadPeg").addEventListener("click", () => {
   document.getElementById("previous_atom").value = "1";
   document.getElementById("next_atom").value = "3";
   loadMolIntoSketch(pegRepeatSdf);
-  setStatus("Loaded PEG example monomer. The hidden reference oligomer size controls the AmberTools training structure.");
+  setStatus("Loaded PEG example monomer. The hidden reference oligomer size sets the oligomer the force field is fitted on.");
 });
 
 document.getElementById("pullMol").addEventListener("click", () => {

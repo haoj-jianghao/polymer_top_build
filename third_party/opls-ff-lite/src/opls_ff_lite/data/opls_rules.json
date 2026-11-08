@@ -1,0 +1,7773 @@
+{
+ "description": "OPLS-AA atom types with SMARTS typing rules (Foyer dialect), in Foyer's order. Rules are applied by src/opls_ff_gen/opls_typer.py; the atom-type archive adds to them.",
+ "source": "Foyer 1.2.0 forcefields/xml/oplsaa.xml (MIT License, Copyright (c) 2015 Vanderbilt University, mosdef-hub/foyer; C. Klein et al., Comput. Phys. Commun. 2019, doi:10.1016/j.cpc.2018.10.023); atom types, SMARTS rules and overrides only (no parameter values)",
+ "types": [
+  {
+   "name": "opls_001",
+   "class": "opls_001",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_002",
+   "class": "opls_002",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_003",
+   "class": "opls_003",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_004",
+   "class": "opls_004",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_005",
+   "class": "opls_005",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_006",
+   "class": "opls_006",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_007",
+   "class": "opls_007",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_008",
+   "class": "opls_008",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_009",
+   "class": "opls_009",
+   "element": "N",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_010",
+   "class": "opls_010",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_011",
+   "class": "opls_011",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_012",
+   "class": "opls_012",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_013",
+   "class": "opls_013",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_014",
+   "class": "opls_014",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_015",
+   "class": "opls_015",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_016",
+   "class": "opls_016",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_017",
+   "class": "opls_017",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_018",
+   "class": "opls_018",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_019",
+   "class": "opls_019",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_020",
+   "class": "opls_020",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_021",
+   "class": "opls_021",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_022",
+   "class": "opls_022",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_023",
+   "class": "opls_023",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_024",
+   "class": "opls_024",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_025",
+   "class": "opls_025",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_026",
+   "class": "opls_026",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_027",
+   "class": "opls_027",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_028",
+   "class": "opls_028",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_029",
+   "class": "opls_029",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_030",
+   "class": "opls_030",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_031",
+   "class": "opls_031",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_032",
+   "class": "opls_032",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_033",
+   "class": "opls_033",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_034",
+   "class": "opls_034",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_035",
+   "class": "opls_035",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_036",
+   "class": "opls_036",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_037",
+   "class": "opls_037",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_038",
+   "class": "opls_038",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_039",
+   "class": "opls_039",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_040",
+   "class": "opls_040",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_041",
+   "class": "opls_041",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_042",
+   "class": "opls_042",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_043",
+   "class": "opls_043",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_044",
+   "class": "opls_044",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_045",
+   "class": "opls_045",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_046",
+   "class": "opls_046",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_047",
+   "class": "opls_047",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_048",
+   "class": "opls_048",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_049",
+   "class": "opls_049",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_050",
+   "class": "opls_050",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_051",
+   "class": "opls_051",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_052",
+   "class": "opls_052",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_053",
+   "class": "opls_053",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_054",
+   "class": "opls_054",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_055",
+   "class": "opls_055",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_056",
+   "class": "opls_056",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_057",
+   "class": "opls_057",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_058",
+   "class": "opls_058",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_059",
+   "class": "opls_059",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_060",
+   "class": "opls_060",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_061",
+   "class": "opls_061",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_062",
+   "class": "opls_062",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_063",
+   "class": "opls_063",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_064",
+   "class": "opls_064",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_065",
+   "class": "opls_065",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_066",
+   "class": "opls_066",
+   "element": "C",
+   "mass": 16.043,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_067",
+   "class": "opls_067",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_068",
+   "class": "opls_068",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_069",
+   "class": "opls_069",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_070",
+   "class": "opls_070",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_071",
+   "class": "opls_071",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_072",
+   "class": "opls_072",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_073",
+   "class": "opls_073",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_074",
+   "class": "opls_074",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_075",
+   "class": "opls_075",
+   "element": "C",
+   "mass": 13.019,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_076",
+   "class": "opls_076",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_077",
+   "class": "opls_077",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_078",
+   "class": "opls_078",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_079",
+   "class": "opls_079",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_080",
+   "class": "opls_080",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_081",
+   "class": "opls_081",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_082",
+   "class": "opls_082",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_083",
+   "class": "opls_083",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_084",
+   "class": "opls_084",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_085",
+   "class": "opls_085",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_086",
+   "class": "opls_086",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_087",
+   "class": "opls_087",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_088",
+   "class": "opls_088",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_089",
+   "class": "opls_089",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_090",
+   "class": "opls_090",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_091",
+   "class": "opls_091",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_092",
+   "class": "opls_092",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_093",
+   "class": "opls_093",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_094",
+   "class": "opls_094",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_095",
+   "class": "opls_095",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_096",
+   "class": "opls_096",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_097",
+   "class": "opls_097",
+   "element": "Ar",
+   "mass": 39.948,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_098",
+   "class": "opls_098",
+   "element": "Kr",
+   "mass": 83.798,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_099",
+   "class": "opls_099",
+   "element": "Xe",
+   "mass": 131.293,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_101",
+   "class": "opls_101",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_102",
+   "class": "opls_102",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_103",
+   "class": "opls_103",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_104",
+   "class": "opls_104",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_105",
+   "class": "opls_105",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_106",
+   "class": "opls_106",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_107",
+   "class": "opls_107",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_108",
+   "class": "opls_108",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_109",
+   "class": "opls_109",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_110",
+   "class": "opls_110",
+   "element": "C",
+   "mass": 14.027,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_111",
+   "class": "opls_111",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_112",
+   "class": "opls_112",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_113",
+   "class": "opls_113",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_114",
+   "class": "opls_114",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_115",
+   "class": "opls_115",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_116",
+   "class": "opls_116",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_117",
+   "class": "opls_117",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_118",
+   "class": "opls_118",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_118e",
+   "class": "opls_118e",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_119",
+   "class": "opls_119",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_120",
+   "class": "opls_120",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_122",
+   "class": "opls_122",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_123",
+   "class": "opls_123",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_124",
+   "class": "opls_124",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_125",
+   "class": "opls_125",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_126",
+   "class": "opls_126",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_127",
+   "class": "opls_127",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_128",
+   "class": "opls_128",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_129",
+   "class": "opls_129",
+   "element": "Ne",
+   "mass": 20.1797,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_130",
+   "class": "opls_130",
+   "element": "He",
+   "mass": 4.0026,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_131",
+   "class": "opls_131",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_132",
+   "class": "opls_132",
+   "element": "C",
+   "mass": 15.035,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_135",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(H)(H)H",
+   "overrides": [],
+   "description": "alkane CH3"
+  },
+  {
+   "name": "opls_136",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(C)(H)H",
+   "overrides": [],
+   "description": "alkane CH2"
+  },
+  {
+   "name": "opls_137",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(C)(C)H",
+   "overrides": [],
+   "description": "alkane CH"
+  },
+  {
+   "name": "opls_138",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)H",
+   "overrides": [],
+   "description": "alkane CH4"
+  },
+  {
+   "name": "opls_139",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(C)(C)C",
+   "overrides": [],
+   "description": "alkane C"
+  },
+  {
+   "name": "opls_140",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;X4]",
+   "overrides": [],
+   "description": "alkane H"
+  },
+  {
+   "name": "opls_141",
+   "class": "CM",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;!r6](C)(C)C",
+   "overrides": [],
+   "description": "alkene C (R2-C=)"
+  },
+  {
+   "name": "opls_142",
+   "class": "CM",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3](C)(C)H",
+   "overrides": [],
+   "description": "alkene C (RH-C=)"
+  },
+  {
+   "name": "opls_143",
+   "class": "CM",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3](C)(H)H",
+   "overrides": [],
+   "description": "alkene C (H2-C=)"
+  },
+  {
+   "name": "opls_144",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H][C;X3]",
+   "overrides": [],
+   "description": "alkene H"
+  },
+  {
+   "name": "opls_145",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]1[C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6]1",
+   "overrides": [
+    "opls_141",
+    "opls_142"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_145B",
+   "class": "C!",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_146",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H][C;%opls_145]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "benzene H"
+  },
+  {
+   "name": "opls_147",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;R2;X3]([C,%opls_263])([C;R2;X3])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Naphthalene ring fusion C"
+  },
+  {
+   "name": "opls_148",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;%opls_145])(H)(H)H",
+   "overrides": [
+    "opls_149",
+    "opls_135"
+   ],
+   "description": "toluene CH3"
+  },
+  {
+   "name": "opls_149",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;%opls_145])(H)(H)*",
+   "overrides": [
+    "opls_136"
+   ],
+   "description": "ethyl benzene CH2"
+  },
+  {
+   "name": "opls_150",
+   "class": "opls_150",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_151",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl][C;X4](C)(H)(H)",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "Cl in singly-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_151a",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl][C;X4]([Cl])([C,H])(H)",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "Cl in double-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_151b",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl][C;X4]([Cl])([Cl])([C,H])",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "Cl in triple-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_151c",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl][C;X4]([Cl])([F])([C,H])",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "Cl in chloro-fluoro alkyl"
+  },
+  {
+   "name": "opls_152",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([Cl])([C,H])(H)(H)",
+   "overrides": [],
+   "description": "RCH2Cl in singly-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_152a",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([I])(C)([C,H])H",
+   "overrides": [],
+   "description": "R-CH2-I in singly-substituted alkyl iodides"
+  },
+  {
+   "name": "opls_152b",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([Cl])([Cl])([C,H])(H)",
+   "overrides": [],
+   "description": "RCHCl2 in double-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_152c",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([Cl])([Cl])([Cl])([C,H])",
+   "overrides": [],
+   "description": "RCHCl3 in triple-substituted alkyl chlorides"
+  },
+  {
+   "name": "opls_152d",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([Br])([C,H])(H)(H)",
+   "overrides": [],
+   "description": "RCH2Br in singly-substituted alkyl bromides"
+  },
+  {
+   "name": "opls_152e",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([Br])([Br])([C,H])(H)",
+   "overrides": [],
+   "description": "RCHBr2 in double-substituted alkyl bromides"
+  },
+  {
+   "name": "opls_153",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H][C;%opls_152,%opls_152d]",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H in singly-substituted alkyl chlorides and bromides"
+  },
+  {
+   "name": "opls_153a",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H]([C;X4;%opls_152a])",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H in alkyl iodides"
+  },
+  {
+   "name": "opls_153b",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H]([C;X4;%opls_152b,%opls_152e,%opls_959])",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H in double-substituded alkyl chlorides and bromides"
+  },
+  {
+   "name": "opls_153c",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H]([C;X4;%opls_152c])",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H in triple-substituded alkyl chlorides"
+  },
+  {
+   "name": "opls_154",
+   "class": "OH",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2](H)([C])",
+   "overrides": [],
+   "description": "all-atom O: mono alcohols"
+  },
+  {
+   "name": "opls_155",
+   "class": "HO",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[O;%opls_154]",
+   "overrides": [],
+   "description": "all-atom H(O): mono alcohols, OP(=O)2"
+  },
+  {
+   "name": "opls_156",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "HC(H)(H)OH",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "all-atom H(C): methanol"
+  },
+  {
+   "name": "opls_157",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([H])([H])([*])[O;%opls_154]",
+   "overrides": [
+    "opls_136",
+    "opls_159",
+    "opls_158"
+   ],
+   "description": "all-atom C: CH3 and CH2, alcohols"
+  },
+  {
+   "name": "opls_158",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([H])[O;%opls_154]",
+   "overrides": [
+    "opls_136",
+    "opls_159"
+   ],
+   "description": "Carbon in 2R-C(H)-OH"
+  },
+  {
+   "name": "opls_159",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4][O;%opls_154]",
+   "overrides": [
+    "opls_136"
+   ],
+   "description": "Carbon in 3R-C-OH"
+  },
+  {
+   "name": "opls_160",
+   "class": "opls_160",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_161",
+   "class": "opls_161",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_162",
+   "class": "opls_162",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_163",
+   "class": "opls_163",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_164",
+   "class": "opls_164",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_165",
+   "class": "opls_165",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_166",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]1(OH)[C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6]1",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_167",
+   "class": "OH",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "O(H)[C;%opls_166]",
+   "overrides": [
+    "opls_154"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_168",
+   "class": "HO",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[O;%opls_167]",
+   "overrides": [
+    "opls_155"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_169",
+   "class": "opls_169",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_170",
+   "class": "opls_170",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_171",
+   "class": "OH",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([%opls_173,%opls_174])(H)",
+   "overrides": [
+    "opls_154"
+   ],
+   "description": "O in triols"
+  },
+  {
+   "name": "opls_172",
+   "class": "HO",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H;X1]([O;%opls_171])",
+   "overrides": [
+    "opls_155"
+   ],
+   "description": "H(O) in triols"
+  },
+  {
+   "name": "opls_173",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([H])([H])([O;X2]([H]))([C;X4]([O;X2]([H]))([C;X4]([O;X2]([H]))))",
+   "overrides": [
+    "opls_157",
+    "opls_158"
+   ],
+   "description": "C(H2)(OH) in propane triols"
+  },
+  {
+   "name": "opls_174",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([H])([O;X2]([H]))([C;X4]([O;X2]))([C;X4]([O;X2]))",
+   "overrides": [
+    "opls_158"
+   ],
+   "description": "C(HROH) in triols (central C in glycerol)"
+  },
+  {
+   "name": "opls_175",
+   "class": "opls_175",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_176",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H][%opls_173,%opls_174]",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H(CXOH): triols"
+  },
+  {
+   "name": "opls_178",
+   "class": "opls_178",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_179",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([C;X3;r6])([C;X4])",
+   "overrides": [
+    "opls_180"
+   ],
+   "description": "ether oxygen bonded to an alkyl and aryl group (anisole)"
+  },
+  {
+   "name": "opls_180",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2](C)C",
+   "overrides": [],
+   "description": "O, dialkyl ether"
+  },
+  {
+   "name": "opls_181",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_180])(H)(H)H",
+   "overrides": [
+    "opls_182"
+   ],
+   "description": "C(H3OR), methyl ether"
+  },
+  {
+   "name": "opls_182",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_180])(H)(H)C",
+   "overrides": [],
+   "description": "C(H2OR), methyl ether"
+  },
+  {
+   "name": "opls_183",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_180])(C)(C)H",
+   "overrides": [],
+   "description": "Central Carbon in Isopropyl group attached to Oxygen in ether"
+  },
+  {
+   "name": "opls_184",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_180])(C)(C)(C)",
+   "overrides": [],
+   "description": "Central Carbon in t-butyl group attached to Oxygen in ether"
+  },
+  {
+   "name": "opls_185",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "HC[O;%opls_180]",
+   "overrides": [
+    "opls_144",
+    "opls_176",
+    "opls_140"
+   ],
+   "description": "H(COR), alpha H ether"
+  },
+  {
+   "name": "opls_186",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2][C;%opls_193](O)(C)H",
+   "overrides": [
+    "opls_180"
+   ],
+   "description": "O: acetal ether"
+  },
+  {
+   "name": "opls_187",
+   "class": "opls_187",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_188",
+   "class": "opls_188",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_189",
+   "class": "CO",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_180])([O;%opls_180])(H)(H)",
+   "overrides": [],
+   "description": "Central carbon in dimethoxymethane"
+  },
+  {
+   "name": "opls_190",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([%opls_189])",
+   "overrides": [
+    "opls_185"
+   ],
+   "description": "H bonded to opls_189 in dimethoxymethane"
+  },
+  {
+   "name": "opls_191",
+   "class": "opls_191",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_192",
+   "class": "opls_192",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_193",
+   "class": "CO",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](O)(O)(C)H",
+   "overrides": [],
+   "description": "C(HCO2), acetal OCHRO"
+  },
+  {
+   "name": "opls_194",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_193][O;%opls_186]",
+   "overrides": [
+    "opls_185"
+   ],
+   "description": "H(CHO2), acetal OCHRO"
+  },
+  {
+   "name": "opls_195",
+   "class": "opls_195",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_196",
+   "class": "opls_196",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_197",
+   "class": "opls_197",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_198",
+   "class": "opls_198",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_199",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([O;X2]([C;X4](H)(H)(H)))([C;X3;r6])([C;X3;r6])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Aromatic C bonded to O-Me in anisole"
+  },
+  {
+   "name": "opls_200",
+   "class": "SH",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X2]H",
+   "overrides": [
+    "opls_202"
+   ],
+   "description": "S in any Thiol"
+  },
+  {
+   "name": "opls_201",
+   "class": "SH",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X2](H)(H)",
+   "overrides": [
+    "opls_200",
+    "opls_202"
+   ],
+   "description": "S in H2S"
+  },
+  {
+   "name": "opls_202",
+   "class": "S",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X2]",
+   "overrides": [],
+   "description": "S in any sulfide"
+  },
+  {
+   "name": "opls_203",
+   "class": "S",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X2](S)",
+   "overrides": [
+    "opls_200",
+    "opls_202"
+   ],
+   "description": "S in Disulfide"
+  },
+  {
+   "name": "opls_204",
+   "class": "HS",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H;X1]([S;%opls_200])",
+   "overrides": [],
+   "description": "H in any Thiol"
+  },
+  {
+   "name": "opls_205",
+   "class": "HS",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H;X1]([S;%opls_201])",
+   "overrides": [
+    "opls_204"
+   ],
+   "description": "H in H2S"
+  },
+  {
+   "name": "opls_206",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_200])(H)(H)",
+   "overrides": [
+    "opls_207",
+    "opls_208",
+    "opls_210"
+   ],
+   "description": "C in R-CH2-S-H"
+  },
+  {
+   "name": "opls_207",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_200])(H)([!H])([!H])",
+   "overrides": [
+    "opls_208",
+    "opls_211"
+   ],
+   "description": "C in 2R-CH-S-H"
+  },
+  {
+   "name": "opls_208",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_200])",
+   "overrides": [
+    "opls_212"
+   ],
+   "description": "C in 3R-C-S-H"
+  },
+  {
+   "name": "opls_209",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_202])(H)(H)(H)",
+   "overrides": [
+    "opls_210",
+    "opls_211",
+    "opls_212"
+   ],
+   "description": "C in CH3-S-*"
+  },
+  {
+   "name": "opls_210",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_202])(H)(H)",
+   "overrides": [
+    "opls_211",
+    "opls_212"
+   ],
+   "description": "C in R-CH2-S-*"
+  },
+  {
+   "name": "opls_211",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_202])(H)",
+   "overrides": [
+    "opls_212"
+   ],
+   "description": "C in 2R-CH-S-*"
+  },
+  {
+   "name": "opls_212",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_202])",
+   "overrides": [],
+   "description": "C in 3R-C-S-*"
+  },
+  {
+   "name": "opls_213",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_203])(H)(H)(H)",
+   "overrides": [
+    "opls_214",
+    "opls_215",
+    "opls_216",
+    "opls_209"
+   ],
+   "description": "C in CH3-S-S-*"
+  },
+  {
+   "name": "opls_214",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_203])(H)(H)",
+   "overrides": [
+    "opls_215",
+    "opls_216",
+    "opls_210"
+   ],
+   "description": "C in R-CH2-S-S-*"
+  },
+  {
+   "name": "opls_215",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_203])(H)",
+   "overrides": [
+    "opls_216",
+    "opls_211"
+   ],
+   "description": "C in 2R-CH-S-S-*"
+  },
+  {
+   "name": "opls_216",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4][S;%opls_203]",
+   "overrides": [
+    "opls_212"
+   ],
+   "description": "C in 3R-C-S-S-*"
+  },
+  {
+   "name": "opls_217",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;%opls_200])(H)(H)(H)",
+   "overrides": [
+    "opls_211",
+    "opls_207",
+    "opls_209",
+    "opls_206"
+   ],
+   "description": "C in CH3-S-H (methanethiol)"
+  },
+  {
+   "name": "opls_218",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;%opls_221])(O)(H)(H)",
+   "overrides": [
+    "opls_149",
+    "opls_157",
+    "opls_158"
+   ],
+   "description": "C in CH2OH in benzyl alcohols"
+  },
+  {
+   "name": "opls_219",
+   "class": "opls_219",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_220",
+   "class": "opls_220",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_221",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([C;X3;r6])([C;X3;r6])([C;X4](O)(H)(H))",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Aromatic C(CH2OH) in benzyl alcohols"
+  },
+  {
+   "name": "opls_222",
+   "class": "opls_222",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_223",
+   "class": "opls_223",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_223B",
+   "class": "opls_223B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_224",
+   "class": "opls_224",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_224B",
+   "class": "opls_224B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_225",
+   "class": "opls_225",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_225B",
+   "class": "opls_225B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_226",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl;X1]([C;%opls_227])",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "chloroalkene Cl"
+  },
+  {
+   "name": "opls_227",
+   "class": "CM",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;!r6;!r5]([C;X3;!r6;!r5](H)(H))(Cl)(Cl)",
+   "overrides": [],
+   "description": "chloroalkene C (ClH-C=)"
+  },
+  {
+   "name": "opls_228",
+   "class": "opls_228",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_229",
+   "class": "opls_229",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_230",
+   "class": "opls_230",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_231",
+   "class": "opls_231",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_232",
+   "class": "C_2",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])([C;X3;r6])[H]",
+   "overrides": [
+    "opls_277"
+   ],
+   "description": "Carbon in C=0 group of benzaldehyde,acetophenone"
+  },
+  {
+   "name": "opls_233",
+   "class": "C_2",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])([C;X3;r6])(C)",
+   "overrides": [
+    "opls_280"
+   ],
+   "description": "Carbonyl carbon in acetophenone"
+  },
+  {
+   "name": "opls_234",
+   "class": "opls_234",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_235",
+   "class": "C",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])[N;X3]",
+   "overrides": [
+    "opls_277"
+   ],
+   "description": "C=O in amide, dmf, peptide bond"
+  },
+  {
+   "name": "opls_236",
+   "class": "O",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "O[C;%opls_235]",
+   "overrides": [
+    "opls_278"
+   ],
+   "description": "O: C=O in amide.   Acyl R on C in amide is neutral -"
+  },
+  {
+   "name": "opls_237",
+   "class": "N",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3](H)(H)[C;%opls_235]",
+   "overrides": [
+    "opls_900"
+   ],
+   "description": "primary amide N, ex. carboxamide"
+  },
+  {
+   "name": "opls_238",
+   "class": "N",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3](H)(C)[C;%opls_235]",
+   "overrides": [],
+   "description": "secondary amide N, ex. N-methyl acetamide"
+  },
+  {
+   "name": "opls_239",
+   "class": "N",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3](C)(C)[C;%opls_235]",
+   "overrides": [],
+   "description": "tertiary amide N, ex. acetamide"
+  },
+  {
+   "name": "opls_240",
+   "class": "H",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H;X1][N;%opls_237]",
+   "overrides": [
+    "opls_909"
+   ],
+   "description": "H on a primary nitrogen in amide"
+  },
+  {
+   "name": "opls_241",
+   "class": "H",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H;X1][N;%opls_238]",
+   "overrides": [],
+   "description": "H on a secondary nitrogen in amide"
+  },
+  {
+   "name": "opls_242",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[N;%opls_238]",
+   "overrides": [],
+   "description": "methyl C attached to secondary N in amide"
+  },
+  {
+   "name": "opls_243",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[N;%opls_239]",
+   "overrides": [],
+   "description": "methyl C attached to tertiary N in amide"
+  },
+  {
+   "name": "opls_244",
+   "class": "opls_244",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_245",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(H)(H)[N;%opls_239]",
+   "overrides": [],
+   "description": "secondary C attached to tertiary N. ex. NMP."
+  },
+  {
+   "name": "opls_246",
+   "class": "opls_246",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_247",
+   "class": "opls_247",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_248",
+   "class": "opls_248",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_249",
+   "class": "opls_249",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_250",
+   "class": "opls_250",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_251",
+   "class": "opls_251",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_252",
+   "class": "opls_252",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_253",
+   "class": "opls_253",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_254",
+   "class": "opls_254",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_255",
+   "class": "opls_255",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_256",
+   "class": "opls_256",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_257",
+   "class": "opls_257",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_258",
+   "class": "opls_258",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_259",
+   "class": "opls_259",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_260",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([C;X2;%opls_261])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Benzonitrile: Carbon on aromatic ring attached to CN"
+  },
+  {
+   "name": "opls_261",
+   "class": "CZ",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X2]([C;X3;r6])",
+   "overrides": [
+    "opls_754"
+   ],
+   "description": "Benzonitrile: carbon in nitrile group (CN) "
+  },
+  {
+   "name": "opls_262",
+   "class": "NZ",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X1][C;%opls_261]",
+   "overrides": [
+    "opls_753"
+   ],
+   "description": "Benzonitrile Nitrogen(benzene-C)N"
+  },
+  {
+   "name": "opls_263",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]1(Cl)[C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6]1",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Chlorobenzene C(Cl)"
+  },
+  {
+   "name": "opls_264",
+   "class": "Cl",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl;X1]([C;%opls_263])",
+   "overrides": [
+    "opls_401"
+   ],
+   "description": "Chlorobenzene (C)Cl"
+  },
+  {
+   "name": "opls_265",
+   "class": "opls_265",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_266",
+   "class": "opls_266",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_267",
+   "class": "C",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])OH",
+   "overrides": [
+    "opls_277",
+    "opls_271",
+    "opls_465"
+   ],
+   "description": "Co in CCOOH"
+  },
+  {
+   "name": "opls_268",
+   "class": "OH",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([C;%opls_267])H",
+   "overrides": [
+    "opls_154"
+   ],
+   "description": "Oh in CCOOH"
+  },
+  {
+   "name": "opls_269",
+   "class": "O_3",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1]([C;%opls_267](OH))",
+   "overrides": [
+    "opls_278",
+    "opls_272"
+   ],
+   "description": "Oc in CCOOH"
+  },
+  {
+   "name": "opls_270",
+   "class": "HO",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([O;%opls_268])",
+   "overrides": [
+    "opls_155"
+   ],
+   "description": "H in CCOOH"
+  },
+  {
+   "name": "opls_271",
+   "class": "C",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])([O;X1])",
+   "overrides": [],
+   "description": "acetate C in COO-"
+  },
+  {
+   "name": "opls_272",
+   "class": "O_3",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1]([C;%opls_271])",
+   "overrides": [],
+   "description": "O- in acetate group COO-"
+  },
+  {
+   "name": "opls_273",
+   "class": "opls_273",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_274",
+   "class": "opls_274",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_275",
+   "class": "opls_275",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_276",
+   "class": "opls_276",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_277",
+   "class": "C_2",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])H",
+   "overrides": [],
+   "description": "C in aldehyde"
+  },
+  {
+   "name": "opls_278",
+   "class": "O_2",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][C;%opls_277]",
+   "overrides": [],
+   "description": "O in aldehyde"
+  },
+  {
+   "name": "opls_279",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([C;X3]([O;X1])([N,C,O,H]))",
+   "overrides": [
+    "opls_185",
+    "opls_144",
+    "opls_485"
+   ],
+   "description": "H bonded to primary C in aldehyde and formamide"
+  },
+  {
+   "name": "opls_280",
+   "class": "C_2",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])(C)C",
+   "overrides": [],
+   "description": "C in ketone"
+  },
+  {
+   "name": "opls_281",
+   "class": "O_2",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1]([C;%opls_280])",
+   "overrides": [],
+   "description": "O in ketone"
+  },
+  {
+   "name": "opls_282",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "HC[C;%opls_277,%opls_280,%opls_465;!%opls_267;!%opls_233]",
+   "overrides": [
+    "opls_140",
+    "opls_144"
+   ],
+   "description": "H on C-alpha in ketone and aldehyde"
+  },
+  {
+   "name": "opls_283",
+   "class": "opls_283",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_284",
+   "class": "opls_284",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_285",
+   "class": "opls_285",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_286",
+   "class": "opls_286",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_287",
+   "class": "opls_287",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_288",
+   "class": "opls_288",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_289",
+   "class": "opls_289",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_290",
+   "class": "opls_290",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_291",
+   "class": "opls_291",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_292",
+   "class": "opls_292",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_292B",
+   "class": "opls_292B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_293",
+   "class": "opls_293",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_293B",
+   "class": "opls_293B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_294",
+   "class": "opls_294",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_295",
+   "class": "opls_295",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_296",
+   "class": "opls_296",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_297",
+   "class": "opls_297",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_298",
+   "class": "opls_298",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_299",
+   "class": "opls_299",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_300",
+   "class": "opls_300",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_301",
+   "class": "opls_301",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_302",
+   "class": "opls_302",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_303",
+   "class": "opls_303",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_304",
+   "class": "opls_304",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_305",
+   "class": "opls_305",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_306",
+   "class": "opls_306",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_307",
+   "class": "opls_307",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_308",
+   "class": "opls_308",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_309",
+   "class": "opls_309",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_310",
+   "class": "opls_310",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_311",
+   "class": "opls_311",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_312",
+   "class": "opls_312",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_313",
+   "class": "opls_313",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_314",
+   "class": "opls_314",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_315",
+   "class": "opls_315",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_316",
+   "class": "opls_316",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_317",
+   "class": "opls_317",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_318",
+   "class": "opls_318",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_319",
+   "class": "opls_319",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_319B",
+   "class": "opls_319B",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_320",
+   "class": "opls_320",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_321",
+   "class": "opls_321",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_322",
+   "class": "opls_322",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_323",
+   "class": "opls_323",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_324",
+   "class": "opls_324",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_325",
+   "class": "opls_325",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_326",
+   "class": "opls_326",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_327",
+   "class": "opls_327",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_328",
+   "class": "opls_328",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_329",
+   "class": "opls_329",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_330",
+   "class": "opls_330",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_331",
+   "class": "opls_331",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_332",
+   "class": "opls_332",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_333",
+   "class": "opls_333",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_333B",
+   "class": "opls_333B",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_334",
+   "class": "opls_334",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_335",
+   "class": "opls_335",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_336",
+   "class": "opls_336",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_337",
+   "class": "opls_337",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_338",
+   "class": "opls_338",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_339",
+   "class": "opls_339",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_340",
+   "class": "opls_340",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_341",
+   "class": "opls_341",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_342",
+   "class": "opls_342",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_343",
+   "class": "opls_343",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_344",
+   "class": "opls_344",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_345",
+   "class": "opls_345",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_346",
+   "class": "opls_346",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_347",
+   "class": "opls_347",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_348",
+   "class": "opls_348",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_349",
+   "class": "opls_349",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_350",
+   "class": "opls_350",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_351",
+   "class": "opls_351",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_352",
+   "class": "opls_352",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_353",
+   "class": "opls_353",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_354",
+   "class": "opls_354",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_354B",
+   "class": "opls_354B",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_355",
+   "class": "opls_355",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_356",
+   "class": "opls_356",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_357",
+   "class": "opls_357",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_358",
+   "class": "opls_358",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_359",
+   "class": "opls_359",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_360",
+   "class": "opls_360",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_361",
+   "class": "opls_361",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_362",
+   "class": "opls_362",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_363",
+   "class": "opls_363",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_364",
+   "class": "opls_364",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_365",
+   "class": "opls_365",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_366",
+   "class": "opls_366",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_367",
+   "class": "opls_367",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_368",
+   "class": "opls_368",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_369",
+   "class": "opls_369",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_370",
+   "class": "opls_370",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_371",
+   "class": "opls_371",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_372",
+   "class": "opls_372",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_373",
+   "class": "opls_373",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_374",
+   "class": "opls_374",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_375",
+   "class": "opls_375",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_376",
+   "class": "opls_376",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_377",
+   "class": "opls_377",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_377B",
+   "class": "opls_377B",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_378",
+   "class": "opls_378",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_379",
+   "class": "opls_379",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_380",
+   "class": "opls_380",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_381",
+   "class": "opls_381",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_382",
+   "class": "opls_382",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_383",
+   "class": "opls_383",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_384",
+   "class": "opls_384",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_385",
+   "class": "opls_385",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_386",
+   "class": "opls_386",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_387",
+   "class": "opls_387",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_388",
+   "class": "opls_388",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_389",
+   "class": "opls_389",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_390",
+   "class": "opls_390",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_391",
+   "class": "opls_391",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_392",
+   "class": "opls_392",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_393",
+   "class": "opls_393",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_394",
+   "class": "opls_394",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_395",
+   "class": "opls_395",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_396",
+   "class": "opls_396",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_400",
+   "class": "opls_400",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_401",
+   "class": "opls_401",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "[Cl]",
+   "overrides": [],
+   "description": "Chloride Ion(Cl-)"
+  },
+  {
+   "name": "opls_402",
+   "class": "opls_402",
+   "element": "Br",
+   "mass": 79.904,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_403",
+   "class": "opls_403",
+   "element": "I",
+   "mass": 126.9045,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_404",
+   "class": "opls_404",
+   "element": "Li",
+   "mass": 6.941,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_405",
+   "class": "opls_405",
+   "element": "Na",
+   "mass": 22.98977,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_406",
+   "class": "opls_406",
+   "element": "Li",
+   "mass": 6.941,
+   "smarts": "Li",
+   "overrides": [],
+   "description": "Li+ cation"
+  },
+  {
+   "name": "opls_407",
+   "class": "opls_407",
+   "element": "Na",
+   "mass": 22.98977,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_408",
+   "class": "opls_408",
+   "element": "K",
+   "mass": 39.0983,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_409",
+   "class": "opls_409",
+   "element": "Rb",
+   "mass": 85.4678,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_410",
+   "class": "opls_410",
+   "element": "Cs",
+   "mass": 132.9054,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_411",
+   "class": "opls_411",
+   "element": "Mg",
+   "mass": 24.305,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_412",
+   "class": "opls_412",
+   "element": "Ca",
+   "mass": 40.08,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_413",
+   "class": "opls_413",
+   "element": "Sr",
+   "mass": 87.62,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_414",
+   "class": "opls_414",
+   "element": "Ba",
+   "mass": 137.33,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_415",
+   "class": "opls_415",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_416",
+   "class": "opls_416",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_417",
+   "class": "opls_417",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_418",
+   "class": "opls_418",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_419",
+   "class": "opls_419",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_420",
+   "class": "opls_420",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_421",
+   "class": "opls_421",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_422",
+   "class": "opls_422",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_423",
+   "class": "opls_423",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_424",
+   "class": "opls_424",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_425",
+   "class": "opls_425",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_426",
+   "class": "opls_426",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_427",
+   "class": "opls_427",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_428",
+   "class": "opls_428",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_429",
+   "class": "opls_429",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_430",
+   "class": "opls_430",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_431",
+   "class": "opls_431",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_432",
+   "class": "opls_432",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_433",
+   "class": "opls_433",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_434",
+   "class": "opls_434",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_435",
+   "class": "opls_435",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_436",
+   "class": "opls_436",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_437",
+   "class": "opls_437",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_440",
+   "class": "P",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "[P;X4]([O;X1])([O;X2])([O;X2])",
+   "overrides": [],
+   "description": "P in akyl-phosphates"
+  },
+  {
+   "name": "opls_441",
+   "class": "O2",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][P;X4]",
+   "overrides": [],
+   "description": "Oxygen in O=P phosphates"
+  },
+  {
+   "name": "opls_442",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([P;X4]([O;X1])([O;X2])([O;X2]))[#6]",
+   "overrides": [],
+   "description": "O in akyl-phosphates bonded to akyl group"
+  },
+  {
+   "name": "opls_443",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4][O;X2][P;X4]([O;X2])([O;X2])(O)",
+   "overrides": [],
+   "description": "Carbon in dimethyl or trimethyl phosphate"
+  },
+  {
+   "name": "opls_444",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H][C;%opls_443;X4]",
+   "overrides": [
+    "opls_140",
+    "opls_176"
+   ],
+   "description": "H bonded to opls_443 in akyl-phosphate"
+  },
+  {
+   "name": "opls_445",
+   "class": "opls_445",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_446",
+   "class": "opls_446",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_447",
+   "class": "opls_447",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_448",
+   "class": "opls_448",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_449",
+   "class": "opls_449",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_450",
+   "class": "opls_450",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_451",
+   "class": "opls_451",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_452",
+   "class": "opls_452",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_453",
+   "class": "opls_453",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_454",
+   "class": "opls_454",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_455",
+   "class": "opls_455",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_456",
+   "class": "opls_456",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_457",
+   "class": "opls_457",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_458",
+   "class": "opls_458",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_459",
+   "class": "opls_459",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_460",
+   "class": "opls_460",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_461",
+   "class": "opls_461",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_462",
+   "class": "opls_462",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_463",
+   "class": "opls_463",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_465",
+   "class": "C_2",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X1])([O;X2])",
+   "overrides": [
+    "opls_277"
+   ],
+   "description": "C in C=O in ester"
+  },
+  {
+   "name": "opls_466",
+   "class": "O_2",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1]([C;%opls_465]([O;%opls_467]))",
+   "overrides": [
+    "opls_278"
+   ],
+   "description": "O in C=O in ester"
+  },
+  {
+   "name": "opls_467",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([C;%opls_465])([!H])",
+   "overrides": [
+    "opls_180"
+   ],
+   "description": "O connected to R of O=C-O-R in esters"
+  },
+  {
+   "name": "opls_468",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_467])(H)(H)H",
+   "overrides": [
+    "opls_181"
+   ],
+   "description": "methoxy C in esters"
+  },
+  {
+   "name": "opls_469",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_468,%opls_490]",
+   "overrides": [
+    "opls_185",
+    "opls_140"
+   ],
+   "description": "methoxy Hs in esters; alpha-alkoxy hydrogen"
+  },
+  {
+   "name": "opls_470",
+   "class": "opls_470",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_471",
+   "class": "C",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3]([O;X2]([C;X4](H)(H)(H)))([O;X1])([C;X3;r6])",
+   "overrides": [
+    "opls_465"
+   ],
+   "description": "Co in methyl benzoate, aryl ester"
+  },
+  {
+   "name": "opls_472",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([O;%opls_473])",
+   "overrides": [
+    "opls_145",
+    "opls_147"
+   ],
+   "description": "Aromatic C bonded to opls_473"
+  },
+  {
+   "name": "opls_473",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2]([C;X3;r6])([C;X3;r6])",
+   "overrides": [
+    "opls_180"
+   ],
+   "description": "O linkage in phenyl ether"
+  },
+  {
+   "name": "opls_474",
+   "class": "opls_474",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_475",
+   "class": "opls_475",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_476",
+   "class": "opls_476",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_477",
+   "class": "opls_477",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_478",
+   "class": "opls_478",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_479",
+   "class": "opls_479",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_480",
+   "class": "opls_480",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_481",
+   "class": "opls_481",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_482",
+   "class": "opls_482",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_483",
+   "class": "opls_483",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_484",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;X4](O)(O))(C)(H)(H)",
+   "overrides": [],
+   "description": "C bonded to SO2 in sulfolane"
+  },
+  {
+   "name": "opls_485",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[!%opls_136;%opls_484]",
+   "overrides": [
+    "opls_140",
+    "opls_146"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_486",
+   "class": "opls_486",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_487",
+   "class": "opls_487",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_488",
+   "class": "opls_488",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_490",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([O;%opls_467])(H)(H)C",
+   "overrides": [
+    "opls_182"
+   ],
+   "description": "ethoxy carbon; C(H2OS) ethyl ester"
+  },
+  {
+   "name": "opls_491",
+   "class": "opls_491",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_492",
+   "class": "opls_492",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_493",
+   "class": "SY2",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X4]([#6])([#6])([O;X1])([O;X1])",
+   "overrides": [],
+   "description": "Sulfur in sulfone"
+  },
+  {
+   "name": "opls_494",
+   "class": "OY",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][S;X4]([O;X1])([#6])([#6])",
+   "overrides": [],
+   "description": "Oxygen in sulfone"
+  },
+  {
+   "name": "opls_496",
+   "class": "SZ",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X3]([O;%opls_497])(C)(C)",
+   "overrides": [],
+   "description": "sulfoxide - all atom"
+  },
+  {
+   "name": "opls_497",
+   "class": "OY",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][S;X3]",
+   "overrides": [],
+   "description": "sulfoxide - all atom"
+  },
+  {
+   "name": "opls_498",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([S;X3])(H)(H)(H)",
+   "overrides": [],
+   "description": "CH3 all-atom C: sulfoxide"
+  },
+  {
+   "name": "opls_499",
+   "class": "opls_499",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_500",
+   "class": "opls_500",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_501",
+   "class": "opls_501",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_502",
+   "class": "opls_502",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_503",
+   "class": "opls_503",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_504",
+   "class": "opls_504",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_505",
+   "class": "opls_505",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_506",
+   "class": "opls_506",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_507",
+   "class": "opls_507",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_508",
+   "class": "opls_508",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_509",
+   "class": "opls_509",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_510",
+   "class": "opls_510",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_511",
+   "class": "opls_511",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_512",
+   "class": "opls_512",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_513",
+   "class": "opls_513",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_514",
+   "class": "opls_514",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_515",
+   "class": "opls_515",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_516",
+   "class": "opls_516",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_517",
+   "class": "opls_517",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_518",
+   "class": "CM",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;!r6]([O;X2])([C;X3;!r6])([H])",
+   "overrides": [],
+   "description": "vinyl ether RCOR"
+  },
+  {
+   "name": "opls_520",
+   "class": "NC",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X2;r6]1[C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6][C;X3;r6]1",
+   "overrides": [],
+   "description": "N in pyridine"
+  },
+  {
+   "name": "opls_521",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6][N;%opls_520]",
+   "overrides": [],
+   "description": "C1 in pyridine"
+  },
+  {
+   "name": "opls_522",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6][C;%opls_521]",
+   "overrides": [
+    "opls_142"
+   ],
+   "description": "C2 in pyridine"
+  },
+  {
+   "name": "opls_523",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([C;%opls_522])[C;%opls_522]",
+   "overrides": [
+    "opls_142",
+    "opls_141"
+   ],
+   "description": "C3 in pyridine"
+  },
+  {
+   "name": "opls_524",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_521]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H1 in pyridine"
+  },
+  {
+   "name": "opls_525",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_522]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H2 in pyridine"
+  },
+  {
+   "name": "opls_526",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_523]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H3 in pyridine"
+  },
+  {
+   "name": "opls_527",
+   "class": "opls_527",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_528",
+   "class": "opls_528",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_529",
+   "class": "opls_529",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_530",
+   "class": "NC",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X2;r6]1[C;X3;r6][C;X3;r6][C;X3;r6][N;X2;r6][C;X3;r6]1",
+   "overrides": [],
+   "description": "N in pyrimidine"
+  },
+  {
+   "name": "opls_531",
+   "class": "CQ",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([N;%opls_530])[N;%opls_530]",
+   "overrides": [],
+   "description": "C2 in pyrimidine"
+  },
+  {
+   "name": "opls_532",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([N;%opls_530])[C;X3;r6]",
+   "overrides": [],
+   "description": "C4 in pyrimidine"
+  },
+  {
+   "name": "opls_533",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([C;%opls_532])[C;%opls_532]",
+   "overrides": [
+    "opls_142"
+   ],
+   "description": "C5 in pyrimidine"
+  },
+  {
+   "name": "opls_534",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_531]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H2 in pyrimidine"
+  },
+  {
+   "name": "opls_535",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_532]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H4 in pyrimidine"
+  },
+  {
+   "name": "opls_536",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_533]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H5 in pyrimidine"
+  },
+  {
+   "name": "opls_537",
+   "class": "opls_537",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_538",
+   "class": "opls_538",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_539",
+   "class": "opls_539",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_540",
+   "class": "opls_540",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_541",
+   "class": "opls_541",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_542",
+   "class": "NA",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3;r5]1[C;X3;r5][C;X3;r5][C;X3;r5][C;X3;r5]1H",
+   "overrides": [],
+   "description": "N in pyrrole"
+  },
+  {
+   "name": "opls_543",
+   "class": "CW",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r5]([N;%opls_542])",
+   "overrides": [],
+   "description": "C2 in pyrrole"
+  },
+  {
+   "name": "opls_544",
+   "class": "CS",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r5]([C;%opls_543])",
+   "overrides": [
+    "opls_142",
+    "opls_141"
+   ],
+   "description": "C3 in pyrrole"
+  },
+  {
+   "name": "opls_545",
+   "class": "H",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[N;%opls_542]",
+   "overrides": [],
+   "description": "H1 in pyrrole"
+  },
+  {
+   "name": "opls_546",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_543]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H2 in pyrrole"
+  },
+  {
+   "name": "opls_547",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_544]",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H3 in pyrrole"
+  },
+  {
+   "name": "opls_548",
+   "class": "opls_548",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_549",
+   "class": "opls_549",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_550",
+   "class": "opls_550",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_551",
+   "class": "opls_551",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_552",
+   "class": "opls_552",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_553",
+   "class": "opls_553",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_554",
+   "class": "opls_554",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_555",
+   "class": "opls_555",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_556",
+   "class": "opls_556",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_557",
+   "class": "opls_557",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_558",
+   "class": "opls_558",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_559",
+   "class": "opls_559",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_560",
+   "class": "opls_560",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_561",
+   "class": "opls_561",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_562",
+   "class": "opls_562",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_563",
+   "class": "opls_563",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_564",
+   "class": "opls_564",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_565",
+   "class": "opls_565",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_566",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2;r5]([C;X3;r5])([C;X3;r5])",
+   "overrides": [
+    "opls_180"
+   ],
+   "description": "O in furan"
+  },
+  {
+   "name": "opls_567",
+   "class": "CW",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r5]([%opls_633,%opls_566])",
+   "overrides": [
+    "opls_518"
+   ],
+   "description": "Aromatic C bonded to O in furan or S in thiophene"
+  },
+  {
+   "name": "opls_568",
+   "class": "CS",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r5]([C;%opls_567])([C;X3;r5])",
+   "overrides": [
+    "opls_142"
+   ],
+   "description": "Aromatic C not bonded to O in furan or S in thiophene"
+  },
+  {
+   "name": "opls_569",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H]([%opls_567])",
+   "overrides": [
+    "opls_185",
+    "opls_144"
+   ],
+   "description": "H bonded to opls_567 in furan"
+  },
+  {
+   "name": "opls_570",
+   "class": "HA",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "[H]([%opls_568])",
+   "overrides": [
+    "opls_144"
+   ],
+   "description": "H bonded to opls_568 in furan"
+  },
+  {
+   "name": "opls_571",
+   "class": "opls_571",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_572",
+   "class": "opls_572",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_573",
+   "class": "opls_573",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_574",
+   "class": "opls_574",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_575",
+   "class": "opls_575",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_576",
+   "class": "opls_576",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_577",
+   "class": "opls_577",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_578",
+   "class": "opls_578",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_579",
+   "class": "opls_579",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_580",
+   "class": "opls_580",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_581",
+   "class": "opls_581",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_582",
+   "class": "opls_582",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_583",
+   "class": "opls_583",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_584",
+   "class": "opls_584",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_585",
+   "class": "opls_585",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_586",
+   "class": "opls_586",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_587",
+   "class": "opls_587",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_588",
+   "class": "opls_588",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_589",
+   "class": "opls_589",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_590",
+   "class": "opls_590",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_591",
+   "class": "opls_591",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_592",
+   "class": "opls_592",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_593",
+   "class": "opls_593",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_594",
+   "class": "opls_594",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_595",
+   "class": "opls_595",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_596",
+   "class": "opls_596",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_597",
+   "class": "opls_597",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_598",
+   "class": "opls_598",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_599",
+   "class": "opls_599",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_600",
+   "class": "opls_600",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_601",
+   "class": "opls_601",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_602",
+   "class": "opls_602",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_603",
+   "class": "opls_603",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_604",
+   "class": "opls_604",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_605",
+   "class": "opls_605",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_606",
+   "class": "opls_606",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_607",
+   "class": "opls_607",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_608",
+   "class": "opls_608",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_609",
+   "class": "opls_609",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_610",
+   "class": "opls_610",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_611",
+   "class": "opls_611",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_612",
+   "class": "opls_612",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_613",
+   "class": "opls_613",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_614",
+   "class": "opls_614",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_615",
+   "class": "opls_615",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_616",
+   "class": "opls_616",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_617",
+   "class": "opls_617",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_618",
+   "class": "opls_618",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_619",
+   "class": "opls_619",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_620",
+   "class": "opls_620",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_621",
+   "class": "opls_621",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_622",
+   "class": "opls_622",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_623",
+   "class": "opls_623",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_624",
+   "class": "opls_624",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_625",
+   "class": "opls_625",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_626",
+   "class": "opls_626",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_627",
+   "class": "opls_627",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_628",
+   "class": "opls_628",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_629",
+   "class": "opls_629",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_630",
+   "class": "opls_630",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_631",
+   "class": "opls_631",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_632",
+   "class": "opls_632",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_633",
+   "class": "S",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;r5;X2]([C;r5;X3])([C;r5;X3])",
+   "overrides": [
+    "opls_202"
+   ],
+   "description": "Sulfur in thiophene or thiazole"
+  },
+  {
+   "name": "opls_634",
+   "class": "opls_634",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_635",
+   "class": "opls_635",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_636",
+   "class": "opls_636",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_637",
+   "class": "opls_637",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_638",
+   "class": "opls_638",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_639",
+   "class": "opls_639",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_640",
+   "class": "opls_640",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_641",
+   "class": "opls_641",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_642",
+   "class": "opls_642",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_643",
+   "class": "opls_643",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_644",
+   "class": "opls_644",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_645",
+   "class": "opls_645",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_646",
+   "class": "opls_646",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_647",
+   "class": "opls_647",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_648",
+   "class": "opls_648",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_649",
+   "class": "opls_649",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_650",
+   "class": "opls_650",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_651",
+   "class": "opls_651",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_652",
+   "class": "opls_652",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_653",
+   "class": "opls_653",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_654",
+   "class": "opls_654",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_655",
+   "class": "opls_655",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_656",
+   "class": "opls_656",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_670",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;%opls_521])(H)(H)(H)",
+   "overrides": [
+    "opls_135"
+   ],
+   "description": "CH3,2-methyl pyridine"
+  },
+  {
+   "name": "opls_671",
+   "class": "opls_671",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_672",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;%opls_522])(H)(H)(H)",
+   "overrides": [
+    "opls_135"
+   ],
+   "description": "CH3, 3-methyl pyridazine"
+  },
+  {
+   "name": "opls_673",
+   "class": "opls_673",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_674",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([C;X3;r6]([C;X3;r6]([C;X3;r6](N))))(H)(H)(H)",
+   "overrides": [
+    "opls_135",
+    "opls_148"
+   ],
+   "description": "CH3, 4-methyl pyrimidine"
+  },
+  {
+   "name": "opls_675",
+   "class": "opls_675",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_676",
+   "class": "opls_676",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_677",
+   "class": "opls_677",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_678",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[C;%opls_543]",
+   "overrides": [
+    "opls_679"
+   ],
+   "description": "CH3, 2-methyl pyrrole"
+  },
+  {
+   "name": "opls_679",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)[C;%opls_543]",
+   "overrides": [
+    "opls_136"
+   ],
+   "description": "CH2, 2-ethyl pyrrole"
+  },
+  {
+   "name": "opls_680",
+   "class": "opls_680",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_681",
+   "class": "opls_681",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_697",
+   "class": "opls_697",
+   "element": "Ac",
+   "mass": 227.03,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_698",
+   "class": "opls_698",
+   "element": "Th",
+   "mass": 232.04,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_699",
+   "class": "opls_699",
+   "element": "Am",
+   "mass": 243.06,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_700",
+   "class": "opls_700",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_701",
+   "class": "opls_701",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_702",
+   "class": "opls_702",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_703",
+   "class": "opls_703",
+   "element": "La",
+   "mass": 138.91,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_704",
+   "class": "opls_704",
+   "element": "Nd",
+   "mass": 144.24,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_705",
+   "class": "opls_705",
+   "element": "Eu",
+   "mass": 151.96,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_706",
+   "class": "opls_706",
+   "element": "Gd",
+   "mass": 157.25,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_707",
+   "class": "opls_707",
+   "element": "Yb",
+   "mass": 173.04,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_708",
+   "class": "opls_708",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_709",
+   "class": "opls_709",
+   "element": "Cl",
+   "mass": 35.453,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_710",
+   "class": "opls_710",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_711",
+   "class": "CY",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4;r3]1(H)(H)[C;X4;r3][C;X4;r3]1",
+   "overrides": [
+    "opls_136",
+    "opls_712"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_712",
+   "class": "CY",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4;r3]1(H)[C;X4;r3][C;X4;r3]1",
+   "overrides": [
+    "opls_137",
+    "opls_713"
+   ],
+   "description": ""
+  },
+  {
+   "name": "opls_713",
+   "class": "CY",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4;r3]1[C;X4;r3][C;X4;r3]1",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_714",
+   "class": "opls_714",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_715",
+   "class": "opls_715",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_716",
+   "class": "opls_716",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_717",
+   "class": "opls_717",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_718",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6](F)([C;%opls_145])([C;%opls_145])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Aromatic C in fluorobenzene"
+  },
+  {
+   "name": "opls_719",
+   "class": "F",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "F[C;%opls_718]",
+   "overrides": [
+    "opls_965"
+   ],
+   "description": "F(C) in fluorobenzene"
+  },
+  {
+   "name": "opls_720",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([F])([C;r6](F))([C;r6](F))",
+   "overrides": [
+    "opls_145",
+    "opls_718",
+    "opls_727"
+   ],
+   "description": "Central C-ar in c(F)-c(F)-c(F) (tetra, hexafluorobenzene)"
+  },
+  {
+   "name": "opls_721",
+   "class": "F",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "[F;X1]([C;%opls_720])",
+   "overrides": [
+    "opls_719",
+    "opls_728"
+   ],
+   "description": "F(C) in hexafluorobenzene"
+  },
+  {
+   "name": "opls_722",
+   "class": "Br",
+   "element": "Br",
+   "mass": 79.904,
+   "smarts": "[Br;X1]([C;%opls_152d])",
+   "overrides": [],
+   "description": "Br in single-substituted alkyl bromide"
+  },
+  {
+   "name": "opls_722a",
+   "class": "Br",
+   "element": "Br",
+   "mass": 79.904,
+   "smarts": "[Br;X1]([C;%opls_152e])",
+   "overrides": [],
+   "description": "Br in alkyl bromide"
+  },
+  {
+   "name": "opls_724",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([C;%opls_725])([C;X3;r6])([C;X3;r6])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Benzene C bonded to -CF3 (opls_725)"
+  },
+  {
+   "name": "opls_725",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](F)(F)(F)([C;X3;r6])",
+   "overrides": [
+    "opls_672",
+    "opls_961"
+   ],
+   "description": "C in F3-C-benzene (trifluoro benzene)"
+  },
+  {
+   "name": "opls_726",
+   "class": "F",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "[F;X1]([C;%opls_725])",
+   "overrides": [
+    "opls_965"
+   ],
+   "description": "F in tri-fluoro methyl groups"
+  },
+  {
+   "name": "opls_727",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6](F)([C;X3;r6](F))([%opls_145])",
+   "overrides": [
+    "opls_145",
+    "opls_718"
+   ],
+   "description": "C(F) in C-C(F)-C(F)-C (difluorobenzene)"
+  },
+  {
+   "name": "opls_728",
+   "class": "F",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "[F;X1]([C;%opls_727])",
+   "overrides": [
+    "opls_719"
+   ],
+   "description": "F in F(C)-F(C) (difluorobenzene)"
+  },
+  {
+   "name": "opls_729",
+   "class": "opls_729",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_730",
+   "class": "opls_730",
+   "element": "Br",
+   "mass": 79.904,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_731",
+   "class": "opls_731",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_732",
+   "class": "I",
+   "element": "I",
+   "mass": 126.9045,
+   "smarts": "[I;X1][C;X4](C)(C)(H)",
+   "overrides": [],
+   "description": "I in Iodopropane"
+  },
+  {
+   "name": "opls_733",
+   "class": "opls_733",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_734",
+   "class": "SH",
+   "element": "S",
+   "mass": 32.06,
+   "smarts": "[S;X2]([C;X3;r6])(H)",
+   "overrides": [
+    "opls_200"
+   ],
+   "description": "Thiol with R group in aromatic ring"
+  },
+  {
+   "name": "opls_735",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([S]([H]))([C;X3;r6])([C;X3;r6])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Aromatic C bonded to SH (opls_734)"
+  },
+  {
+   "name": "opls_736",
+   "class": "opls_736",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_737",
+   "class": "opls_737",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_738",
+   "class": "opls_738",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_739",
+   "class": "opls_739",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_740",
+   "class": "opls_740",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_741",
+   "class": "opls_741",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_742",
+   "class": "opls_742",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_743",
+   "class": "opls_743",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_744",
+   "class": "opls_744",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_745",
+   "class": "opls_745",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_746",
+   "class": "opls_746",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_747",
+   "class": "opls_747",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_748",
+   "class": "opls_748",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_749",
+   "class": "opls_749",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_750",
+   "class": "opls_750",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_751",
+   "class": "opls_751",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_752",
+   "class": "opls_752",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_753",
+   "class": "NZ",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X1]C",
+   "overrides": [],
+   "description": "N in RCN nitriles"
+  },
+  {
+   "name": "opls_754",
+   "class": "CZ",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X2][N;%opls_753]",
+   "overrides": [],
+   "description": "C in RCN nitriles"
+  },
+  {
+   "name": "opls_755",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[C;%opls_754]",
+   "overrides": [
+    "opls_135",
+    "opls_756"
+   ],
+   "description": "C of CH3 in CH3CN"
+  },
+  {
+   "name": "opls_756",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)[C;%opls_754]",
+   "overrides": [
+    "opls_136",
+    "opls_757"
+   ],
+   "description": "C of CH2 in RCH2CN"
+  },
+  {
+   "name": "opls_757",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)[C;%opls_754]",
+   "overrides": [
+    "opls_137",
+    "opls_758"
+   ],
+   "description": "C of CH in R2CHCN"
+  },
+  {
+   "name": "opls_758",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4][C;%opls_754]",
+   "overrides": [],
+   "description": "C of C in R3CCN"
+  },
+  {
+   "name": "opls_759",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "HC[C;%opls_754]",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "HC-CT-CN alpha-H in nitriles"
+  },
+  {
+   "name": "opls_760",
+   "class": "NO",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3]([O;X1])([O;X1])",
+   "overrides": [
+    "opls_239"
+   ],
+   "description": "N in nitro R-NO2"
+  },
+  {
+   "name": "opls_761",
+   "class": "ON",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][N][O;X1]",
+   "overrides": [],
+   "description": "O in nitro R-NO2"
+  },
+  {
+   "name": "opls_762",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[N;%opls_760]",
+   "overrides": [],
+   "description": "CT-NO2 nitromethane"
+  },
+  {
+   "name": "opls_763",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([C;X4][N;%opls_760])",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "HC-CT-NO2 alpha-H in nitroalkanes"
+  },
+  {
+   "name": "opls_764",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](C)(H)(H)[N;%opls_760]",
+   "overrides": [
+    "opls_136"
+   ],
+   "description": "CT-NO2 nitroethane"
+  },
+  {
+   "name": "opls_765",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([N;X3](O)(O))([C;X4])([C;X4])",
+   "overrides": [],
+   "description": "CT-NO2 2-nitropropane"
+  },
+  {
+   "name": "opls_766",
+   "class": "opls_766",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_767",
+   "class": "NO",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3]([O;X1])([O;X1])[C;X3;r6]",
+   "overrides": [
+    "opls_760"
+   ],
+   "description": "N in nitro Ar-NO2"
+  },
+  {
+   "name": "opls_768",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6][N;%opls_767]",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "C(NO2) nitrobenzene"
+  },
+  {
+   "name": "opls_771",
+   "class": "O",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X1][C;X3;%opls_772]",
+   "overrides": [
+    "opls_466"
+   ],
+   "description": "propylene carbonate O (Luciennes param.)"
+  },
+  {
+   "name": "opls_772",
+   "class": "C",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r5]1[O;X2;r5][C;X4;r5][C;X4;r5][O;X2;r5]1",
+   "overrides": [
+    "opls_465"
+   ],
+   "description": "propylene carbonate C=O"
+  },
+  {
+   "name": "opls_773",
+   "class": "OS",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "[O;X2;r5]1[C;X4;r5][C;X4;r5][O;X2;r5][C;X3;r5]1",
+   "overrides": [
+    "opls_180",
+    "opls_467"
+   ],
+   "description": "propylene OS"
+  },
+  {
+   "name": "opls_774",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4;r5]1(H)(H)[C;X4;r5][O;X2;r5][C;X3;r5][O;X2;r5]1",
+   "overrides": [
+    "opls_182",
+    "opls_490"
+   ],
+   "description": "propylene carbonate C in CH2"
+  },
+  {
+   "name": "opls_775",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4;r5]1(H)(C)[C;X4;r5][O;X2;r5][C;X3;r5][O;X2;r5]1",
+   "overrides": [
+    "opls_182",
+    "opls_183"
+   ],
+   "description": "propylene carbonate C in CH"
+  },
+  {
+   "name": "opls_776",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)[C;%opls_775]",
+   "overrides": [
+    "opls_135"
+   ],
+   "description": "propylene carbonate C in CH3"
+  },
+  {
+   "name": "opls_777",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_774]",
+   "overrides": [
+    "opls_185",
+    "opls_140",
+    "opls_469"
+   ],
+   "description": "propylene carbonate H in CH2"
+  },
+  {
+   "name": "opls_778",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_775]",
+   "overrides": [
+    "opls_185",
+    "opls_140"
+   ],
+   "description": "propylene carbonate H in CH"
+  },
+  {
+   "name": "opls_779",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_776]",
+   "overrides": [
+    "opls_185",
+    "opls_140"
+   ],
+   "description": "propylene carbonate H in CH3"
+  },
+  {
+   "name": "opls_781",
+   "class": "opls_781",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_782",
+   "class": "opls_782",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_783",
+   "class": "opls_783",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_784",
+   "class": "opls_784",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_785",
+   "class": "opls_785",
+   "element": "P",
+   "mass": 30.97376,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_786",
+   "class": "opls_786",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_787",
+   "class": "opls_787",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_788",
+   "class": "opls_788",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_795",
+   "class": "opls_795",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_796",
+   "class": "opls_796",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_797",
+   "class": "opls_797",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_900",
+   "class": "NT",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3](H)(H)C",
+   "overrides": [],
+   "description": "N primary amines"
+  },
+  {
+   "name": "opls_901",
+   "class": "NT",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3](H)([C;!%opls_235;!%opls_543])([C;!%opls_235;!%opls_543])",
+   "overrides": [],
+   "description": "N for secondary amines"
+  },
+  {
+   "name": "opls_902",
+   "class": "NT",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "[N;X3]([C;X4])([C;X4])([C;X4])",
+   "overrides": [],
+   "description": "tertiary aliphatic amine nitrogen"
+  },
+  {
+   "name": "opls_903",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)([N;%opls_900])",
+   "overrides": [
+    "opls_906"
+   ],
+   "description": "CH3(N) primary aliphatic amines"
+  },
+  {
+   "name": "opls_904",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)(H)(H)([N;%opls_901])",
+   "overrides": [
+    "opls_906"
+   ],
+   "description": "CH3(N) secondary aliphatic amines"
+  },
+  {
+   "name": "opls_905",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_906",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([N;%opls_900])(H)(H)",
+   "overrides": [
+    "opls_136"
+   ],
+   "description": "CH2(N) primary aliphatic amines"
+  },
+  {
+   "name": "opls_906B",
+   "class": "opls_906B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_907",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([N;%opls_901])(C)(H)(H)",
+   "overrides": [],
+   "description": "CH2(N) secondary aliphatic amines, aziridine  C2,C3H"
+  },
+  {
+   "name": "opls_908",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([H])([H])([C;X4])([N;X3]([C;X4])([C;X4]))",
+   "overrides": [],
+   "description": "CH2(N) tertiary aliphatic amines"
+  },
+  {
+   "name": "opls_909",
+   "class": "H",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[N;%opls_900]",
+   "overrides": [],
+   "description": "H(N) primary amines"
+  },
+  {
+   "name": "opls_910",
+   "class": "H",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[N;%opls_901]",
+   "overrides": [],
+   "description": "H(N) secondary amines"
+  },
+  {
+   "name": "opls_911",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([C;%opls_903,%opls_904,%opls_905,%opls_906,%opls_908,%opls_907,%opls_912,%opls_914])",
+   "overrides": [
+    "opls_140"
+   ],
+   "description": "H(C) for C bonded to N in amines, diamines (aziridine H2,H3)"
+  },
+  {
+   "name": "opls_912",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](H)([C;X4])([C;X4])([N;%opls_900])",
+   "overrides": [],
+   "description": "CH in primary isopropyl amine"
+  },
+  {
+   "name": "opls_912B",
+   "class": "opls_912B",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_913",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([N;%opls_900](H)(H))(C)(C)(C)",
+   "overrides": [],
+   "description": "Primary carbon in tert-butylamine"
+  },
+  {
+   "name": "opls_914",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4]([N;%opls_901])([C;%opls_135])([C;%opls_135])(H)",
+   "overrides": [],
+   "description": "CH secondary isopropyl amine"
+  },
+  {
+   "name": "opls_915",
+   "class": "opls_915",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_916",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([N;X3](H)(H))([C;X3;r6]([Cl]))([C;X3;r6](H))",
+   "overrides": [
+    "opls_145",
+    "opls_147"
+   ],
+   "description": "C-NH2 in chloroaniline"
+  },
+  {
+   "name": "opls_917",
+   "class": "CA",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X3;r6]([N;%opls_901])",
+   "overrides": [
+    "opls_145"
+   ],
+   "description": "Carbon on benzene ring in N-Methylnitroaniline"
+  },
+  {
+   "name": "opls_918",
+   "class": "opls_918",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_925",
+   "class": "CZ",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X2](C)H",
+   "overrides": [],
+   "description": "alkyne RC%CH terminal C"
+  },
+  {
+   "name": "opls_926",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H[C;%opls_925]",
+   "overrides": [],
+   "description": "alkyne RC%CH terminal H"
+  },
+  {
+   "name": "opls_927",
+   "class": "CZ",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X2](C(H)H)C",
+   "overrides": [
+    "opls_928"
+   ],
+   "description": "alkyne RC%CH C2 R-with 2 or 3 H"
+  },
+  {
+   "name": "opls_928",
+   "class": "opls_928",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_929",
+   "class": "opls_929",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_930",
+   "class": "HC",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "H([*][C][C;%opls_925])",
+   "overrides": [
+    "opls_140",
+    "opls_144"
+   ],
+   "description": "alkyne RC%CH H on C3 (for C3 use #135-#139)"
+  },
+  {
+   "name": "opls_931",
+   "class": "opls_931",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_940",
+   "class": "opls_940",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_941",
+   "class": "opls_941",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_942",
+   "class": "opls_942",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_943",
+   "class": "opls_943",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_944",
+   "class": "opls_944",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_945",
+   "class": "opls_945",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_950",
+   "class": "opls_950",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_951",
+   "class": "opls_951",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_952",
+   "class": "opls_952",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_953",
+   "class": "opls_953",
+   "element": "N",
+   "mass": 14.0067,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_954",
+   "class": "opls_954",
+   "element": "O",
+   "mass": 15.9994,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_955",
+   "class": "opls_955",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_956",
+   "class": "opls_956",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_957",
+   "class": "opls_957",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_958",
+   "class": "opls_958",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_959",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](F)(H)([Cl,Br])",
+   "overrides": [],
+   "description": "R2CHF in monoalkyl fluorides"
+  },
+  {
+   "name": "opls_960",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](F)([!H])([Cl,Br])([Cl,Br])",
+   "overrides": [],
+   "description": "R3CF in monoalkyl fluorides"
+  },
+  {
+   "name": "opls_961",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](F)(F)(F)*",
+   "overrides": [
+    "opls_962"
+   ],
+   "description": "perfluoroalkane CF3"
+  },
+  {
+   "name": "opls_962",
+   "class": "CT",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "[C;X4](F)(F)(*)*",
+   "overrides": [],
+   "description": "perfluoroalkane CF2"
+  },
+  {
+   "name": "opls_963",
+   "class": "opls_963",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_964",
+   "class": "opls_964",
+   "element": "C",
+   "mass": 12.011,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "opls_965",
+   "class": "F",
+   "element": "F",
+   "mass": 18.9984,
+   "smarts": "[F;X1]([C;X4])",
+   "overrides": [],
+   "description": "perfluoroalkane F"
+  },
+  {
+   "name": "MNH3",
+   "class": "MNH3",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "MNH2",
+   "class": "MNH2",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "MCH3A",
+   "class": "MCH3A",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "MCH3B",
+   "class": "MCH3B",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "MW",
+   "class": "MW",
+   "element": "",
+   "mass": 0.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "HW_tip4pew",
+   "class": "HW_tip4pew",
+   "element": "H",
+   "mass": 1.008,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  },
+  {
+   "name": "OW_tip4pew",
+   "class": "OW_tip4pew",
+   "element": "O",
+   "mass": 16.0,
+   "smarts": "",
+   "overrides": [],
+   "description": ""
+  }
+ ]
+}

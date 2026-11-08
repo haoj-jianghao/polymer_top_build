@@ -98,10 +98,17 @@
             <span>Job name</span>
             <input id="job_name" value="PEG12_gui">
           </label>
+          <label class="field">
+            <span>Force field</span>
+            <select id="ff_engine">
+              <option value="opls" selected>OPLS-AA/2020 (opls-ff-lite)</option>
+              <option value="gaff2">GAFF2 / AM1-BCC (AmberTools)</option>
+            </select>
+          </label>
         </div>
         <label class="check">
-          <input id="run_external" type="checkbox">
-          <span>Run AmberTools when available</span>
+          <input id="run_external" type="checkbox" checked>
+          <span>Run force-field parameterization (otherwise placeholder files)</span>
         </label>
         <button id="build" class="primary" type="button">Generate GROMACS files</button>
         <div id="status" class="status"></div>

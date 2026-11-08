@@ -9,8 +9,11 @@ V1 scope:
 * linear homopolymer backbones with branched or ring-containing repeat units
 * SDF/MOL V2000 input
 * automatic repeat occurrence detection from one user-selected example
-* simple valence-based hydrogen completion for non-AmberTools tests
-* AmberTools/ParmEd orchestration hooks for real GAFF2/GROMACS output
+* simple valence-based hydrogen completion
+* force-field engines that parameterize a hidden reference oligomer:
+  OPLS-AA/2020 via the bundled opls-ff-lite (default, ``opls_engine``) and
+  GAFF2 via AmberTools/ParmEd (``gaff2``); OPLS parameters are transferred to
+  the requested polymer by the engine-neutral ``topology_transfer`` module
 """
 
 from __future__ import annotations
@@ -56,6 +59,14 @@ FORMAL_VALENCE = {
 }
 
 V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
+
+# Force-field engines. Every engine parameterizes the hidden reference
+# oligomer and the parameters are transferred to the requested polymer.
+FF_ENGINES = {
+    "opls": "OPLS-AA/2020 with CM1A/1.14*CM1A-LBCC charges (bundled opls-ff-lite + MOPAC)",
+    "gaff2": "GAFF2 with AM1-BCC charges (AmberTools antechamber/parmchk2/tleap + ParmEd)",
+}
+DEFAULT_FF_ENGINE = "opls"
 
 ATOMIC_MASS = {
     "H": 1.008,
@@ -139,6 +150,7 @@ class BuildOptions:
     outdir: Path = Path("polymer_out")
     run_external: bool = True
     minimize_geometry: bool = True
+    ff_engine: str = DEFAULT_FF_ENGINE
 
 
 @dataclass
@@ -151,6 +163,7 @@ class MonomerBuildOptions:
     run_external: bool = True
     minimize_geometry: bool = True
     junction_order: int = 1
+    ff_engine: str = DEFAULT_FF_ENGINE
 
 
 @dataclass
@@ -434,15 +447,21 @@ def _generated_hydrogens_by_parent(mol: Molecule, base_atom_count: int) -> dict[
     return by_parent
 
 
-def transfer_reference_atom_parameters(
+def reference_atom_candidates(
     reference: Molecule,
-    parameters: list[tuple[str, float]],
     target: Molecule,
     unit_atom_count: int,
     reference_dp: int,
     target_dp: int,
-) -> None:
-    """Map reference head/interior/tail GAFF types and charges to a target."""
+) -> dict[int, list[int]]:
+    """Reference atoms equivalent to each target atom, by repeat-unit role.
+
+    The first target unit maps to the reference head unit, the last to the
+    reference tail unit, and every interior unit to all reference interior
+    units (a DP-1 target maps to both reference ends). Hydrogens added to an
+    atom map by their slot on that atom; candidates whose hydrogen count
+    differs from the target atom's are dropped.
+    """
 
     if unit_atom_count < 1:
         raise ValueError("The monomer must contain at least one atom.")
@@ -453,11 +472,6 @@ def transfer_reference_atom_parameters(
 
     reference_base_count = unit_atom_count * reference_dp
     target_base_count = unit_atom_count * target_dp
-    if len(reference.atoms) != len(parameters):
-        raise ValueError(
-            "Antechamber reference atom count mismatch: "
-            f"reference has {len(reference.atoms)}, typed MOL2 has {len(parameters)}."
-        )
     if len(reference.atoms) < reference_base_count:
         raise ValueError("Reference molecule is missing one or more monomer base atoms.")
     if len(target.atoms) < target_base_count:
@@ -475,17 +489,7 @@ def transfer_reference_atom_parameters(
             return [reference_dp - 1]
         return list(range(1, reference_dp - 1))
 
-    def averaged_parameter(reference_indices: list[int], description: str) -> tuple[str, float]:
-        values = [parameters[index - 1] for index in reference_indices]
-        atom_types = {atom_type for atom_type, _ in values}
-        if len(atom_types) != 1:
-            raise ValueError(
-                f"Reference GAFF atom types disagree for {description}: "
-                + ", ".join(sorted(atom_types))
-            )
-        atom_type = values[0][0]
-        return atom_type, sum(charge for _, charge in values) / len(values)
-
+    candidates: dict[int, list[int]] = {}
     for target_unit in range(target_dp):
         reference_units = reference_units_for(target_unit)
         for local_position in range(unit_atom_count):
@@ -507,26 +511,69 @@ def transfer_reference_atom_parameters(
                     f"unit atom {local_position + 1} in target unit {target_unit + 1}: "
                     f"reference counts={reference_counts}, target count={len(target_hydrogens)}."
                 )
-            atom_type, charge = averaged_parameter(
-                reference_indices,
-                f"unit atom {local_position + 1} in target unit {target_unit + 1}",
-            )
-            target_atom = target.atom(target_index)
-            target_atom.atom_type = atom_type
-            target_atom.charge = charge
-
+            candidates[target_index] = reference_indices
             reference_hydrogen_lists = [reference_h[index] for index in reference_indices]
             for hydrogen_position, target_hydrogen in enumerate(target_hydrogens):
-                hydrogen_references = [
+                candidates[target_hydrogen] = [
                     indices[hydrogen_position] for indices in reference_hydrogen_lists
                 ]
-                atom_type, charge = averaged_parameter(
-                    hydrogen_references,
-                    f"hydrogen {hydrogen_position + 1} on unit atom {local_position + 1}",
-                )
-                target_atom = target.atom(target_hydrogen)
-                target_atom.atom_type = atom_type
-                target_atom.charge = charge
+    return candidates
+
+
+def transfer_reference_atom_parameters(
+    reference: Molecule,
+    parameters: list[tuple[str, float]],
+    target: Molecule,
+    unit_atom_count: int,
+    reference_dp: int,
+    target_dp: int,
+) -> None:
+    """Map reference head/interior/tail GAFF types and charges to a target."""
+
+    if len(reference.atoms) != len(parameters):
+        raise ValueError(
+            "Antechamber reference atom count mismatch: "
+            f"reference has {len(reference.atoms)}, typed MOL2 has {len(parameters)}."
+        )
+    candidates = reference_atom_candidates(reference, target, unit_atom_count, reference_dp, target_dp)
+    for target_index, reference_indices in sorted(candidates.items()):
+        values = [parameters[index - 1] for index in reference_indices]
+        atom_types = {atom_type for atom_type, _ in values}
+        if len(atom_types) != 1:
+            raise ValueError(
+                f"Reference GAFF atom types disagree for target atom {target_index}: "
+                + ", ".join(sorted(atom_types))
+            )
+        target_atom = target.atom(target_index)
+        target_atom.atom_type = values[0][0]
+        target_atom.charge = sum(charge for _, charge in values) / len(values)
+
+
+def unit_atom_labels(mol: Molecule, unit_atom_count: int, dp: int) -> dict[int, tuple[int, tuple]]:
+    """Label every atom as (repeat unit, position in the unit) for topology transfer.
+
+    Monomer atoms are ``("A", position)``; hydrogens added by
+    ``add_valence_hydrogens`` are ``("H", parent position, slot)``.
+    """
+
+    base_count = unit_atom_count * dp
+    if len(mol.atoms) < base_count:
+        raise ValueError("Molecule is missing one or more monomer base atoms.")
+    labels: dict[int, tuple[int, tuple]] = {
+        index: ((index - 1) // unit_atom_count, ("A", (index - 1) % unit_atom_count))
+        for index in range(1, base_count + 1)
+    }
+    for parent, hydrogens in _generated_hydrogens_by_parent(mol, base_count).items():
+        unit, (_, position) = labels[parent]
+        for slot, hydrogen in enumerate(hydrogens):
+            labels[hydrogen] = (unit, ("H", position, slot))
+    unlabeled = [atom.index for atom in mol.atoms if atom.index not in labels]
+    if unlabeled:
+        raise ValueError(
+            f"Atoms {unlabeled[:10]} do not belong to a repeat unit; the topology transfer "
+            "needs a molecule made only of repeat units and their hydrogens."
+        )
+    return labels
 
 
 def clone_molecule(mol: Molecule, name: str | None = None) -> Molecule:
@@ -1126,6 +1173,43 @@ def ensure_explicit_hydrogen_sdf(input_sdf: Path, output_sdf: Path) -> Path:
     return output_sdf
 
 
+def prepare_target_stereo_geometry(target: Molecule, outdir: Path, minimize_geometry: bool) -> list[Path]:
+    """Give an assembled target with wedge/dash bonds a defined 3D configuration."""
+
+    stereo_bonds = [bond for bond in target.bonds if bond.stereo in {1, 6}]
+    if not stereo_bonds:
+        return []
+    if not minimize_geometry:
+        raise RuntimeError(
+            "Stereochemical wedge/dash bonds require geometry minimization "
+            "so the assembled target polymer receives a defined 3D configuration."
+        )
+    target_stereo_input = outdir / "polymer_stereo_input.sdf"
+    target_stereo_minimized = outdir / "polymer_stereo_minimized.sdf"
+    write_sdf(target, target_stereo_input)
+    minimized_target_path, target_minimizer = minimize_sdf_geometry(
+        target_stereo_input,
+        target_stereo_minimized,
+    )
+    minimized_target = read_sdf(minimized_target_path)
+    copy_coordinates_by_index(minimized_target, target)
+    write_sdf(target, outdir / "polymer.sdf")
+    stereo_report = outdir / "STEREOCHEMISTRY_REPORT.txt"
+    stereo_report.write_text(
+        "\n".join(
+            [
+                f"stereochemical_bonds: {len(stereo_bonds)}",
+                f"target_geometry_input: {target_stereo_input}",
+                f"target_geometry_output: {target_stereo_minimized}",
+                f"method: RDKit {target_minimizer}",
+                "stage: assembled target-polymer 3D stereochemistry preparation",
+            ]
+        )
+        + "\n"
+    )
+    return [target_stereo_input, target_stereo_minimized, stereo_report]
+
+
 def run_ambertools_pipeline(
     reference_sdf: Path,
     outdir: Path,
@@ -1234,39 +1318,7 @@ def run_ambertools_pipeline(
         target_spec.final_charge = final
         target_spec.correction_per_repeat_atom = correction
 
-        stereo_bonds = [
-            bond for bond in target_spec.molecule.bonds if bond.stereo in {1, 6}
-        ]
-        if stereo_bonds:
-            if not minimize_geometry:
-                raise RuntimeError(
-                    "Stereochemical wedge/dash bonds require geometry minimization "
-                    "so the assembled target polymer receives a defined 3D configuration."
-                )
-            target_stereo_input = outdir / "polymer_stereo_input.sdf"
-            target_stereo_minimized = outdir / "polymer_stereo_minimized.sdf"
-            write_sdf(target_spec.molecule, target_stereo_input)
-            minimized_target_path, target_minimizer = minimize_sdf_geometry(
-                target_stereo_input,
-                target_stereo_minimized,
-            )
-            minimized_target = read_sdf(minimized_target_path)
-            copy_coordinates_by_index(minimized_target, target_spec.molecule)
-            write_sdf(target_spec.molecule, outdir / "polymer.sdf")
-            stereo_report = outdir / "STEREOCHEMISTRY_REPORT.txt"
-            stereo_report.write_text(
-                "\n".join(
-                    [
-                        f"stereochemical_bonds: {len(stereo_bonds)}",
-                        f"target_geometry_input: {target_stereo_input}",
-                        f"target_geometry_output: {target_stereo_minimized}",
-                        f"method: RDKit {target_minimizer}",
-                        "stage: assembled target-polymer 3D stereochemistry preparation",
-                    ]
-                )
-                + "\n"
-            )
-            files.extend([target_stereo_input, target_stereo_minimized, stereo_report])
+        files.extend(prepare_target_stereo_geometry(target_spec.molecule, outdir, minimize_geometry))
 
         final_mol2 = outdir / "polymer_typed_charged.mol2"
         write_mol2(
@@ -1311,6 +1363,248 @@ def run_ambertools_pipeline(
     return files + generated, antechamber_mol2
 
 
+def missing_engine_requirements(engine: str) -> list[str]:
+    """Short names of what the chosen force-field engine still needs."""
+
+    if engine == "gaff2":
+        return missing_external_tools()
+    if engine == "opls":
+        import opls_engine
+
+        return opls_engine.missing_requirements()
+    raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
+
+
+def target_atom_names_and_residues(
+    mol: Molecule, labels: dict[int, tuple[int, tuple]] | None
+) -> tuple[list[str], list[int]]:
+    """GROMACS atom names (element + number within its repeat unit) and residue numbers."""
+
+    names: list[str] = []
+    residues: list[int] = []
+    counters: dict[int, int] = {}
+    for atom in mol.atoms:
+        unit = labels[atom.index][0] if labels else 0
+        counters[unit] = counters.get(unit, 0) + 1
+        name = f"{atom.element}{counters[unit] if labels else atom.index}"
+        names.append(name if len(name) <= 5 else name[-5:])
+        residues.append(unit + 1)
+    return names, residues
+
+
+def write_gro(
+    mol: Molecule,
+    path: Path,
+    atom_names: list[str],
+    residue_numbers: list[int],
+    residue_name: str = "POL",
+    padding_nm: float = 1.0,
+    min_box_nm: float = 3.0,
+) -> None:
+    """Coordinates in nm, centred in a rectangular box.
+
+    Each edge is the molecule's extent plus ``padding_nm`` on both sides, and
+    at least ``min_box_nm`` so that common cut-offs (<= 1.4 nm) stay below half
+    the box even for flat structures.
+    """
+
+    xs = [atom.x / 10 for atom in mol.atoms]
+    ys = [atom.y / 10 for atom in mol.atoms]
+    zs = [atom.z / 10 for atom in mol.atoms]
+    box = [max(max(values) - min(values) + 2 * padding_nm, min_box_nm) for values in (xs, ys, zs)]
+    shift = [edge / 2 - (max(values) + min(values)) / 2 for edge, values in zip(box, (xs, ys, zs))]
+    lines = [mol.name or "polymer", f"{len(mol.atoms):5d}"]
+    for atom, x, y, z, name, residue in zip(mol.atoms, xs, ys, zs, atom_names, residue_numbers):
+        lines.append(
+            f"{residue % 100000:5d}{residue_name:<5.5s}{name:>5.5s}{atom.index % 100000:5d}"
+            f"{x + shift[0]:8.3f}{y + shift[1]:8.3f}{z + shift[2]:8.3f}"
+        )
+    lines.append(f"{box[0]:10.5f}{box[1]:10.5f}{box[2]:10.5f}")
+    path.write_text("\n".join(lines) + "\n")
+
+
+def run_opls_pipeline(
+    reference_sdf: Path,
+    outdir: Path,
+    formal_charge: int,
+    minimize_geometry: bool = True,
+    target_spec: AmberTargetSpec | None = None,
+) -> tuple[list[Path], Path, dict]:
+    """OPLS-AA/2020 engine: parameterize the reference with opls-ff-lite, transfer to the target.
+
+    Returns (files, structure given to opls-ff-lite, metadata).
+    """
+
+    import opls_engine
+    import topology_transfer
+
+    errors, warnings = opls_engine.preflight()
+    if errors:
+        raise RuntimeError("opls-ff-lite is not ready:\n" + "\n".join(errors))
+
+    outdir.mkdir(parents=True, exist_ok=True)
+    files: list[Path] = []
+    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / "opls_input_with_h.sdf")
+    files.append(hydrogenated_sdf)
+    engine_input = hydrogenated_sdf
+    if minimize_geometry:
+        minimized_sdf, minimizer = minimize_sdf_geometry(hydrogenated_sdf, outdir / "polymer_minimized.sdf")
+        engine_input = minimized_sdf
+        report = outdir / "MINIMIZATION_REPORT.txt"
+        report.write_text(
+            "\n".join(
+                [
+                    f"input_sdf: {hydrogenated_sdf}",
+                    f"output_sdf: {minimized_sdf}",
+                    f"method: RDKit {minimizer}",
+                    "stage: explicit-H geometry before opls-ff-lite OPLS-AA/2020 + CM1A parameterization",
+                ]
+            )
+            + "\n"
+        )
+        files.extend([minimized_sdf, report])
+    else:
+        unminimized = read_sdf(hydrogenated_sdf)
+        if max((abs(atom.z) for atom in unminimized.atoms), default=0.0) < 1e-4:
+            raise RuntimeError(
+                "OPLS-AA charges (CM1A) are computed on the 3D geometry, but the reference "
+                "structure is flat; enable geometry minimization."
+            )
+
+    reference_mol = read_sdf(engine_input)
+    parameterization = opls_engine.parameterize_reference(
+        engine_input, outdir / "opls_reference", net_charge=formal_charge, name="reference"
+    )
+    reference_top = parameterization.topology
+    files.extend(parameterization.files)
+    if len(reference_top.atoms) != len(reference_mol.atoms):
+        raise RuntimeError(
+            f"opls-ff-lite returned {len(reference_top.atoms)} atoms for a {len(reference_mol.atoms)}-atom reference."
+        )
+
+    target = target_spec.molecule if target_spec is not None else clone_molecule(reference_mol)
+    target_charge = target_spec.target_charge if target_spec is not None else formal_charge
+    mapping_values = (
+        (target_spec.unit_atom_count, target_spec.reference_dp, target_spec.target_dp)
+        if target_spec is not None
+        else (None, None, None)
+    )
+    labels: dict[int, tuple[int, tuple]] | None = None
+    charge_spread = 0.0
+    if all(value is None for value in mapping_values):
+        if len(target.atoms) != len(reference_mol.atoms) or any(
+            a.element != b.element for a, b in zip(target.atoms, reference_mol.atoms)
+        ):
+            raise ValueError("Direct parameterization needs the target and reference atoms in the same order.")
+        transfer = topology_transfer.identity_transfer(reference_top)
+        charges = [atom.charge for atom in reference_top.atoms]
+        copy_coordinates_by_index(reference_mol, target)
+        mode = "direct_target"
+    elif all(value is not None for value in mapping_values):
+        unit_atom_count, reference_dp, target_dp = mapping_values
+        labels = unit_atom_labels(target, unit_atom_count, target_dp)
+        reference_labels = unit_atom_labels(reference_mol, unit_atom_count, reference_dp)
+        transfer = topology_transfer.transfer_topology(
+            reference_top,
+            [(bond.a, bond.b) for bond in reference_mol.bonds],
+            reference_labels,
+            [(bond.a, bond.b) for bond in target.bonds],
+            labels,
+        )
+        candidates = reference_atom_candidates(reference_mol, target, unit_atom_count, reference_dp, target_dp)
+        charges = []
+        for atom in target.atoms:
+            values = [reference_top.atoms[index - 1].charge for index in candidates[atom.index]]
+            charges.append(sum(values) / len(values))
+            charge_spread = max(charge_spread, max(values) - min(values))
+        mode = "reference_to_target"
+    else:
+        raise ValueError(
+            "unit_atom_count, reference_dp, and target_dp must be supplied together "
+            "for reference-to-target parameter transfer."
+        )
+
+    names, table = topology_transfer.merge_atom_types(transfer.atoms)
+    for atom, charge, type_name in zip(target.atoms, charges, names):
+        atom.charge = charge
+        atom.atom_type = type_name
+    raw, final, correction = normalize_repeat_charges(target, target_charge)
+    if target_spec is not None:
+        target_spec.raw_charge = raw
+        target_spec.final_charge = final
+        target_spec.correction_per_repeat_atom = correction
+    if mode == "reference_to_target":
+        files.extend(prepare_target_stereo_geometry(target, outdir, minimize_geometry))
+
+    atom_names, residues = target_atom_names_and_residues(target, labels)
+    itp_path = outdir / "polymer.itp"
+    top_path = outdir / "polymer.top"
+    gro_path = outdir / "polymer.gro"
+    typed_mol2 = outdir / "polymer_typed_charged.mol2"
+    info = dict(parameterization.info)
+    header = [
+        "Generated by polymer_from_oligomer (force-field engine: opls)",
+        f"Force field: {opls_engine.DESCRIPTION}; charge model {info.get('charge_model')}",
+        f"Reference oligomer topology: {reference_top.path}",
+        f"Parameterization mode: {mode}",
+    ]
+    counts = topology_transfer.write_gromacs_files(
+        itp_path,
+        top_path,
+        reference_top,
+        transfer,
+        [atom.charge for atom in target.atoms],
+        atom_names,
+        residues,
+        header=header,
+    )
+    write_gro(target, gro_path, atom_names, residues)
+    write_mol2(target, typed_mol2, residue_name="POL", molecule_name="POLYMER")
+
+    charge_warnings = []
+    if charge_spread > 0.02:
+        charge_warnings.append(
+            f"charges of equivalent reference atoms differ by up to {charge_spread:.4f} e; "
+            "a longer reference oligomer would give better-converged interior charges"
+        )
+    report_path = outdir / "PARAMETER_TRANSFER_REPORT.txt"
+    report_path.write_text(
+        "\n".join(
+            [
+                "engine: opls (opls-ff-lite)",
+                f"mode: {mode}",
+                f"charge_model: {info.get('charge_model')}",
+                f"reference_atoms: {len(reference_top.atoms)}",
+                f"target_atoms: {len(target.atoms)}",
+                f"merged_atom_types: {counts['atomtypes']}",
+                f"target_charge: {target_charge}",
+                f"raw_charge: {raw:.12g}",
+                f"final_charge: {final:.12g}",
+                f"correction_per_repeat_atom: {correction:.12g}",
+                f"max_reference_charge_spread_e: {charge_spread:.6f}",
+                f"reference_bonded_rule_counts: {info.get('bonded_rule_counts')}",
+                f"reference_atom_type_rules: {info.get('atom_type_rules')}",
+                *transfer.report.lines(),
+                *(f"charge warning: {warning}" for warning in charge_warnings),
+                *(f"opls-ff-lite warning: {warning}" for warning in info.get("engine_warnings", [])),
+                *(f"opls-ff-lite preflight warning: {warning}" for warning in warnings),
+            ]
+        )
+        + "\n"
+    )
+    files.extend([typed_mol2, itp_path, top_path, gro_path, report_path])
+    info.update(
+        {
+            "parameterization_mode": mode,
+            "merged_atom_types": counts["atomtypes"],
+            "target_term_counts": {kind: counts[kind] for kind in topology_transfer.KIND_ORDER},
+            "transfer_warnings": transfer.report.warnings + charge_warnings,
+            "max_reference_charge_spread_e": charge_spread,
+        }
+    )
+    return files, engine_input, info
+
+
 def write_outputs_for_polymer(
     polymer: Molecule,
     repeats: list[list[int]],
@@ -1329,11 +1623,22 @@ def write_outputs_for_polymer(
     write_sdf(polymer, polymer_sdf)
     files = [polymer_sdf]
 
-    missing = missing_external_tools()
+    engine = options.ff_engine
+    if engine not in FF_ENGINES:
+        raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
+    missing = missing_engine_requirements(engine)
+    if engine == "opls" and reference_dp is not None and options.dp < reference_dp:
+        # A target shorter than the reference oligomer is itself a small
+        # oligomer: parameterize it directly. (Near-junction atoms of very
+        # short chains, e.g. DP 2, see both chain ends at once, an environment
+        # the reference does not contain.)
+        external_sdf, external_formal_charge = None, None
+        reference_unit_atom_count, reference_dp = None, None
     requested_antechamber_sdf = external_sdf or polymer_sdf
     actual_antechamber_input = requested_antechamber_sdf
     antechamber_charge = target_charge if external_formal_charge is None else external_formal_charge
     parameterization_mode = "placeholder"
+    engine_info: dict = {}
     if options.run_external and not missing:
         if (reference_unit_atom_count is None) != (reference_dp is None):
             raise ValueError("reference_unit_atom_count and reference_dp must be supplied together.")
@@ -1347,13 +1652,22 @@ def write_outputs_for_polymer(
             reference_dp=reference_dp,
             target_dp=options.dp if reference_dp is not None else None,
         )
-        external_files, actual_antechamber_input = run_ambertools_pipeline(
-            requested_antechamber_sdf,
-            options.outdir,
-            antechamber_charge,
-            minimize_geometry=options.minimize_geometry,
-            target_spec=target_spec,
-        )
+        if engine == "opls":
+            external_files, actual_antechamber_input, engine_info = run_opls_pipeline(
+                requested_antechamber_sdf,
+                options.outdir,
+                antechamber_charge,
+                minimize_geometry=options.minimize_geometry,
+                target_spec=target_spec,
+            )
+        else:
+            external_files, actual_antechamber_input = run_ambertools_pipeline(
+                requested_antechamber_sdf,
+                options.outdir,
+                antechamber_charge,
+                minimize_geometry=options.minimize_geometry,
+                target_spec=target_spec,
+            )
         files.extend(external_files)
         raw = target_spec.raw_charge
         final = target_spec.final_charge
@@ -1374,6 +1688,12 @@ def write_outputs_for_polymer(
         "raw_charge": raw,
         "charge_correction_per_repeat_atom": correction,
         "parameterization_mode": parameterization_mode,
+        "ff_engine": engine,
+        "ff_engine_description": FF_ENGINES[engine],
+        "parameterization_source_sdf": str(requested_antechamber_sdf),
+        "parameterization_input": str(actual_antechamber_input),
+        "parameterization_formal_charge": antechamber_charge,
+        # Legacy key names (kept for existing consumers of build_metadata.json).
         "antechamber_source_sdf": str(requested_antechamber_sdf),
         "antechamber_input": str(actual_antechamber_input),
         "antechamber_input_format": actual_antechamber_input.suffix.lstrip(".").lower() or "unknown",
@@ -1384,6 +1704,8 @@ def write_outputs_for_polymer(
         "missing_tools": missing,
         "files": [str(path) for path in files],
     }
+    if engine_info:
+        metadata["engine"] = engine_info
     if extra_metadata:
         metadata.update(extra_metadata)
     metadata_path = options.outdir / "build_metadata.json"
@@ -1455,6 +1777,7 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             outdir=options.outdir,
             run_external=options.run_external,
             minimize_geometry=options.minimize_geometry,
+            ff_engine=options.ff_engine,
         ),
         extra_metadata={
             "workflow": "monomer",
@@ -1495,14 +1818,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--end-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--outdir", type=Path, default=Path("polymer_out"))
     parser.add_argument(
+        "--ff-engine",
+        choices=sorted(FF_ENGINES),
+        default=DEFAULT_FF_ENGINE,
+        help="Force-field engine for the reference oligomer: "
+        + "; ".join(f"{name} = {text}" for name, text in FF_ENGINES.items())
+        + f" (default: {DEFAULT_FF_ENGINE}).",
+    )
+    parser.add_argument(
         "--no-minimize-geometry",
         action="store_true",
-        help="Skip RDKit MMFF/UFF geometry minimization before Antechamber.",
+        help="Skip RDKit MMFF/UFF geometry minimization of the reference oligomer.",
     )
     parser.add_argument(
         "--no-external",
         action="store_true",
-        help="Skip AmberTools orchestration and write placeholder files for graph/GUI testing.",
+        help="Skip force-field parameterization and write placeholder files for graph/GUI testing.",
     )
     return parser
 
@@ -1524,6 +1855,7 @@ def main(argv: Iterable[str] | None = None) -> int:
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,
                 junction_order=args.junction_order,
+                ff_engine=args.ff_engine,
             ),
         )
     else:
@@ -1540,6 +1872,7 @@ def main(argv: Iterable[str] | None = None) -> int:
                 outdir=args.outdir,
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,
+                ff_engine=args.ff_engine,
             ),
         )
     print(f"Detected repeat units: {result.repeat_units}")
@@ -1547,8 +1880,16 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(f"Atoms: {len(result.molecule.atoms)}")
     print(f"Bonds: {len(result.molecule.bonds)}")
     print(f"Final charge: {result.final_charge:.12g}")
+    print(f"Force-field engine: {args.ff_engine}")
     if result.missing_tools:
-        print("AmberTools blocked: missing " + ", ".join(result.missing_tools))
+        print(f"{args.ff_engine} engine blocked: missing " + ", ".join(result.missing_tools))
+        if args.ff_engine == "opls":
+            import opls_engine
+
+            for error in opls_engine.preflight()[0]:
+                print("  " + error.replace("\n", "\n  "))
+            if "OPLS/2020 SI files" in result.missing_tools:
+                print("  With the bundled copy, install the SI files with:\n    " + opls_engine.INSTALL_SI_HINT)
         print("Wrote placeholder GROMACS-shaped files for non-external validation.")
     print(f"Output directory: {result.files[0].parent}")
     return 0
