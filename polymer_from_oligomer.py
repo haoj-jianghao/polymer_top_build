@@ -13,9 +13,9 @@ V1 scope:
 * force-field engines that parameterize a hidden reference oligomer:
   OPLS-AA/2020 via the bundled opls-ff-lite (default, ``opls_engine``),
   OpenFF Sage via the user's own OpenFF installation (``sage_engine``), and
-  GAFF2 via AmberTools/ParmEd (``gaff2``); OPLS and Sage parameters are
-  transferred to the requested polymer by the engine-neutral
-  ``topology_transfer`` module
+  GAFF2/AM1-BCC via the user's own AmberTools (``gaff2_engine``); every
+  engine's parameters are transferred to the requested polymer by the
+  engine-neutral ``topology_transfer`` module
 """
 
 from __future__ import annotations
@@ -24,8 +24,6 @@ import argparse
 import json
 import math
 import re
-import shutil
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
@@ -67,10 +65,11 @@ V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
 FF_ENGINES = {
     "opls": "OPLS-AA/2020 with CM1A/1.14*CM1A-LBCC charges (bundled opls-ff-lite + MOPAC)",
     "sage": "OpenFF Sage (default openff-2.3.0 with NAGL charges) from your own OpenFF installation",
-    "gaff2": "GAFF2 with AM1-BCC charges (AmberTools antechamber/parmchk2/tleap + ParmEd)",
+    "gaff2": "GAFF2 with AM1-BCC charges from your own AmberTools installation (antechamber, parmchk2, tleap, ParmEd)",
 }
-# Engines whose reference topology is transferred by topology_transfer.
-TRANSFER_ENGINES = ("opls", "sage")
+# Every engine writes a GROMACS topology of the reference oligomer, which
+# topology_transfer copies to the polymer.
+TRANSFER_ENGINES = ("opls", "sage", "gaff2")
 
 
 def engine_module(engine: str):
@@ -84,6 +83,10 @@ def engine_module(engine: str):
         import sage_engine
 
         return sage_engine
+    if engine == "gaff2":
+        import gaff2_engine
+
+        return gaff2_engine
     raise ValueError(f"{engine!r} is not a reference-transfer engine")
 DEFAULT_FF_ENGINE = "opls"
 
@@ -200,8 +203,8 @@ class BuildResult:
 
 
 @dataclass
-class AmberTargetSpec:
-    """Describe how AmberTools reference parameters are applied to a target."""
+class TargetSpec:
+    """The target polymer and how reference-oligomer parameters map onto it."""
 
     molecule: Molecule
     target_charge: int
@@ -211,6 +214,9 @@ class AmberTargetSpec:
     raw_charge: float = 0.0
     final_charge: float = 0.0
     correction_per_repeat_atom: float = 0.0
+
+
+AmberTargetSpec = TargetSpec  # former name, kept for existing callers
 
 
 @dataclass
@@ -435,24 +441,6 @@ def read_mol2_atom_parameters(path: Path) -> list[tuple[str, float]]:
     return parameters
 
 
-def copy_typed_parameters_by_index(
-    reference: Molecule,
-    parameters: list[tuple[str, float]],
-    target: Molecule,
-) -> None:
-    """Copy Antechamber results when reference and target are the same graph."""
-
-    if len(reference.atoms) != len(parameters) or len(target.atoms) != len(parameters):
-        raise ValueError(
-            "AmberTools atom count mismatch: "
-            f"reference={len(reference.atoms)}, typed MOL2={len(parameters)}, "
-            f"target={len(target.atoms)}."
-        )
-    for target_atom, (atom_type, charge) in zip(target.atoms, parameters):
-        target_atom.atom_type = atom_type
-        target_atom.charge = charge
-
-
 def _generated_hydrogens_by_parent(mol: Molecule, base_atom_count: int) -> dict[int, list[int]]:
     """Index valence-added hydrogens by their base atom, preserving atom order."""
 
@@ -539,35 +527,6 @@ def reference_atom_candidates(
                     indices[hydrogen_position] for indices in reference_hydrogen_lists
                 ]
     return candidates
-
-
-def transfer_reference_atom_parameters(
-    reference: Molecule,
-    parameters: list[tuple[str, float]],
-    target: Molecule,
-    unit_atom_count: int,
-    reference_dp: int,
-    target_dp: int,
-) -> None:
-    """Map reference head/interior/tail GAFF types and charges to a target."""
-
-    if len(reference.atoms) != len(parameters):
-        raise ValueError(
-            "Antechamber reference atom count mismatch: "
-            f"reference has {len(reference.atoms)}, typed MOL2 has {len(parameters)}."
-        )
-    candidates = reference_atom_candidates(reference, target, unit_atom_count, reference_dp, target_dp)
-    for target_index, reference_indices in sorted(candidates.items()):
-        values = [parameters[index - 1] for index in reference_indices]
-        atom_types = {atom_type for atom_type, _ in values}
-        if len(atom_types) != 1:
-            raise ValueError(
-                f"Reference GAFF atom types disagree for target atom {target_index}: "
-                + ", ".join(sorted(atom_types))
-            )
-        target_atom = target.atom(target_index)
-        target_atom.atom_type = values[0][0]
-        target_atom.charge = sum(charge for _, charge in values) / len(values)
 
 
 def unit_atom_labels(mol: Molecule, unit_atom_count: int, dp: int) -> dict[int, tuple[int, tuple]]:
@@ -1065,37 +1024,6 @@ def write_gromacs_placeholders(mol: Molecule, outdir: Path, target_charge: int) 
     return files, raw, final, correction
 
 
-def split_gromacs_topology(top_path: Path, itp_path: Path) -> None:
-    """Split a ParmEd GROMACS topology into an includable ITP and wrapper TOP."""
-
-    lines = top_path.read_text().splitlines()
-    system_index = next(
-        (
-            index
-            for index, line in enumerate(lines)
-            if re.fullmatch(r"\s*\[\s*system\s*\]\s*", line, flags=re.IGNORECASE)
-        ),
-        None,
-    )
-    if system_index is None:
-        raise ValueError(f"ParmEd topology does not contain a [ system ] section: {top_path}")
-    molecular_lines = lines[:system_index]
-    system_lines = lines[system_index:]
-    if not any(
-        re.fullmatch(r"\s*\[\s*moleculetype\s*\]\s*", line, flags=re.IGNORECASE)
-        for line in molecular_lines
-    ):
-        raise ValueError(f"ParmEd topology does not contain a [ moleculetype ] section: {top_path}")
-    itp_path.write_text("\n".join(molecular_lines).rstrip() + "\n")
-    top_path.write_text(
-        f'#include "{itp_path.name}"\n\n' + "\n".join(system_lines).rstrip() + "\n"
-    )
-
-
-def missing_external_tools() -> list[str]:
-    return [tool for tool in ["antechamber", "parmchk2", "tleap"] if shutil.which(tool) is None]
-
-
 def minimize_sdf_geometry(input_sdf: Path, output_sdf: Path, max_iters: int = 1000) -> tuple[Path, str]:
     try:
         from rdkit import Chem
@@ -1231,164 +1159,9 @@ def prepare_target_stereo_geometry(target: Molecule, outdir: Path, minimize_geom
     return [target_stereo_input, target_stereo_minimized, stereo_report]
 
 
-def run_ambertools_pipeline(
-    reference_sdf: Path,
-    outdir: Path,
-    formal_charge: int,
-    minimize_geometry: bool = True,
-    target_spec: AmberTargetSpec | None = None,
-) -> tuple[list[Path], Path]:
-    missing = missing_external_tools()
-    if missing:
-        raise RuntimeError("Required AmberTools executable(s) not found on PATH: " + ", ".join(missing))
-    try:
-        import parmed as pmd
-    except Exception as exc:  # pragma: no cover - depends on external env
-        raise RuntimeError("ParmEd is required for AMBER to GROMACS conversion.") from exc
-
-    outdir.mkdir(parents=True, exist_ok=True)
-    files: list[Path] = []
-    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / "antechamber_input_with_h.sdf")
-    files.append(hydrogenated_sdf)
-    antechamber_input = hydrogenated_sdf
-    if minimize_geometry:
-        minimized_sdf, minimizer = minimize_sdf_geometry(hydrogenated_sdf, outdir / "polymer_minimized.sdf")
-        antechamber_input = minimized_sdf
-        files.append(minimized_sdf)
-        (outdir / "MINIMIZATION_REPORT.txt").write_text(
-            "\n".join(
-                [
-                    f"input_sdf: {hydrogenated_sdf}",
-                    f"output_sdf: {minimized_sdf}",
-                    f"method: RDKit {minimizer}",
-                    "stage: explicit-H geometry before Antechamber GAFF2/AM1-BCC parameterization",
-                ]
-            )
-            + "\n"
-        )
-        files.append(outdir / "MINIMIZATION_REPORT.txt")
-
-    antechamber_mol = read_sdf(antechamber_input)
-    antechamber_mol2 = outdir / "antechamber_input.mol2"
-    write_mol2(antechamber_mol, antechamber_mol2)
-    files.append(antechamber_mol2)
-
-    reference_mol2 = outdir / (
-        "reference_typed_charged.mol2" if target_spec is not None else "polymer_typed_charged.mol2"
-    )
-    frcmod = outdir / "polymer.frcmod"
-    prmtop = outdir / "polymer.prmtop"
-    inpcrd = outdir / "polymer.inpcrd"
-    leap_in = outdir / "tleap.in"
-    subprocess.run(
-        [
-            "antechamber",
-            "-i",
-            str(antechamber_mol2),
-            "-fi",
-            "mol2",
-            "-o",
-            str(reference_mol2),
-            "-fo",
-            "mol2",
-            "-c",
-            "bcc",
-            "-s",
-            "2",
-            "-at",
-            "gaff2",
-            "-nc",
-            str(formal_charge),
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ["parmchk2", "-i", str(reference_mol2), "-f", "mol2", "-o", str(frcmod)],
-        check=True,
-    )
-
-    final_mol2 = reference_mol2
-    if target_spec is not None:
-        parameters = read_mol2_atom_parameters(reference_mol2)
-        mapping_values = (
-            target_spec.unit_atom_count,
-            target_spec.reference_dp,
-            target_spec.target_dp,
-        )
-        if all(value is None for value in mapping_values):
-            copy_typed_parameters_by_index(antechamber_mol, parameters, target_spec.molecule)
-        elif all(value is not None for value in mapping_values):
-            transfer_reference_atom_parameters(
-                antechamber_mol,
-                parameters,
-                target_spec.molecule,
-                unit_atom_count=target_spec.unit_atom_count,
-                reference_dp=target_spec.reference_dp,
-                target_dp=target_spec.target_dp,
-            )
-        else:
-            raise ValueError(
-                "unit_atom_count, reference_dp, and target_dp must be supplied together "
-                "for reference-to-target parameter transfer."
-            )
-        raw, final, correction = normalize_repeat_charges(
-            target_spec.molecule,
-            target_spec.target_charge,
-        )
-        target_spec.raw_charge = raw
-        target_spec.final_charge = final
-        target_spec.correction_per_repeat_atom = correction
-
-        files.extend(prepare_target_stereo_geometry(target_spec.molecule, outdir, minimize_geometry))
-
-        final_mol2 = outdir / "polymer_typed_charged.mol2"
-        write_mol2(
-            target_spec.molecule,
-            final_mol2,
-            residue_name="POL",
-            molecule_name="POLYMER",
-        )
-
-    leap_in.write_text(
-        "\n".join(
-            [
-                "source leaprc.gaff2",
-                f"loadamberparams {frcmod.name}",
-                f"mol = loadmol2 {final_mol2.name}",
-                f"saveamberparm mol {prmtop.name} {inpcrd.name}",
-                "quit",
-            ]
-        )
-        + "\n"
-    )
-    subprocess.run(["tleap", "-f", str(leap_in.name)], cwd=outdir, check=True)
-    structure = pmd.load_file(str(prmtop), str(inpcrd))
-    if target_spec is not None and len(structure.atoms) != len(target_spec.molecule.atoms):
-        raise RuntimeError(
-            "TLeap target atom count mismatch: "
-            f"expected {len(target_spec.molecule.atoms)}, found {len(structure.atoms)}."
-        )
-    top_path = outdir / "polymer.top"
-    gro_path = outdir / "polymer.gro"
-    structure.save(str(top_path), overwrite=True)
-    structure.save(str(gro_path), overwrite=True)
-    itp_path = outdir / "polymer.itp"
-    if target_spec is not None:
-        split_gromacs_topology(top_path, itp_path)
-    generated = [reference_mol2, frcmod]
-    if final_mol2 != reference_mol2:
-        generated.append(final_mol2)
-    generated.extend([leap_in, prmtop, inpcrd, top_path, gro_path])
-    if target_spec is not None:
-        generated.append(itp_path)
-    return files + generated, antechamber_mol2
-
-
 def missing_engine_requirements(engine: str, settings: dict | None = None) -> list[str]:
     """Short names of what the chosen force-field engine still needs."""
 
-    if engine == "gaff2":
-        return missing_external_tools()
     if engine in TRANSFER_ENGINES:
         return engine_module(engine).missing_requirements(settings or {})
     raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
@@ -1448,7 +1221,7 @@ def run_reference_engine_pipeline(
     outdir: Path,
     formal_charge: int,
     minimize_geometry: bool = True,
-    target_spec: AmberTargetSpec | None = None,
+    target_spec: TargetSpec | None = None,
     engine_settings: dict | None = None,
 ) -> tuple[list[Path], Path, dict]:
     """Parameterize the reference oligomer with ``engine`` and transfer it to the target.
@@ -1487,12 +1260,12 @@ def run_reference_engine_pipeline(
             + "\n"
         )
         files.extend([minimized_sdf, report])
-    elif engine == "opls":
+    elif engine in ("opls", "gaff2"):
         unminimized = read_sdf(hydrogenated_sdf)
         if max((abs(atom.z) for atom in unminimized.atoms), default=0.0) < 1e-4:
             raise RuntimeError(
-                "OPLS-AA charges (CM1A) are computed on the 3D geometry, but the reference "
-                "structure is flat; enable geometry minimization."
+                f"The {engine} charges (CM1A or AM1-BCC) are computed on the 3D geometry, but the "
+                "reference structure is flat; enable geometry minimization."
             )
 
     reference_mol = read_sdf(engine_input)
@@ -1673,31 +1446,22 @@ def write_outputs_for_polymer(
         parameterization_mode = (
             "reference_to_target" if reference_dp is not None else "direct_target"
         )
-        target_spec = AmberTargetSpec(
+        target_spec = TargetSpec(
             molecule=polymer,
             target_charge=target_charge,
             unit_atom_count=reference_unit_atom_count,
             reference_dp=reference_dp,
             target_dp=options.dp if reference_dp is not None else None,
         )
-        if engine in TRANSFER_ENGINES:
-            external_files, actual_antechamber_input, engine_info = run_reference_engine_pipeline(
-                engine,
-                requested_antechamber_sdf,
-                options.outdir,
-                antechamber_charge,
-                minimize_geometry=options.minimize_geometry,
-                target_spec=target_spec,
-                engine_settings=options.engine_settings,
-            )
-        else:
-            external_files, actual_antechamber_input = run_ambertools_pipeline(
-                requested_antechamber_sdf,
-                options.outdir,
-                antechamber_charge,
-                minimize_geometry=options.minimize_geometry,
-                target_spec=target_spec,
-            )
+        external_files, actual_antechamber_input, engine_info = run_reference_engine_pipeline(
+            engine,
+            requested_antechamber_sdf,
+            options.outdir,
+            antechamber_charge,
+            minimize_geometry=options.minimize_geometry,
+            target_spec=target_spec,
+            engine_settings=options.engine_settings,
+        )
         files.extend(external_files)
         raw = target_spec.raw_charge
         final = target_spec.final_charge
@@ -1867,6 +1631,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="sage engine: SMIRNOFF force field file (default: openff-2.3.0.offxml, NAGL charges).",
     )
     parser.add_argument(
+        "--amber-python",
+        help="gaff2 engine: Python interpreter of your AmberTools environment (default: $POLYMER_AMBER_PYTHON, "
+        "$AMBERHOME, then auto-detected conda environments with ambertools).",
+    )
+    parser.add_argument(
         "--check-engine",
         action="store_true",
         help="Only report whether the chosen --ff-engine is ready (and which OpenFF install is used), then exit.",
@@ -1890,15 +1659,14 @@ def engine_settings_from_args(args: argparse.Namespace) -> dict:
         settings["sage_python"] = args.sage_python
     if args.sage_forcefield:
         settings["sage_forcefield"] = args.sage_forcefield
+    if args.amber_python:
+        settings["amber_python"] = args.amber_python
     return settings
 
 
 def engine_problem_lines(engine: str, settings: dict) -> list[str]:
     """Human-readable preflight problems of an engine (empty if ready)."""
 
-    if engine == "gaff2":
-        missing = missing_external_tools()
-        return [f"missing AmberTools executable(s): {', '.join(missing)}"] if missing else []
     module = engine_module(engine)
     lines = [error for error in module.preflight(settings)[0]]
     if engine == "opls" and any("SI" in line for line in lines):
@@ -1909,15 +1677,14 @@ def engine_problem_lines(engine: str, settings: dict) -> list[str]:
 def check_engine(engine: str, settings: dict) -> int:
     print(f"Force-field engine: {engine} - {FF_ENGINES[engine]}")
     problems = engine_problem_lines(engine, settings)
-    if engine == "sage":
-        import sage_engine
-
-        interpreter, _ = sage_engine.find_interpreter(settings)
+    if engine in ("sage", "gaff2"):
+        interpreter, _ = engine_module(engine).find_interpreter(settings)
         if interpreter is not None:
             probe = interpreter.probe
-            print(f"  OpenFF Python: {interpreter.python} ({interpreter.source})")
-            print(f"  versions: {probe.get('versions')}")
-            print(f"  charges: {probe.get('charges')}")
+            print(f"  {'OpenFF' if engine == 'sage' else 'AmberTools'} Python: {interpreter.python} ({interpreter.source})")
+            for key in ("versions", "charges", "tools", "parmed", "amberhome"):
+                if key in probe:
+                    print(f"  {key}: {probe[key]}")
     for line in problems:
         print("  " + line.replace("\n", "\n  "))
     print("  ready" if not problems else "  NOT ready")

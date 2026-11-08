@@ -26,7 +26,14 @@ from polymer_from_oligomer import (
     read_sdf,
     write_sdf,
 )
-from tests.test_topology_transfer import DIRECT_8MER_CASES, fake_engine_topology, mma_monomer
+from tests.test_topology_transfer import (
+    DIRECT_8MER_CASES,
+    exact_term_table,
+    fake_engine_topology,
+    mma_monomer,
+    same_numbering_3d_sdf,
+    styrene_monomer,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -232,6 +239,23 @@ class SageIntegrationTests(unittest.TestCase):
             self.assertEqual(target.defaults, reference.defaults)
             for index in range(1, len(reference.atoms) + 1):
                 self.assertEqual(reference.atom_type(index).nonbonded_key(), target.atom_type(index).nonbonded_key())
+
+    def test_transfer_matches_sage_run_on_the_same_polymer(self):
+        """Sage run directly on the builder's own 8-mer (same numbering) gives exactly the transferred
+        terms, impropers (three per planar centre) in their exact written atom order included."""
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            monomer, previous, nxt = styrene_monomer()
+            monomer_sdf = tmp_path / "styrene.sdf"
+            write_sdf(monomer, monomer_sdf)
+            out = tmp_path / "built"
+            build_polymer_from_monomer(monomer_sdf, MonomerBuildOptions(previous, nxt, 8, reference_dp=5, outdir=out, ff_engine="sage"))
+            structure = same_numbering_3d_sdf(out / "polymer.sdf", tmp_path / "same_numbering.sdf")
+            direct = sage_engine.parameterize_reference(structure, tmp_path / "direct", net_charge=0, name="target").topology
+            built = tt.parse_gromacs_topology(out / "polymer.top")
+            self.assertGreater(sum(1 for term in built.terms if term.kind == "impropers"), 0)
+            self.assertEqual(exact_term_table(direct), exact_term_table(built))
 
     def test_builder_8mer_matches_directly_parameterized_8mer(self):
         from rdkit import Chem

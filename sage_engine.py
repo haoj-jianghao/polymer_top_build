@@ -33,6 +33,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import external_env
 from topology_transfer import GromacsTopology, parse_gromacs_topology
 
 
@@ -43,7 +44,7 @@ DEFAULT_FORCE_FIELD = "openff-2.3.0.offxml"
 SAGE_PYTHON_ENV = "POLYMER_SAGE_PYTHON"
 PROBE_TIMEOUT_S = 600
 RUN_TIMEOUT_S = 3600
-CONDA_ROOT_GUESSES = ("miniforge3", "mambaforge", "miniconda3", "anaconda3", "micromamba")
+OPENFF_PACKAGES = ("openff-toolkit", "openff-interchange")
 
 
 def description(settings: dict | None = None) -> str:
@@ -59,25 +60,8 @@ DESCRIPTION = description()
 # ---------------------------------------------------------------------------
 
 
-def _python_in(prefix: Path) -> Path:
-    return prefix / ("python.exe" if os.name == "nt" else "bin/python")
-
-
-def _has_openff(prefix: Path) -> bool:
-    meta = prefix / "conda-meta"
-    return any(meta.glob("openff-toolkit*-*.json")) and any(meta.glob("openff-interchange*-*.json"))
-
-
 def _conda_roots() -> list[Path]:
-    roots: list[Path] = []
-    if os.environ.get("CONDA_EXE"):
-        roots.append(Path(os.environ["CONDA_EXE"]).resolve().parent.parent)
-    for variable in ("CONDA_PREFIX", "MAMBA_ROOT_PREFIX"):
-        if os.environ.get(variable):
-            prefix = Path(os.environ[variable]).resolve()
-            roots.append(prefix.parent.parent if prefix.parent.name == "envs" else prefix)
-    roots += [Path.home() / name for name in CONDA_ROOT_GUESSES]
-    return list(dict.fromkeys(root for root in roots if root.is_dir()))
+    return external_env.conda_roots()
 
 
 def candidate_interpreters(sage_python: str | None = None) -> list[tuple[str, str]]:
@@ -90,45 +74,13 @@ def candidate_interpreters(sage_python: str | None = None) -> list[tuple[str, st
         candidates.append((os.environ[SAGE_PYTHON_ENV], f"environment variable {SAGE_PYTHON_ENV}"))
     if importlib.util.find_spec("openff") and importlib.util.find_spec("openff.interchange"):
         candidates.append((sys.executable, "the builder's own interpreter"))
-    for root in _conda_roots():
-        prefixes = [root] + sorted(path for path in (root / "envs").glob("*") if path.is_dir())
-        for prefix in prefixes:
-            if _has_openff(prefix) and _python_in(prefix).exists():
-                candidates.append((str(_python_in(prefix)), f"conda environment {prefix}"))
-    seen: set[str] = set()
-    unique = []
-    for python, source in candidates:
-        if python not in seen:
-            seen.add(python)
-            unique.append((python, source))
-    return unique
-
-
-def _worker_environment(python: str) -> dict[str, str]:
-    """Environment for the worker: the OpenFF environment's bin first, no PYTHONPATH/PYTHONHOME."""
-
-    env = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "PYTHONHOME"}}
-    bin_dir = str(Path(python).parent)
-    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
-    return env
+    for prefix in external_env.conda_environments_with(OPENFF_PACKAGES, _conda_roots()):
+        candidates.append((str(external_env.python_in(prefix)), f"conda environment {prefix}"))
+    return external_env.unique(candidates)
 
 
 def _run_worker(python: str, arguments: list[str], timeout: int) -> tuple[int, dict, str]:
-    completed = subprocess.run(
-        [python, "-I", str(WORKER), *arguments],
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        env=_worker_environment(python),
-    )
-    payload: dict = {}
-    for line in reversed(completed.stdout.strip().splitlines()):
-        try:
-            payload = json.loads(line)
-            break
-        except ValueError:
-            continue
-    return completed.returncode, payload, completed.stderr
+    return external_env.run_worker(python, WORKER, arguments, timeout)
 
 
 @functools.lru_cache(maxsize=16)

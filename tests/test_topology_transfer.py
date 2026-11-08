@@ -441,6 +441,42 @@ DIRECT_8MER_CASES = {
 }
 
 
+def exact_term_table(topology: tt.GromacsTopology) -> dict:
+    """Terms keyed by atoms (impropers in their exact written order, others direction-independent)
+    with their numeric parameters; for comparing two topologies with the same atom numbering."""
+
+    table: dict = {}
+    for term in topology.terms:
+        table.setdefault((term.kind, tt.canonical_atoms(term.kind, term.atoms)), []).append(
+            (term.funct, tuple(float(value) for value in term.params))
+        )
+    return {key: sorted(lines) for key, lines in table.items()}
+
+
+def same_numbering_3d_sdf(polymer_sdf: Path, out: Path) -> Path:
+    """The builder's polymer embedded in 3D by RDKit with its atom numbering unchanged."""
+
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.SDMolSupplier(str(polymer_sdf), removeHs=False)[0]
+    params = AllChem.ETKDGv3()
+    params.randomSeed = 11
+    params.useRandomCoords = True
+    if AllChem.EmbedMolecule(mol, params) != 0:
+        raise RuntimeError(f"RDKit could not embed {polymer_sdf}")
+    AllChem.MMFFOptimizeMolecule(mol, maxIters=2000)
+    writer = Chem.SDWriter(str(out))
+    writer.write(mol)
+    writer.close()
+    return out
+
+
+def styrene_monomer() -> tuple:
+    atoms, bonds, previous, nxt, _ = DIRECT_8MER_CASES["styrene"]
+    return Molecule("styrene", atoms=atoms, bonds=bonds), previous, nxt
+
+
 @unittest.skipUnless(lite_ready(), "opls-ff-lite is not ready (needs Python 3.12+, RDKit, MOPAC and the OPLS/2020 SI)")
 class DirectOligomerComparisonTests(unittest.TestCase):
     """The builder's 8-mer (5-mer reference + index shift) must have exactly the terms, parameters
@@ -463,6 +499,29 @@ class DirectOligomerComparisonTests(unittest.TestCase):
         writer.write(rd)
         writer.close()
         return path
+
+    def test_transfer_matches_opls_ff_lite_run_on_the_same_polymer(self):
+        """opls-ff-lite run directly on the builder's own 8-mer (same numbering) gives exactly the
+        transferred terms, impropers in their exact written atom order included."""
+
+        opls_engine._import_lite()
+        from opls_ff_lite import generate_gromacs_topology
+        from opls_ff_lite.structure import prepare_structure
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            monomer, previous, nxt = styrene_monomer()
+            monomer_sdf = tmp_path / "styrene.sdf"
+            write_sdf(monomer, monomer_sdf)
+            out = tmp_path / "built"
+            build_polymer_from_monomer(monomer_sdf, MonomerBuildOptions(previous, nxt, 8, reference_dp=5, outdir=out, ff_engine="opls"))
+            structure = same_numbering_3d_sdf(out / "polymer.sdf", tmp_path / "same_numbering.sdf")
+            direct = generate_gromacs_topology(
+                prepare_structure(path=structure, name="target", optimize=None), tmp_path / "direct", name="target"
+            )
+            built = tt.parse_gromacs_topology(out / "polymer.top")
+            self.assertGreater(sum(1 for term in built.terms if term.kind == "impropers"), 0)
+            self.assertEqual(exact_term_table(tt.parse_gromacs_topology(direct.top_path)), exact_term_table(built))
 
     def test_builder_8mer_matches_directly_parameterized_8mer(self):
         from rdkit import Chem

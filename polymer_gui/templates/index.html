@@ -103,12 +103,16 @@
             <select id="ff_engine">
               <option value="opls" selected>OPLS-AA/2020 (opls-ff-lite)</option>
               <option value="sage">OpenFF Sage 2.3 (your OpenFF install)</option>
-              <option value="gaff2">GAFF2 / AM1-BCC (AmberTools)</option>
+              <option value="gaff2">GAFF2 / AM1-BCC (your AmberTools install)</option>
             </select>
           </label>
           <label class="field">
             <span>OpenFF Python (Sage; blank = auto-detect)</span>
             <input id="sage_python" placeholder="e.g. ~/miniforge3/envs/openff/bin/python">
+          </label>
+          <label class="field">
+            <span>AmberTools Python (GAFF2; blank = auto-detect)</span>
+            <input id="amber_python" placeholder="e.g. ~/miniforge3/envs/amber/bin/python">
           </label>
         </div>
         <label class="check">

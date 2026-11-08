@@ -86,9 +86,10 @@ def build():
         if ff_engine not in FF_ENGINES:
             raise ValueError(f"unknown force field {ff_engine!r}")
         engine_settings = {}
-        sage_python = request.form.get("sage_python", "").strip()
-        if sage_python:
-            engine_settings["sage_python"] = str(Path(sage_python).expanduser())
+        for key in ("sage_python", "amber_python"):
+            value = request.form.get(key, "").strip()
+            if value:
+                engine_settings[key] = str(Path(value).expanduser())
     except Exception as exc:
         return jsonify({"error": f"Invalid settings: {exc}"}), 400
 
@@ -148,6 +149,7 @@ def build():
                 "warnings": engine_info.get("transfer_warnings", [])
                 + [warning for warning in engine_info.get("engine_warnings", []) if warning],
                 "openff_python": engine_info.get("openff_python"),
+                "amber_python": engine_info.get("amber_python"),
                 "files": [str(path.relative_to(PROJECT_ROOT)) for path in result.files],
                 "download_base": f"/outputs/{outdir.name}",
             }

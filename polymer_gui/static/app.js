@@ -590,6 +590,7 @@ function formData() {
     "job_name",
     "ff_engine",
     "sage_python",
+    "amber_python",
   ]) {
     data.append(id, document.getElementById(id).value);
   }
@@ -643,6 +644,7 @@ function renderBuild(payload) {
     `Final charge: ${payload.final_charge}<br>` +
     (payload.charge_model ? `Charge model: ${payload.charge_model}<br>` : "") +
     (payload.openff_python ? `OpenFF Python: ${payload.openff_python}<br>` : "") +
+    (payload.amber_python ? `AmberTools Python: ${payload.amber_python}<br>` : "") +
     (payload.atom_types ? `Atom types: ${payload.atom_types}<br>` : "") +
     (payload.warnings && payload.warnings.length
       ? `Warnings:<br>- ${payload.warnings.join("<br>- ")}<br>` : "") +

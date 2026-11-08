@@ -25,10 +25,10 @@ draw monomer
 |---|---|---|---|
 | **OPLS-AA/2020** (default) | `opls` | OPLS/2020 atom types and bonded terms; CM1A charges (ions) or 1.14*CM1A-LBCC (neutral) | bundled opls-ff-lite, MOPAC, the OPLS/2020 SI files |
 | OpenFF Sage | `sage` | Sage 2.3.0 (`openff-2.3.0.offxml`) by default; NAGL (AshGC) charges | your own OpenFF installation (openff-toolkit, openff-interchange, openff-nagl + models); nothing is installed for it |
-| GAFF2 | `gaff2` | GAFF2 types; AM1-BCC charges | AmberTools (`antechamber`, `parmchk2`, `tleap`), ParmEd |
+| GAFF2 | `gaff2` | GAFF2 types; AM1-BCC charges | your own AmberTools installation (`antechamber`, `parmchk2`, `tleap`, ParmEd); nothing is installed for it |
 
-Every engine parameterizes only the hidden reference oligomer. OPLS and Sage
-parameters reach the polymer through the same transfer step (see below).
+Every engine parameterizes only the hidden reference oligomer, and all three
+reach the polymer through the same transfer step (see below).
 
 - **OPLS-AA/2020** uses the bundled
   [opls-ff-lite](third_party/opls-ff-lite/README.md). It covers H, C, N, O,
@@ -43,6 +43,9 @@ parameters reach the polymer through the same transfer step (see below).
 - `opls_engine.py`: runs the bundled opls-ff-lite on the reference oligomer.
 - `sage_engine.py`: finds the user's OpenFF installation and runs
   `sage_worker.py` in it on the reference oligomer.
+- `gaff2_engine.py`: finds the user's AmberTools installation and runs
+  `amber_worker.py` in it on the reference oligomer.
+- `external_env.py`: shared search for conda environments and worker runs.
 - `topology_transfer.py`: transfers a reference-oligomer GROMACS topology to
   the polymer. The transfer works the same way for every engine.
 - `third_party/opls-ff-lite/`: bundled copy of opls-ff-lite, without the
@@ -56,6 +59,7 @@ parameters reach the polymer through the same transfer step (see below).
 - `tests/test_polymer_non_amber.py`: tests for repeat detection, DP build, and charge normalization.
 - `tests/test_topology_transfer.py`: tests for the topology transfer and the OPLS engine.
 - `tests/test_sage_engine.py`: tests for the Sage engine and the search for an OpenFF interpreter.
+- `tests/test_gaff2_engine.py`: tests for the GAFF2 engine, including a comparison with tleap run on the whole polymer.
 
 The GUI includes a small built-in sketcher, so it does not depend on an
 external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
@@ -65,7 +69,8 @@ external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
 ```bash
 conda env create -f environment.yml          # OPLS-AA/2020 engine
 conda activate polymer-gui
-# or, to also have the GAFF2/AmberTools engine:
+# or, to install AmberTools for the GAFF2 engine in the same environment
+# (not needed if you already have AmberTools in another environment):
 conda env create -f environment-amber.yml
 conda activate polymer-gui-amber
 ```
@@ -122,6 +127,8 @@ in the `.mdp`.
      assignment and MOPAC files.
    - Sage: `sage_reference/reference.top` (Interchange) and
      `reference.sage.json` (versions, charge model, vdW parameter ids).
+   - GAFF2: `gaff2_reference/reference.top` (ParmEd), plus the antechamber,
+     parmchk2 and tleap files.
 2. Atoms are addressed as (repeat unit, index within the unit). The
    reference and the polymer are built unit by unit from the same monomer.
    Each unit's hydrogens are numbered after its monomer atoms, by parent
@@ -178,65 +185,48 @@ in the `.mdp`.
 
 `polymer.top` carries the engine's own `[ defaults ]`:
 - OPLS: `1 3 yes 0.5 0.5` (geometric combination rule, fudgeLJ = fudgeQQ = 0.5);
-- Sage: `1 2 yes 0.5 0.833333` (Lorentz-Berthelot, fudgeQQ = 1/1.2).
+- Sage and GAFF2: `1 2 yes 0.5 0.833333` (Lorentz-Berthelot, fudgeQQ = 1/1.2).
 
-Sage atom types are named by their vdW parameter id, for example `n16`. `polymer.itp` holds
+Sage atom types are named by their vdW parameter id, for example `n16`, and
+GAFF2 atom types by their GAFF2 type, for example `c3`. `polymer.itp` holds
 the `[ atomtypes ]` and the `[ moleculetype ]`. Each repeat unit is one
 residue, and atoms are named element + number within the unit.
 
-## GAFF2 engine (AmberTools)
+### Using your AmberTools installation for GAFF2
 
-AmberTools must provide these executables on `PATH`:
+Like Sage, the GAFF2 engine uses an existing installation and installs
+nothing. `amber_worker.py` runs with the Python of an AmberTools
+environment. That environment must provide antechamber, parmchk2 and tleap
+next to its Python or on `PATH`, ParmEd (shipped with conda AmberTools), and
+`leaprc.gaff2`. `AMBERHOME` is set automatically when the environment is not
+activated. The AmberTools Python is chosen in this order:
+
+1. `--amber-python PATH` (CLI), or the "AmberTools Python" field in the GUI;
+2. the environment variable `POLYMER_AMBER_PYTHON`;
+3. `$AMBERHOME/bin/python`;
+4. the builder's own interpreter, if it can import ParmEd and `antechamber`
+   is on `PATH`;
+5. a conda/mamba environment with the `ambertools` package.
 
 ```bash
-antechamber
-parmchk2
-tleap
+python polymer_from_oligomer.py --check-engine --ff-engine gaff2
 ```
 
-ParmEd is also required for full AMBER-to-GROMACS conversion. A local GROMACS
-install is useful for validation with `gmx grompp`, but this V1 backend does
-not require `gmx` for the non-AmberTools tests.
+On the reference oligomer only, the worker runs:
+1. `antechamber -c bcc -at gaff2` (GAFF2 types, AM1-BCC charges through sqm);
+2. `parmchk2 -s gaff2`;
+3. `tleap` with `leaprc.gaff2` and that frcmod;
+4. ParmEd, to write the GROMACS topology.
 
-When the AmberTools path is used, the generated explicit-H SDF is first
-minimized with RDKit. The backend uses MMFF94s when parameters are available
-and falls back to UFF otherwise. The minimized structure is written as
-`polymer_minimized.sdf` alongside `MINIMIZATION_REPORT.txt`, then converted to
-Tripos MOL2 for the actual Antechamber handoff.
+The files are kept in `gaff2_reference/`: the typed MOL2, frcmod, prmtop,
+the GROMACS `.top` and the logs. The polymer is then built by the same index
+shift and cross-check as for the other engines; tleap never sees the full
+polymer.
 
-In monomer mode, Antechamber is run on the hydrogen-completed hidden reference
-oligomer, not the final requested polymer DP. The relevant files are:
-
-```text
-reference_oligomer_from_monomer.sdf      heavy-atom reference oligomer
-reference_oligomer_for_antechamber.sdf   hydrogenated reference oligomer (all engines)
-polymer.sdf                              final requested polymer structure
-```
-
-The AmberTools runner also enforces explicit hydrogens immediately before
-Antechamber for every workflow. In a real external run it writes:
-
-```text
-antechamber_input_with_h.sdf
-polymer_minimized.sdf        when minimization is enabled
-antechamber_input.mol2       actual file passed to Antechamber
-```
-
-Antechamber is run with `-fi mol2` on `antechamber_input.mol2`; this avoids
-AmberTools SDF parser failures for larger hidden oligomers whose atom and bond
-counts exceed two digits.
-
-For monomer mode, `reference_typed_charged.mol2` stores the GAFF2 atom types
-and AM1-BCC charges assigned to the reference oligomer. The first and last
-reference units supply terminal templates, while equivalent interior-unit
-charges are averaged. The parameters are expanded onto the requested target
-in `polymer_typed_charged.mol2`.
-
-`parmchk2` runs on the reference. TLeap then loads the target MOL2 with GAFF2
-and the reference-derived `polymer.frcmod`, generating target bonds, angles,
-dihedrals, and impropers. The production `polymer.itp`, `polymer.top`, and
-`polymer.gro` therefore describe the final requested DP and have the same atom
-count as `polymer.sdf`.
+`parmchk2` is run with `-s gaff2`. Its default parameter set is GAFF, and the
+earlier version of this builder used that default. Terms missing from
+`gaff.dat` were then estimated from GAFF data, and because the frcmod is
+loaded after `leaprc.gaff2`, those estimates overrode GAFF2's own values.
 
 ## Run the GUI
 
@@ -319,8 +309,9 @@ Add `--ff-engine gaff2` to use AmberTools instead. If the engine's
 requirements are missing, the backend reports them and still writes
 placeholder GROMACS-shaped files for non-external GUI/backend testing.
 
-Geometry minimization of the reference oligomer is enabled by default. To bypass it
-(GAFF2 only; OPLS CM1A charges need a 3D geometry):
+Geometry minimization of the reference oligomer is enabled by default. Only
+the Sage engine can skip it, because its NAGL charges do not depend on the
+geometry; the OPLS CM1A and GAFF2 AM1-BCC charges need a 3D structure:
 
 ```bash
 python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
@@ -328,7 +319,8 @@ python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
   --next-atom 3 \
   --reference-dp 5 \
   --dp 12 \
-  --outdir outputs/PEG_repeat_DP12_amber_unminimized \
+  --ff-engine sage \
+  --outdir outputs/PEG_repeat_DP12_sage_unminimized \
   --no-minimize-geometry
 ```
 
@@ -338,7 +330,7 @@ The older oligomer mode is still available for compatibility by passing
 ## Test
 
 ```bash
-python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine
+python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine tests.test_gaff2_engine
 ```
 
 - `tests.test_polymer_non_amber` and the first two groups of
@@ -356,6 +348,9 @@ python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tes
     parameterized directly.
 - `SageIntegrationTests` run the same checks through your OpenFF
   installation and are skipped when none is found.
+- `Gaff2IntegrationTests` run through your AmberTools installation and are
+  skipped when none is found. They also check the transferred polymer
+  against tleap's own type-based assembly of the whole polymer.
 
 ## V1 limitations
 

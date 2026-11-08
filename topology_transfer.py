@@ -599,6 +599,13 @@ def transfer_by_environment_match(
                 if previous is not None and previous[0] >= depth:
                     continue
                 if depth < depth_min:
+                    if kind == "impropers":
+                        # Improper atom order is engine-specific and can differ between
+                        # reference units (tleap orders the head unit's ipso improper
+                        # differently from the interior units'); an ordering seen only
+                        # in another environment simply does not belong here. A missing
+                        # improper still shows up in the comparison with the index shift.
+                        continue
                     selected[identity] = (depth, [])
                     continue
                 if len({instance.parameters() for instance in chosen}) > 1:
