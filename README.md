@@ -1,22 +1,40 @@
 # Polymer GROMACS Builder
 
-A tool to build force-field topologies of polymers for molecular dynamics (MD)
-simulations with GROMACS. It writes ready-to-use `.top`, `.itp` and `.gro`
-files. The main input is the monomer structure, which you draw in a GUI.
+A tool to build force-field topologies and starting structures of polymers
+for molecular dynamics (MD) with GROMACS. It writes ready-to-use `.top`,
+`.itp` and `.gro` files. The main input is the monomer structure, which you
+draw in a GUI or give as a MOL/SDF file.
 
 You draw a monomer and choose the atoms that connect it to the previous and
-next monomer. The program builds a small hidden reference oligomer (5 units by
-default), parameterizes that oligomer with a force-field engine, and transfers
-the parameters to a polymer of the length you choose.
+next monomer. The program then works as follows:
+
+- **Reference oligomer.** It builds a small hidden reference oligomer (5
+  units by default) and parameterizes only that oligomer, with one of three
+  force-field engines:
+  - **OPLS-AA/2020** (default; bundled opls-ff-lite);
+  - **OpenFF Sage** (your own OpenFF installation);
+  - **GAFF2/AM1-BCC** (your own AmberTools installation).
+- **Transfer.** The same engine-neutral step transfers the reference
+  parameters to a polymer of the length you choose. Terms are copied by an
+  index shift of whole monomer units, and the result is accepted only if an
+  independent environment-matching method gives exactly the same atom types
+  and terms.
+- **Atom types** are merged across the chain only when their non-bonded
+  parameters are identical.
+- **Charges** are averaged over equivalent reference atoms and corrected so
+  the total equals the formal charge exactly.
+- **Starting structure.** The 3D coordinates come from a self-avoiding
+  random walk of rigid monomer units taken from the reference geometry.
 
 ```text
 draw monomer
   -> choose previous/next connection atoms
   -> generate hidden reference oligomer, e.g. 5-mer
   -> add hydrogens, minimize the geometry (RDKit)
-  -> parameterize the reference oligomer with the chosen force-field engine
-  -> transfer its parameters to the requested polymer
-  -> write polymer.itp / polymer.top / polymer.gro
+  -> parameterize the reference oligomer (opls | sage | gaff2)
+  -> transfer its parameters to the requested polymer (index shift + cross-check)
+  -> build 3D coordinates (random walk of monomers)
+  -> write polymer.itp / polymer.top / polymer.gro (+ PARAMETER_TRANSFER_REPORT.txt)
 ```
 
 ## Force-field engines
@@ -52,9 +70,9 @@ reach the polymer through the same transfer step (see below).
 - `third_party/opls-ff-lite/`: bundled copy of opls-ff-lite, without the
   OPLS/2020 SI files. `scripts/sync_opls_ff_lite.sh` updates it from the
   opls-ff-gen repository.
-- `polymer_gui/app.py`: Flask web server.
-- `polymer_gui/templates/index.html`: local browser interface.
-- `polymer_gui/static/app.js`: built-in 2D sketcher and backend calls.
+- `polymer_gui/desktop.py`: desktop GUI (Tkinter): sketcher, build settings, background builds.
+- `polymer_gui/sketch_model.py`: the sketcher's drawing model (no GUI code; unit-tested).
+- `polymer_gui/app.py`, `templates/`, `static/`: the earlier browser GUI (Flask).
 - `examples/PEG_repeat_monomer.sdf`: PEG-like repeat monomer example.
 - `examples/PEG_5mer.sdf`: older oligomer-mode pentaethylene glycol example.
 - `tests/test_polymer_non_amber.py`: tests for repeat detection, DP build, and charge normalization.
@@ -62,9 +80,11 @@ reach the polymer through the same transfer step (see below).
 - `tests/test_sage_engine.py`: tests for the Sage engine and the search for an OpenFF interpreter.
 - `tests/test_gaff2_engine.py`: tests for the GAFF2 engine, including a comparison with tleap run on the whole polymer.
 - `tests/test_chain_builder.py`: tests for the random-walk starting structure.
+- `tests/test_desktop_gui.py`: tests for the sketcher model and the desktop window (window tests need a display).
 
 The GUI includes a small built-in sketcher, so it does not depend on an
-external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
+external chemistry editor. It can also open MOL/SDF files and accept pasted
+MOL/SDF text.
 
 ## Install
 
@@ -76,6 +96,10 @@ conda activate polymer-gui
 conda env create -f environment-amber.yml
 conda activate polymer-gui-amber
 ```
+
+The desktop GUI uses Tkinter, which is part of every conda Python. A
+Linux distribution's own Python may need its Tk package
+(`sudo apt install python3-tk` on Debian/Ubuntu).
 
 The OPLS/2020 parameters are the Supporting Information of W. L. Jorgensen et
 al., *J. Phys. Chem. B* 2024, https://doi.org/10.1021/acs.jpcb.3c06602. They
@@ -270,55 +294,74 @@ equilibrate it before production MD as usual.
 
 ## Run the GUI
 
+The desktop GUI uses Tkinter, which ships with Python. It needs no web
+browser, no server and no extra package:
+
 ```bash
-python polymer_gui/app.py
+python polymer_gui/desktop.py
 ```
 
-Then open:
+The window has three parts: the drawing tools and canvas on the left, the
+**Build settings**, **MOL/SDF** and **Output** tabs on the right, and a
+status bar.
 
-```text
-http://127.0.0.1:8501
-```
+- **Build in the background.** Builds run in a background thread, so the
+  window stays responsive while the reference oligomer is parameterized
+  (AM1-BCC with GAFF2 can take a minute).
+- **Output tab.** It shows the transfer report and lists the written
+  files. Double-click a file to open it, or use **Open output folder**.
+  Under WSL the folder opens in Windows Explorer.
+- **Check engine.** This button reports whether the chosen force field is
+  ready and which OpenFF or AmberTools installation will be used.
+- **File menu.** Open a MOL/SDF monomer, save the drawing as MOL, or load
+  the PEG example.
 
 Basic PEG workflow:
 
-1. Click `PEG example`.
-2. Click `Preview atom indices`.
-3. Keep previous connection atom as `1` and next connection atom as `3`.
-4. Keep reference oligomer size as `5`.
-5. Keep polymer DP as `12`.
-6. Keep the force field as `OPLS-AA/2020` (or choose `GAFF2`).
-7. Click `Generate GROMACS files`.
+1. Click **PEG example**. The connection atoms are set to 1 (previous,
+   green) and 3 (next, orange).
+2. Keep the reference oligomer size at 5 and choose the polymer DP.
+3. Choose the force field: OPLS-AA/2020, OpenFF Sage or GAFF2.
+4. Click **Generate GROMACS files**. The job folder is
+   `<output folder>/<job name>` (by default `outputs/`).
 
-Manual drawing workflow:
+Drawing:
 
-1. Use the left toolbar to choose an atom type such as `C`, `O`, `N`, `S`, `H`, `Cl`, `Si`, `P`, `F`, `Br`, or `I`.
-2. Drag a line on the canvas to create a single carbon-carbon bond.
-3. Drag from an existing atom to an empty point to sprout a new carbon atom and bond.
-4. Click an atom to change it to the currently selected element.
-5. Click an existing bond to cycle it single -> double -> triple -> single.
-6. Click an atom or bond to select it, then press `Delete`/`Backspace` or click `Delete` in the toolbar to remove it.
-7. Right-click an atom or bond to remove it immediately.
-8. Atom numbers are drawn beside each atom. Click atom tiles to fill the
-   previous/next connection atom fields.
-9. Click `Use drawing` to export the canvas to MOL/SDF text, then build.
+1. Choose an element under **Atoms**, then work on the canvas:
+   - drag on the canvas to draw a single bond; free ends become carbon
+     atoms;
+   - drag from an existing atom to sprout a new atom and bond;
+   - click empty space to add an atom of the chosen element;
+   - click an atom to change it to the chosen element;
+   - click a bond to cycle single → double → triple → single.
+2. To delete, right-click an atom or bond, or select it and press
+   `Delete`/`Backspace` or click **Delete selected**. Atoms are renumbered
+   1..N.
+3. Atom numbers are drawn beside each atom. Under **Connection atoms**,
+   choose **Pick previous/next**. Then click the atom bonded to the
+   previous monomer and the atom bonded to the next monomer. They are
+   ringed green (previous) and orange (next), and the settings fields
+   update. You can also type the numbers in **Build settings**.
+4. The line above the canvas shows the monomer formula with hydrogens
+   added, its molecular weight and its formal charge.
 
-For a stereogenic single bond, choose `Wedge` or `Dash` under **Bond
-stereochemistry**, then draw the directed bond from its narrow end to its wide
-end. You can also select a style and click an existing single bond. The GUI
-stores solid wedges as V2000 stereo code `1` and hashed wedges as code `6`;
-these codes are replicated with the monomer and used by RDKit when generating
-the three-dimensional geometry of the reference oligomer and the polymer.
+For a stereogenic single bond, choose **Wedge** or **Dash** under **Bond
+style**. Then draw the bond from its narrow end to its wide end, or click
+an existing single bond. Solid wedges are stored as V2000 stereo code `1`
+and hashed wedges as code `6`. The codes are replicated with the monomer,
+used by RDKit for the 3D reference geometry, and carried into every unit
+of the random-walk polymer.
 
-For an ionic repeat, choose `-1` or `+1` under **Formal charge**, then click
-the charged atom. Choose `0` and click it again to remove the assignment. The
-charge is stored in the MOL/SDF `M  CHG` records, displayed in the preview, and
-used to infer both the reference-oligomer net charge and the requested
-polymer charge. Hydrogen completion is formal-charge aware: for example, N+ is
-allowed four bond orders, so a quaternary nitrogen with four single bonds gets
-no additional hydrogen, while a three-coordinate N+ gets one.
+For an ionic repeat, choose −1 or +1 under **Formal charge** and click
+the charged atom; choose 0 and click again to remove it.
+- The charge is stored in the MOL/SDF `M  CHG` records and sets both the
+  reference-oligomer and the polymer net charge.
+- Hydrogen completion takes formal charges into account. N+ is allowed
+  four bond orders, so a quaternary nitrogen with four single bonds gets
+  no hydrogen, while a three-coordinate N+ gets one.
 
-The GUI writes job folders under `outputs/`.
+The earlier browser GUI is still available with `python polymer_gui/app.py`
+(needs Flask) at `http://127.0.0.1:8501`.
 
 ## Run the CLI
 
@@ -370,7 +413,7 @@ The older oligomer mode is still available for compatibility by passing
 ## Test
 
 ```bash
-python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine tests.test_gaff2_engine tests.test_chain_builder
+python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine tests.test_gaff2_engine tests.test_chain_builder tests.test_desktop_gui
 ```
 
 - `tests.test_polymer_non_amber` and the first two groups of
