@@ -591,6 +591,8 @@ function formData() {
     "ff_engine",
     "sage_python",
     "amber_python",
+    "chain_layout",
+    "chain_seed",
   ]) {
     data.append(id, document.getElementById(id).value);
   }
@@ -646,6 +648,9 @@ function renderBuild(payload) {
     (payload.openff_python ? `OpenFF Python: ${payload.openff_python}<br>` : "") +
     (payload.amber_python ? `AmberTools Python: ${payload.amber_python}<br>` : "") +
     (payload.atom_types ? `Atom types: ${payload.atom_types}<br>` : "") +
+    (payload.radius_of_gyration
+      ? `Starting structure: random walk (seed ${payload.chain_seed}), Rg ${payload.radius_of_gyration.toFixed(1)} Å<br>`
+      : "") +
     (payload.warnings && payload.warnings.length
       ? `Warnings:<br>- ${payload.warnings.join("<br>- ")}<br>` : "") +
     `${blocked}<br><br>` +

@@ -46,6 +46,7 @@ reach the polymer through the same transfer step (see below).
 - `gaff2_engine.py`: finds the user's AmberTools installation and runs
   `amber_worker.py` in it on the reference oligomer.
 - `external_env.py`: shared search for conda environments and worker runs.
+- `chain_builder.py`: random walk of monomers for the starting 3D structure.
 - `topology_transfer.py`: transfers a reference-oligomer GROMACS topology to
   the polymer. The transfer works the same way for every engine.
 - `third_party/opls-ff-lite/`: bundled copy of opls-ff-lite, without the
@@ -60,6 +61,7 @@ reach the polymer through the same transfer step (see below).
 - `tests/test_topology_transfer.py`: tests for the topology transfer and the OPLS engine.
 - `tests/test_sage_engine.py`: tests for the Sage engine and the search for an OpenFF interpreter.
 - `tests/test_gaff2_engine.py`: tests for the GAFF2 engine, including a comparison with tleap run on the whole polymer.
+- `tests/test_chain_builder.py`: tests for the random-walk starting structure.
 
 The GUI includes a small built-in sketcher, so it does not depend on an
 external JavaScript chemistry editor. It can also accept pasted MOL/SDF text.
@@ -228,6 +230,44 @@ earlier version of this builder used that default. Terms missing from
 `gaff.dat` were then estimated from GAFF data, and because the frcmod is
 loaded after `leaprc.gaff2`, those estimates overrode GAFF2's own values.
 
+## Starting structure (random walk of monomers)
+
+`polymer.gro` and `polymer.sdf` get 3D coordinates from a self-avoiding random
+walk of rigid monomer units (`chain_builder.py`). This step does not depend
+on the force-field engine.
+
+- **Templates.** Each polymer unit is a rigid copy of a unit of the
+  minimized reference oligomer, chosen by the same rule as the parameters:
+  head and tail units from the reference ends, the others from its central
+  unit. The units therefore keep the drawn stereochemistry.
+- **Joining units.** A new unit joins the previous one at the reference's
+  junction bond length and angles.
+- **The random choice.** The only random degree of freedom is the rotation
+  about the junction bond: a staggered rotamer (0, 120 or 240 degrees from
+  the reference conformation) plus up to ±15 degrees jitter. A double-bond
+  junction only takes 0 or 180 degrees.
+- **Clashes.** A placement is rejected when an atom comes closer than
+  0.80 × the sum of van der Waals radii to an atom more than three bonds
+  away. Hydrogen-bonded pairs (a polar H and an N/O/F acceptor) are allowed
+  down to 0.60 ×. When no rotation fits, the walk backtracks.
+- **Reproducibility.** `--chain-seed N` (or the GUI seed field) makes the
+  walk reproducible; another seed gives another chain.
+- **The old layout.** `--chain-layout 2d` keeps the flat layout of the
+  drawing.
+
+`PARAMETER_TRANSFER_REPORT.txt` lists the seed, the number of backtracks,
+the closest contact, the end-to-end distance and the radius of gyration.
+Bond lengths equal those of the reference units. On the tested polymers
+(PEG, PE, poly(methyl acrylate), polystyrene, PAA, a polycation, PDMS,
+nylon-6; DP 200), a GROMACS steepest-descent minimization reaches
+Fmax < 1000 kJ/mol/nm within about 40 steps. A 30,000-atom chain is built in
+a few seconds.
+
+Units are rigid, so the torsions inside a monomer keep their reference
+conformation; with very small monomers such as ethylene this makes the
+starting chain more extended than a random coil. Minimize the structure and
+equilibrate it before production MD as usual.
+
 ## Run the GUI
 
 ```bash
@@ -330,7 +370,7 @@ The older oligomer mode is still available for compatibility by passing
 ## Test
 
 ```bash
-python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine tests.test_gaff2_engine
+python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tests.test_sage_engine tests.test_gaff2_engine tests.test_chain_builder
 ```
 
 - `tests.test_polymer_non_amber` and the first two groups of
@@ -360,14 +400,14 @@ python -m unittest tests.test_polymer_non_amber tests.test_topology_transfer tes
 - The selected repeat atom list can include branches or ring atoms; the backend
   now copies the full selected repeat subgraph and preserves internal bond
   orders.
-- SDF/MOL V2000 input only.
+- SDF/MOL V2000 input only; `polymer.sdf` is written as V3000 above 999 atoms.
 - Neighboring repeats must be connected by one inferred backbone junction bond.
 - Side groups must be included in the selected repeat atom list if they should
   be replicated on every repeat.
 - When external parameterization is disabled or the engine's requirements are
   missing, placeholder `.itp/.top/.gro` files are suitable only for testing
   data flow, atom counts, and charge normalization.
-- The polymer coordinates in `polymer.gro` come from the 2D monomer layout,
-  except with wedge/dash stereochemistry or a polymer shorter than the
-  reference, which get a 3D RDKit geometry. Minimize the structure before
-  running dynamics.
+- The starting coordinates are a random walk of rigid reference units (see
+  "Starting structure"). They are clash-free but not equilibrated:
+  minimize and equilibrate before production MD. Placeholder builds
+  (`--no-external`) keep the flat 2D layout.

@@ -13,6 +13,8 @@ OUTPUT_ROOT = PROJECT_ROOT / "outputs"
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from polymer_from_oligomer import (
+    CHAIN_LAYOUTS,
+    DEFAULT_CHAIN_LAYOUT,
     DEFAULT_FF_ENGINE,
     FF_ENGINES,
     BuildOptions,
@@ -82,6 +84,10 @@ def build():
         next_atom = int(request.form.get("next_atom", "0") or "0")
         reference_dp = int(request.form.get("reference_dp", "5") or "5")
         run_external = request.form.get("run_external") == "true"
+        chain_layout = request.form.get("chain_layout", DEFAULT_CHAIN_LAYOUT) or DEFAULT_CHAIN_LAYOUT
+        if chain_layout not in CHAIN_LAYOUTS:
+            raise ValueError(f"unknown starting structure {chain_layout!r}")
+        chain_seed = int(request.form.get("chain_seed", "0") or "0")
         ff_engine = request.form.get("ff_engine", DEFAULT_FF_ENGINE) or DEFAULT_FF_ENGINE
         if ff_engine not in FF_ENGINES:
             raise ValueError(f"unknown force field {ff_engine!r}")
@@ -111,6 +117,8 @@ def build():
                     run_external=run_external,
                     ff_engine=ff_engine,
                     engine_settings=engine_settings,
+                    chain_layout=chain_layout,
+                    chain_seed=chain_seed,
                 ),
             )
         else:
@@ -127,6 +135,8 @@ def build():
                     run_external=run_external,
                     ff_engine=ff_engine,
                     engine_settings=engine_settings,
+                    chain_layout=chain_layout,
+                    chain_seed=chain_seed,
                 ),
             )
         metadata = _read_metadata(outdir)
@@ -150,6 +160,8 @@ def build():
                 + [warning for warning in engine_info.get("engine_warnings", []) if warning],
                 "openff_python": engine_info.get("openff_python"),
                 "amber_python": engine_info.get("amber_python"),
+                "chain_seed": engine_info.get("chain_seed"),
+                "radius_of_gyration": engine_info.get("radius_of_gyration_A"),
                 "files": [str(path.relative_to(PROJECT_ROOT)) for path in result.files],
                 "download_base": f"/outputs/{outdir.name}",
             }

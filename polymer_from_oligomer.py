@@ -89,6 +89,10 @@ def engine_module(engine: str):
         return gaff2_engine
     raise ValueError(f"{engine!r} is not a reference-transfer engine")
 DEFAULT_FF_ENGINE = "opls"
+# Starting coordinates of the polymer: a self-avoiding random walk of rigid
+# reference units (chain_builder), or the flat 2D layout of the monomer drawing.
+CHAIN_LAYOUTS = ("random-walk", "2d")
+DEFAULT_CHAIN_LAYOUT = "random-walk"
 
 ATOMIC_MASS = {
     "H": 1.008,
@@ -174,6 +178,8 @@ class BuildOptions:
     minimize_geometry: bool = True
     ff_engine: str = DEFAULT_FF_ENGINE
     engine_settings: dict = field(default_factory=dict)
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT
+    chain_seed: int = 0
 
 
 @dataclass
@@ -188,6 +194,8 @@ class MonomerBuildOptions:
     junction_order: int = 1
     ff_engine: str = DEFAULT_FF_ENGINE
     engine_settings: dict = field(default_factory=dict)
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT
+    chain_seed: int = 0
 
 
 @dataclass
@@ -246,11 +254,57 @@ def parse_index_list(text: str) -> list[int]:
     return values
 
 
+V2000_MAX_COUNT = 999  # three-character count fields
+V3000_STEREO = {1: 1, 6: 3}  # V2000 bond stereo (wedge 1, hash 6) -> V3000 CFG
+V2000_STEREO = {value: key for key, value in V3000_STEREO.items()}
+
+
+def _read_v3000(lines: list[str], name: str, path: Path) -> Molecule:
+    """Minimal V3000 reader: atoms (element, coordinates, CHG) and bonds (order, CFG)."""
+
+    block: list[str] = []
+    for line in lines:
+        if not line.startswith("M  V30 "):
+            continue
+        text = line[7:].rstrip()
+        if block and block[-1].endswith("-"):
+            block[-1] = block[-1][:-1] + text
+        else:
+            block.append(text)
+    atoms: list[Atom] = []
+    bonds: list[Bond] = []
+    section = None
+    for text in block:
+        if text.startswith("BEGIN "):
+            section = text.split()[1]
+            continue
+        if text.startswith("END "):
+            section = None
+            continue
+        fields = text.split()
+        options = dict(field.split("=", 1) for field in fields if "=" in field)
+        if section == "ATOM":
+            index = int(fields[0])
+            if index != len(atoms) + 1:
+                raise ValueError(f"V3000 atoms in {path} must be numbered 1..N in order.")
+            atoms.append(
+                Atom(index, fields[1], float(fields[2]), float(fields[3]), float(fields[4]),
+                     formal_charge=int(options.get("CHG", 0)))
+            )
+        elif section == "BOND":
+            bonds.append(
+                Bond(int(fields[2]), int(fields[3]), int(fields[1]), V2000_STEREO.get(int(options.get("CFG", 0)), 0))
+            )
+    return Molecule(name=name, atoms=atoms, bonds=bonds)
+
+
 def read_sdf(path: Path) -> Molecule:
     lines = path.read_text().splitlines()
     if len(lines) < 4:
         raise ValueError(f"{path} is too short to be an SDF/MOL file.")
     name = lines[0].strip() or path.stem
+    if "V3000" in lines[3]:
+        return _read_v3000(lines[4:], name, path)
     counts = lines[3]
     try:
         natoms = int(counts[0:3])
@@ -305,8 +359,27 @@ def read_sdf(path: Path) -> Molecule:
     return Molecule(name=name, atoms=atoms, bonds=bonds)
 
 
+def _write_v3000(mol: Molecule, path: Path) -> None:
+    lines = [mol.name, "  polymer_from_oligomer", "", "  0  0  0     0  0            999 V3000",
+             "M  V30 BEGIN CTAB", f"M  V30 COUNTS {len(mol.atoms)} {len(mol.bonds)} 0 0 0", "M  V30 BEGIN ATOM"]
+    for atom in mol.atoms:
+        charge = f" CHG={atom.formal_charge}" if atom.formal_charge else ""
+        lines.append(f"M  V30 {atom.index} {atom.element} {atom.x:.4f} {atom.y:.4f} {atom.z:.4f} 0{charge}")
+    lines += ["M  V30 END ATOM", "M  V30 BEGIN BOND"]
+    for number, bond in enumerate(mol.bonds, start=1):
+        stereo = f" CFG={V3000_STEREO[bond.stereo]}" if bond.stereo in V3000_STEREO else ""
+        lines.append(f"M  V30 {number} {bond.order} {bond.a} {bond.b}{stereo}")
+    lines += ["M  V30 END BOND", "M  V30 END CTAB", "M  END", "$$$$"]
+    path.write_text("\n".join(lines) + "\n")
+
+
 def write_sdf(mol: Molecule, path: Path) -> None:
+    """Write MOL/SDF V2000, or V3000 when there are more than 999 atoms or bonds."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
+    if len(mol.atoms) > V2000_MAX_COUNT or len(mol.bonds) > V2000_MAX_COUNT:
+        _write_v3000(mol, path)
+        return
     lines = [mol.name, "  polymer_from_oligomer", ""]
     lines.append(f"{len(mol.atoms):>3}{len(mol.bonds):>3}  0  0  0  0            999 V2000")
     for atom in mol.atoms:
@@ -1215,6 +1288,32 @@ def write_gro(
     path.write_text("\n".join(lines) + "\n")
 
 
+def apply_random_walk_coordinates(
+    reference_mol: Molecule,
+    target: Molecule,
+    unit_atom_count: int,
+    reference_dp: int,
+    target_dp: int,
+    seed: int = 0,
+):
+    """Give the target 3D coordinates by a self-avoiding random walk of reference units."""
+
+    import chain_builder
+
+    walk = chain_builder.random_walk_coordinates(
+        {atom.index: (atom.x, atom.y, atom.z) for atom in reference_mol.atoms},
+        unit_atom_labels(reference_mol, unit_atom_count, reference_dp),
+        [(bond.a, bond.b) for bond in reference_mol.bonds],
+        unit_atom_labels(target, unit_atom_count, target_dp),
+        [(bond.a, bond.b, bond.order) for bond in target.bonds],
+        {atom.index: atom.element for atom in target.atoms},
+        seed=seed,
+    )
+    for atom in target.atoms:
+        atom.x, atom.y, atom.z = walk.coordinates[atom.index]
+    return walk
+
+
 def run_reference_engine_pipeline(
     engine: str,
     reference_sdf: Path,
@@ -1223,6 +1322,8 @@ def run_reference_engine_pipeline(
     minimize_geometry: bool = True,
     target_spec: TargetSpec | None = None,
     engine_settings: dict | None = None,
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT,
+    chain_seed: int = 0,
 ) -> tuple[list[Path], Path, dict]:
     """Parameterize the reference oligomer with ``engine`` and transfer it to the target.
 
@@ -1334,8 +1435,16 @@ def run_reference_engine_pipeline(
         target_spec.raw_charge = raw
         target_spec.final_charge = final
         target_spec.correction_per_repeat_atom = correction
+    walk = None
     if mode == "reference_to_target":
-        files.extend(prepare_target_stereo_geometry(target, outdir, minimize_geometry))
+        reference_is_3d = max((abs(atom.z) for atom in reference_mol.atoms), default=0.0) > 1e-4
+        if chain_layout == "random-walk" and reference_is_3d:
+            walk = apply_random_walk_coordinates(
+                reference_mol, target, mapping_values[0], mapping_values[1], mapping_values[2], chain_seed
+            )
+            write_sdf(target, outdir / "polymer.sdf")
+        else:
+            files.extend(prepare_target_stereo_geometry(target, outdir, minimize_geometry))
 
     atom_names, residues = target_atom_names_and_residues(target, labels)
     itp_path = outdir / "polymer.itp"
@@ -1387,6 +1496,7 @@ def run_reference_engine_pipeline(
                 f"reference_atom_type_rules: {info.get('atom_type_rules')}",
                 *transfer.report.lines(),
                 *(f"charge warning: {warning}" for warning in charge_warnings),
+                *(walk.lines() if walk is not None else [f"coordinates: {'direct structure' if mode == 'direct_target' else 'flat 2D layout'}"]),
                 *(f"{engine} engine note: {warning}" for warning in info.get("engine_warnings", []) if warning),
                 *(f"{engine} preflight warning: {warning}" for warning in warnings),
             ]
@@ -1401,6 +1511,10 @@ def run_reference_engine_pipeline(
             "target_term_counts": {kind: counts[kind] for kind in topology_transfer.KIND_ORDER},
             "transfer_warnings": transfer.report.warnings + charge_warnings,
             "max_reference_charge_spread_e": charge_spread,
+            "chain_layout": "random-walk" if walk is not None else ("direct" if mode == "direct_target" else "2d"),
+            "chain_seed": chain_seed if walk is not None else None,
+            "end_to_end_distance_A": walk.end_to_end if walk is not None else None,
+            "radius_of_gyration_A": walk.radius_of_gyration if walk is not None else None,
         }
     )
     return files, engine_input, info
@@ -1461,6 +1575,8 @@ def write_outputs_for_polymer(
             minimize_geometry=options.minimize_geometry,
             target_spec=target_spec,
             engine_settings=options.engine_settings,
+            chain_layout=options.chain_layout,
+            chain_seed=options.chain_seed,
         )
         files.extend(external_files)
         raw = target_spec.raw_charge
@@ -1573,6 +1689,8 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             minimize_geometry=options.minimize_geometry,
             ff_engine=options.ff_engine,
             engine_settings=options.engine_settings,
+            chain_layout=options.chain_layout,
+            chain_seed=options.chain_seed,
         ),
         extra_metadata={
             "workflow": "monomer",
@@ -1635,6 +1753,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="gaff2 engine: Python interpreter of your AmberTools environment (default: $POLYMER_AMBER_PYTHON, "
         "$AMBERHOME, then auto-detected conda environments with ambertools).",
     )
+    parser.add_argument(
+        "--chain-layout",
+        choices=CHAIN_LAYOUTS,
+        default=DEFAULT_CHAIN_LAYOUT,
+        help="Starting coordinates: self-avoiding random walk of rigid reference units (default) or the flat 2D drawing layout.",
+    )
+    parser.add_argument("--chain-seed", type=int, default=0, help="Random seed of the chain random walk (default 0).")
     parser.add_argument(
         "--check-engine",
         action="store_true",
@@ -1715,6 +1840,8 @@ def main(argv: Iterable[str] | None = None) -> int:
                 junction_order=args.junction_order,
                 ff_engine=args.ff_engine,
                 engine_settings=settings,
+                chain_layout=args.chain_layout,
+                chain_seed=args.chain_seed,
             ),
         )
     else:
@@ -1733,6 +1860,8 @@ def main(argv: Iterable[str] | None = None) -> int:
                 minimize_geometry=not args.no_minimize_geometry,
                 ff_engine=args.ff_engine,
                 engine_settings=settings,
+                chain_layout=args.chain_layout,
+                chain_seed=args.chain_seed,
             ),
         )
     print(f"Detected repeat units: {result.repeat_units}")

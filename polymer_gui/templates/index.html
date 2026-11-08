@@ -111,6 +111,17 @@
             <input id="sage_python" placeholder="e.g. ~/miniforge3/envs/openff/bin/python">
           </label>
           <label class="field">
+            <span>Starting structure</span>
+            <select id="chain_layout">
+              <option value="random-walk" selected>3D random walk of monomers</option>
+              <option value="2d">Flat 2D layout</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Random-walk seed</span>
+            <input id="chain_seed" type="number" min="0" value="0">
+          </label>
+          <label class="field">
             <span>AmberTools Python (GAFF2; blank = auto-detect)</span>
             <input id="amber_python" placeholder="e.g. ~/miniforge3/envs/amber/bin/python">
           </label>

@@ -192,6 +192,22 @@ class PolymerNonAmberTests(unittest.TestCase):
             self.assertFalse(any(atom.element == "H" for atom in neighbors))
         self.assertGreater(molecule.molecular_weight(), 28.085 + 30.974)
 
+    def test_large_molecules_are_written_and_read_as_v3000(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "large.sdf"
+            atoms = [Atom(i, "C", 1.5 * i, 0.1 * i, 0.0, formal_charge=(1 if i == 7 else 0)) for i in range(1, 1202)]
+            bonds = [Bond(i, i + 1, 2 if i == 5 else 1, 6 if i == 3 else 0) for i in range(1, 1201)]
+            write_sdf(Molecule("large", atoms=atoms, bonds=bonds), path)
+            self.assertIn("V3000", path.read_text().splitlines()[3])
+            restored = read_sdf(path)
+            self.assertEqual((len(restored.atoms), len(restored.bonds)), (1201, 1200))
+            self.assertEqual(restored.atoms[6].formal_charge, 1)
+            self.assertEqual((restored.bonds[4].order, restored.bonds[2].stereo), (2, 6))
+            self.assertAlmostEqual(restored.atoms[99].x, 150.0)
+            small = Path(tmp) / "small.sdf"
+            write_sdf(Molecule("small", atoms=atoms[:10], bonds=bonds[:9]), small)
+            self.assertIn("V2000", small.read_text().splitlines()[3])
+
     def test_wedge_and_dash_stereo_round_trip_and_repeat(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "chiral_monomer.sdf"
