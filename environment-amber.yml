@@ -1,0 +1,14 @@
+# Polymer GROMACS Builder with both engines: OPLS-AA/2020 (default) and GAFF2/AmberTools.
+#   conda env create -f environment-amber.yml && conda activate polymer-gui-amber
+name: polymer-gui-amber
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - rdkit>=2025.9
+  - numpy
+  - mopac=23.2.5
+  - ambertools           # antechamber, parmchk2, tleap (GAFF2 engine)
+  - parmed               # AMBER -> GROMACS conversion (GAFF2 engine)
+  - pytest
+  - pip

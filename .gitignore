@@ -7,3 +7,8 @@ polymer_gui/ANTECHAMBER_*
 polymer_gui/ATOMTYPE.INF
 polymer_gui/sqm.*
 polymer_gui/leap.log
+# OPLS/2020 SI files are ACS material and must never be committed or distributed.
+third_party/opls-ff-lite/src/opls_ff_lite/data/opls2020/
+jp3c06602_si_*
+oplsaa2020.par
+oplsaa2020.sb

@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """Build a homopolymer model from a drawn/reference oligomer.
 
-This module is intentionally importable.  The CLI and the local web GUI both
-call ``build_polymer_from_oligomer`` so the UI does not duplicate chemistry
-logic.
+This module is intentionally importable.  The CLI and the desktop GUI
+(``polymer_gui/desktop.py``) both call it, so the UI does not duplicate
+chemistry logic.
 
 V1 scope:
 * linear homopolymer backbones with branched or ring-containing repeat units
 * SDF/MOL V2000 input
 * automatic repeat occurrence detection from one user-selected example
-* simple valence-based hydrogen completion for non-AmberTools tests
-* AmberTools/ParmEd orchestration hooks for real GAFF2/GROMACS output
+* simple valence-based hydrogen completion
+* force-field engines that parameterize a hidden reference oligomer:
+  OPLS-AA/2020 via the bundled opls-ff-lite (default, ``opls_engine``),
+  OpenFF Sage via the user's own OpenFF installation (``sage_engine``), and
+  GAFF2/AM1-BCC via the user's own AmberTools (``gaff2_engine``); every
+  engine's parameters are transferred to the requested polymer by the
+  engine-neutral ``topology_transfer`` module
 """
 
 from __future__ import annotations
@@ -19,8 +24,6 @@ import argparse
 import json
 import math
 import re
-import shutil
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
@@ -56,6 +59,40 @@ FORMAL_VALENCE = {
 }
 
 V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
+
+# Force-field engines. Every engine parameterizes the hidden reference
+# oligomer and the parameters are transferred to the requested polymer.
+FF_ENGINES = {
+    "opls": "OPLS-AA/2020 with CM1A/1.14*CM1A-LBCC charges (bundled opls-ff-lite + MOPAC)",
+    "sage": "OpenFF Sage (default openff-2.3.0 with NAGL charges) from your own OpenFF installation",
+    "gaff2": "GAFF2 with AM1-BCC charges from your own AmberTools installation (antechamber, parmchk2, tleap, ParmEd)",
+}
+# Every engine writes a GROMACS topology of the reference oligomer, which
+# topology_transfer copies to the polymer.
+TRANSFER_ENGINES = ("opls", "sage", "gaff2")
+
+
+def engine_module(engine: str):
+    """The module that parameterizes the reference oligomer for a transfer engine."""
+
+    if engine == "opls":
+        import opls_engine
+
+        return opls_engine
+    if engine == "sage":
+        import sage_engine
+
+        return sage_engine
+    if engine == "gaff2":
+        import gaff2_engine
+
+        return gaff2_engine
+    raise ValueError(f"{engine!r} is not a reference-transfer engine")
+DEFAULT_FF_ENGINE = "opls"
+# Starting coordinates of the polymer: a self-avoiding random walk of rigid
+# reference units (chain_builder), or the flat 2D layout of the monomer drawing.
+CHAIN_LAYOUTS = ("random-walk", "2d")
+DEFAULT_CHAIN_LAYOUT = "random-walk"
 
 ATOMIC_MASS = {
     "H": 1.008,
@@ -139,6 +176,10 @@ class BuildOptions:
     outdir: Path = Path("polymer_out")
     run_external: bool = True
     minimize_geometry: bool = True
+    ff_engine: str = DEFAULT_FF_ENGINE
+    engine_settings: dict = field(default_factory=dict)
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT
+    chain_seed: int = 0
 
 
 @dataclass
@@ -151,6 +192,10 @@ class MonomerBuildOptions:
     run_external: bool = True
     minimize_geometry: bool = True
     junction_order: int = 1
+    ff_engine: str = DEFAULT_FF_ENGINE
+    engine_settings: dict = field(default_factory=dict)
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT
+    chain_seed: int = 0
 
 
 @dataclass
@@ -166,8 +211,8 @@ class BuildResult:
 
 
 @dataclass
-class AmberTargetSpec:
-    """Describe how AmberTools reference parameters are applied to a target."""
+class TargetSpec:
+    """The target polymer and how reference-oligomer parameters map onto it."""
 
     molecule: Molecule
     target_charge: int
@@ -177,6 +222,9 @@ class AmberTargetSpec:
     raw_charge: float = 0.0
     final_charge: float = 0.0
     correction_per_repeat_atom: float = 0.0
+
+
+AmberTargetSpec = TargetSpec  # former name, kept for existing callers
 
 
 @dataclass
@@ -206,11 +254,57 @@ def parse_index_list(text: str) -> list[int]:
     return values
 
 
+V2000_MAX_COUNT = 999  # three-character count fields
+V3000_STEREO = {1: 1, 6: 3}  # V2000 bond stereo (wedge 1, hash 6) -> V3000 CFG
+V2000_STEREO = {value: key for key, value in V3000_STEREO.items()}
+
+
+def _read_v3000(lines: list[str], name: str, path: Path) -> Molecule:
+    """Minimal V3000 reader: atoms (element, coordinates, CHG) and bonds (order, CFG)."""
+
+    block: list[str] = []
+    for line in lines:
+        if not line.startswith("M  V30 "):
+            continue
+        text = line[7:].rstrip()
+        if block and block[-1].endswith("-"):
+            block[-1] = block[-1][:-1] + text
+        else:
+            block.append(text)
+    atoms: list[Atom] = []
+    bonds: list[Bond] = []
+    section = None
+    for text in block:
+        if text.startswith("BEGIN "):
+            section = text.split()[1]
+            continue
+        if text.startswith("END "):
+            section = None
+            continue
+        fields = text.split()
+        options = dict(field.split("=", 1) for field in fields if "=" in field)
+        if section == "ATOM":
+            index = int(fields[0])
+            if index != len(atoms) + 1:
+                raise ValueError(f"V3000 atoms in {path} must be numbered 1..N in order.")
+            atoms.append(
+                Atom(index, fields[1], float(fields[2]), float(fields[3]), float(fields[4]),
+                     formal_charge=int(options.get("CHG", 0)))
+            )
+        elif section == "BOND":
+            bonds.append(
+                Bond(int(fields[2]), int(fields[3]), int(fields[1]), V2000_STEREO.get(int(options.get("CFG", 0)), 0))
+            )
+    return Molecule(name=name, atoms=atoms, bonds=bonds)
+
+
 def read_sdf(path: Path) -> Molecule:
     lines = path.read_text().splitlines()
     if len(lines) < 4:
         raise ValueError(f"{path} is too short to be an SDF/MOL file.")
     name = lines[0].strip() or path.stem
+    if "V3000" in lines[3]:
+        return _read_v3000(lines[4:], name, path)
     counts = lines[3]
     try:
         natoms = int(counts[0:3])
@@ -265,8 +359,27 @@ def read_sdf(path: Path) -> Molecule:
     return Molecule(name=name, atoms=atoms, bonds=bonds)
 
 
+def _write_v3000(mol: Molecule, path: Path) -> None:
+    lines = [mol.name, "  polymer_from_oligomer", "", "  0  0  0     0  0            999 V3000",
+             "M  V30 BEGIN CTAB", f"M  V30 COUNTS {len(mol.atoms)} {len(mol.bonds)} 0 0 0", "M  V30 BEGIN ATOM"]
+    for atom in mol.atoms:
+        charge = f" CHG={atom.formal_charge}" if atom.formal_charge else ""
+        lines.append(f"M  V30 {atom.index} {atom.element} {atom.x:.4f} {atom.y:.4f} {atom.z:.4f} 0{charge}")
+    lines += ["M  V30 END ATOM", "M  V30 BEGIN BOND"]
+    for number, bond in enumerate(mol.bonds, start=1):
+        stereo = f" CFG={V3000_STEREO[bond.stereo]}" if bond.stereo in V3000_STEREO else ""
+        lines.append(f"M  V30 {number} {bond.order} {bond.a} {bond.b}{stereo}")
+    lines += ["M  V30 END BOND", "M  V30 END CTAB", "M  END", "$$$$"]
+    path.write_text("\n".join(lines) + "\n")
+
+
 def write_sdf(mol: Molecule, path: Path) -> None:
+    """Write MOL/SDF V2000, or V3000 when there are more than 999 atoms or bonds."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
+    if len(mol.atoms) > V2000_MAX_COUNT or len(mol.bonds) > V2000_MAX_COUNT:
+        _write_v3000(mol, path)
+        return
     lines = [mol.name, "  polymer_from_oligomer", ""]
     lines.append(f"{len(mol.atoms):>3}{len(mol.bonds):>3}  0  0  0  0            999 V2000")
     for atom in mol.atoms:
@@ -401,24 +514,6 @@ def read_mol2_atom_parameters(path: Path) -> list[tuple[str, float]]:
     return parameters
 
 
-def copy_typed_parameters_by_index(
-    reference: Molecule,
-    parameters: list[tuple[str, float]],
-    target: Molecule,
-) -> None:
-    """Copy Antechamber results when reference and target are the same graph."""
-
-    if len(reference.atoms) != len(parameters) or len(target.atoms) != len(parameters):
-        raise ValueError(
-            "AmberTools atom count mismatch: "
-            f"reference={len(reference.atoms)}, typed MOL2={len(parameters)}, "
-            f"target={len(target.atoms)}."
-        )
-    for target_atom, (atom_type, charge) in zip(target.atoms, parameters):
-        target_atom.atom_type = atom_type
-        target_atom.charge = charge
-
-
 def _generated_hydrogens_by_parent(mol: Molecule, base_atom_count: int) -> dict[int, list[int]]:
     """Index valence-added hydrogens by their base atom, preserving atom order."""
 
@@ -434,15 +529,21 @@ def _generated_hydrogens_by_parent(mol: Molecule, base_atom_count: int) -> dict[
     return by_parent
 
 
-def transfer_reference_atom_parameters(
+def reference_atom_candidates(
     reference: Molecule,
-    parameters: list[tuple[str, float]],
     target: Molecule,
     unit_atom_count: int,
     reference_dp: int,
     target_dp: int,
-) -> None:
-    """Map reference head/interior/tail GAFF types and charges to a target."""
+) -> dict[int, list[int]]:
+    """Reference atoms equivalent to each target atom, by repeat-unit role.
+
+    The first target unit maps to the reference head unit, the last to the
+    reference tail unit, and every interior unit to all reference interior
+    units (a DP-1 target maps to both reference ends). Hydrogens added to an
+    atom map by their slot on that atom; candidates whose hydrogen count
+    differs from the target atom's are dropped.
+    """
 
     if unit_atom_count < 1:
         raise ValueError("The monomer must contain at least one atom.")
@@ -453,11 +554,6 @@ def transfer_reference_atom_parameters(
 
     reference_base_count = unit_atom_count * reference_dp
     target_base_count = unit_atom_count * target_dp
-    if len(reference.atoms) != len(parameters):
-        raise ValueError(
-            "Antechamber reference atom count mismatch: "
-            f"reference has {len(reference.atoms)}, typed MOL2 has {len(parameters)}."
-        )
     if len(reference.atoms) < reference_base_count:
         raise ValueError("Reference molecule is missing one or more monomer base atoms.")
     if len(target.atoms) < target_base_count:
@@ -475,17 +571,7 @@ def transfer_reference_atom_parameters(
             return [reference_dp - 1]
         return list(range(1, reference_dp - 1))
 
-    def averaged_parameter(reference_indices: list[int], description: str) -> tuple[str, float]:
-        values = [parameters[index - 1] for index in reference_indices]
-        atom_types = {atom_type for atom_type, _ in values}
-        if len(atom_types) != 1:
-            raise ValueError(
-                f"Reference GAFF atom types disagree for {description}: "
-                + ", ".join(sorted(atom_types))
-            )
-        atom_type = values[0][0]
-        return atom_type, sum(charge for _, charge in values) / len(values)
-
+    candidates: dict[int, list[int]] = {}
     for target_unit in range(target_dp):
         reference_units = reference_units_for(target_unit)
         for local_position in range(unit_atom_count):
@@ -507,26 +593,40 @@ def transfer_reference_atom_parameters(
                     f"unit atom {local_position + 1} in target unit {target_unit + 1}: "
                     f"reference counts={reference_counts}, target count={len(target_hydrogens)}."
                 )
-            atom_type, charge = averaged_parameter(
-                reference_indices,
-                f"unit atom {local_position + 1} in target unit {target_unit + 1}",
-            )
-            target_atom = target.atom(target_index)
-            target_atom.atom_type = atom_type
-            target_atom.charge = charge
-
+            candidates[target_index] = reference_indices
             reference_hydrogen_lists = [reference_h[index] for index in reference_indices]
             for hydrogen_position, target_hydrogen in enumerate(target_hydrogens):
-                hydrogen_references = [
+                candidates[target_hydrogen] = [
                     indices[hydrogen_position] for indices in reference_hydrogen_lists
                 ]
-                atom_type, charge = averaged_parameter(
-                    hydrogen_references,
-                    f"hydrogen {hydrogen_position + 1} on unit atom {local_position + 1}",
-                )
-                target_atom = target.atom(target_hydrogen)
-                target_atom.atom_type = atom_type
-                target_atom.charge = charge
+    return candidates
+
+
+def unit_atom_labels(mol: Molecule, unit_atom_count: int, dp: int) -> dict[int, tuple[int, tuple]]:
+    """Label every atom as (repeat unit, position in the unit) for topology transfer.
+
+    Monomer atoms are ``("A", position)``; hydrogens added by
+    ``add_valence_hydrogens`` are ``("H", parent position, slot)``.
+    """
+
+    base_count = unit_atom_count * dp
+    if len(mol.atoms) < base_count:
+        raise ValueError("Molecule is missing one or more monomer base atoms.")
+    labels: dict[int, tuple[int, tuple]] = {
+        index: ((index - 1) // unit_atom_count, ("A", (index - 1) % unit_atom_count))
+        for index in range(1, base_count + 1)
+    }
+    for parent, hydrogens in _generated_hydrogens_by_parent(mol, base_count).items():
+        unit, (_, position) = labels[parent]
+        for slot, hydrogen in enumerate(hydrogens):
+            labels[hydrogen] = (unit, ("H", position, slot))
+    unlabeled = [atom.index for atom in mol.atoms if atom.index not in labels]
+    if unlabeled:
+        raise ValueError(
+            f"Atoms {unlabeled[:10]} do not belong to a repeat unit; the topology transfer "
+            "needs a molecule made only of repeat units and their hydrogens."
+        )
+    return labels
 
 
 def clone_molecule(mol: Molecule, name: str | None = None) -> Molecule:
@@ -997,37 +1097,6 @@ def write_gromacs_placeholders(mol: Molecule, outdir: Path, target_charge: int) 
     return files, raw, final, correction
 
 
-def split_gromacs_topology(top_path: Path, itp_path: Path) -> None:
-    """Split a ParmEd GROMACS topology into an includable ITP and wrapper TOP."""
-
-    lines = top_path.read_text().splitlines()
-    system_index = next(
-        (
-            index
-            for index, line in enumerate(lines)
-            if re.fullmatch(r"\s*\[\s*system\s*\]\s*", line, flags=re.IGNORECASE)
-        ),
-        None,
-    )
-    if system_index is None:
-        raise ValueError(f"ParmEd topology does not contain a [ system ] section: {top_path}")
-    molecular_lines = lines[:system_index]
-    system_lines = lines[system_index:]
-    if not any(
-        re.fullmatch(r"\s*\[\s*moleculetype\s*\]\s*", line, flags=re.IGNORECASE)
-        for line in molecular_lines
-    ):
-        raise ValueError(f"ParmEd topology does not contain a [ moleculetype ] section: {top_path}")
-    itp_path.write_text("\n".join(molecular_lines).rstrip() + "\n")
-    top_path.write_text(
-        f'#include "{itp_path.name}"\n\n' + "\n".join(system_lines).rstrip() + "\n"
-    )
-
-
-def missing_external_tools() -> list[str]:
-    return [tool for tool in ["antechamber", "parmchk2", "tleap"] if shutil.which(tool) is None]
-
-
 def minimize_sdf_geometry(input_sdf: Path, output_sdf: Path, max_iters: int = 1000) -> tuple[Path, str]:
     try:
         from rdkit import Chem
@@ -1126,189 +1195,329 @@ def ensure_explicit_hydrogen_sdf(input_sdf: Path, output_sdf: Path) -> Path:
     return output_sdf
 
 
-def run_ambertools_pipeline(
+def prepare_target_stereo_geometry(target: Molecule, outdir: Path, minimize_geometry: bool) -> list[Path]:
+    """Give an assembled target with wedge/dash bonds a defined 3D configuration."""
+
+    stereo_bonds = [bond for bond in target.bonds if bond.stereo in {1, 6}]
+    if not stereo_bonds:
+        return []
+    if not minimize_geometry:
+        raise RuntimeError(
+            "Stereochemical wedge/dash bonds require geometry minimization "
+            "so the assembled target polymer receives a defined 3D configuration."
+        )
+    target_stereo_input = outdir / "polymer_stereo_input.sdf"
+    target_stereo_minimized = outdir / "polymer_stereo_minimized.sdf"
+    write_sdf(target, target_stereo_input)
+    minimized_target_path, target_minimizer = minimize_sdf_geometry(
+        target_stereo_input,
+        target_stereo_minimized,
+    )
+    minimized_target = read_sdf(minimized_target_path)
+    copy_coordinates_by_index(minimized_target, target)
+    write_sdf(target, outdir / "polymer.sdf")
+    stereo_report = outdir / "STEREOCHEMISTRY_REPORT.txt"
+    stereo_report.write_text(
+        "\n".join(
+            [
+                f"stereochemical_bonds: {len(stereo_bonds)}",
+                f"target_geometry_input: {target_stereo_input}",
+                f"target_geometry_output: {target_stereo_minimized}",
+                f"method: RDKit {target_minimizer}",
+                "stage: assembled target-polymer 3D stereochemistry preparation",
+            ]
+        )
+        + "\n"
+    )
+    return [target_stereo_input, target_stereo_minimized, stereo_report]
+
+
+def missing_engine_requirements(engine: str, settings: dict | None = None) -> list[str]:
+    """Short names of what the chosen force-field engine still needs."""
+
+    if engine in TRANSFER_ENGINES:
+        return engine_module(engine).missing_requirements(settings or {})
+    raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
+
+
+def target_atom_names_and_residues(
+    mol: Molecule, labels: dict[int, tuple[int, tuple]] | None
+) -> tuple[list[str], list[int]]:
+    """GROMACS atom names (element + number within its repeat unit) and residue numbers."""
+
+    names: list[str] = []
+    residues: list[int] = []
+    counters: dict[int, int] = {}
+    for atom in mol.atoms:
+        unit = labels[atom.index][0] if labels else 0
+        counters[unit] = counters.get(unit, 0) + 1
+        name = f"{atom.element}{counters[unit] if labels else atom.index}"
+        names.append(name if len(name) <= 5 else name[-5:])
+        residues.append(unit + 1)
+    return names, residues
+
+
+def write_gro(
+    mol: Molecule,
+    path: Path,
+    atom_names: list[str],
+    residue_numbers: list[int],
+    residue_name: str = "POL",
+    padding_nm: float = 1.0,
+    min_box_nm: float = 3.0,
+) -> None:
+    """Coordinates in nm, centred in a rectangular box.
+
+    Each edge is the molecule's extent plus ``padding_nm`` on both sides, and
+    at least ``min_box_nm`` so that common cut-offs (<= 1.4 nm) stay below half
+    the box even for flat structures.
+    """
+
+    xs = [atom.x / 10 for atom in mol.atoms]
+    ys = [atom.y / 10 for atom in mol.atoms]
+    zs = [atom.z / 10 for atom in mol.atoms]
+    box = [max(max(values) - min(values) + 2 * padding_nm, min_box_nm) for values in (xs, ys, zs)]
+    shift = [edge / 2 - (max(values) + min(values)) / 2 for edge, values in zip(box, (xs, ys, zs))]
+    lines = [mol.name or "polymer", f"{len(mol.atoms):5d}"]
+    for atom, x, y, z, name, residue in zip(mol.atoms, xs, ys, zs, atom_names, residue_numbers):
+        lines.append(
+            f"{residue % 100000:5d}{residue_name:<5.5s}{name:>5.5s}{atom.index % 100000:5d}"
+            f"{x + shift[0]:8.3f}{y + shift[1]:8.3f}{z + shift[2]:8.3f}"
+        )
+    lines.append(f"{box[0]:10.5f}{box[1]:10.5f}{box[2]:10.5f}")
+    path.write_text("\n".join(lines) + "\n")
+
+
+def apply_random_walk_coordinates(
+    reference_mol: Molecule,
+    target: Molecule,
+    unit_atom_count: int,
+    reference_dp: int,
+    target_dp: int,
+    seed: int = 0,
+):
+    """Give the target 3D coordinates by a self-avoiding random walk of reference units."""
+
+    import chain_builder
+
+    walk = chain_builder.random_walk_coordinates(
+        {atom.index: (atom.x, atom.y, atom.z) for atom in reference_mol.atoms},
+        unit_atom_labels(reference_mol, unit_atom_count, reference_dp),
+        [(bond.a, bond.b) for bond in reference_mol.bonds],
+        unit_atom_labels(target, unit_atom_count, target_dp),
+        [(bond.a, bond.b, bond.order) for bond in target.bonds],
+        {atom.index: atom.element for atom in target.atoms},
+        seed=seed,
+    )
+    for atom in target.atoms:
+        atom.x, atom.y, atom.z = walk.coordinates[atom.index]
+    return walk
+
+
+def run_reference_engine_pipeline(
+    engine: str,
     reference_sdf: Path,
     outdir: Path,
     formal_charge: int,
     minimize_geometry: bool = True,
-    target_spec: AmberTargetSpec | None = None,
-) -> tuple[list[Path], Path]:
-    missing = missing_external_tools()
-    if missing:
-        raise RuntimeError("Required AmberTools executable(s) not found on PATH: " + ", ".join(missing))
-    try:
-        import parmed as pmd
-    except Exception as exc:  # pragma: no cover - depends on external env
-        raise RuntimeError("ParmEd is required for AMBER to GROMACS conversion.") from exc
+    target_spec: TargetSpec | None = None,
+    engine_settings: dict | None = None,
+    chain_layout: str = DEFAULT_CHAIN_LAYOUT,
+    chain_seed: int = 0,
+) -> tuple[list[Path], Path, dict]:
+    """Parameterize the reference oligomer with ``engine`` and transfer it to the target.
+
+    Shared by every engine that writes a GROMACS topology of the reference
+    (opls: bundled opls-ff-lite; sage: the user's OpenFF installation).
+    Returns (files, structure given to the engine, metadata).
+    """
+
+    import topology_transfer
+
+    module = engine_module(engine)
+    engine_settings = engine_settings or {}
+    errors, warnings = module.preflight(engine_settings)
+    if errors:
+        raise RuntimeError(f"The {engine} engine is not ready:\n" + "\n".join(errors))
 
     outdir.mkdir(parents=True, exist_ok=True)
     files: list[Path] = []
-    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / "antechamber_input_with_h.sdf")
+    hydrogenated_sdf = ensure_explicit_hydrogen_sdf(reference_sdf, outdir / f"{engine}_input_with_h.sdf")
     files.append(hydrogenated_sdf)
-    antechamber_input = hydrogenated_sdf
+    engine_input = hydrogenated_sdf
     if minimize_geometry:
         minimized_sdf, minimizer = minimize_sdf_geometry(hydrogenated_sdf, outdir / "polymer_minimized.sdf")
-        antechamber_input = minimized_sdf
-        files.append(minimized_sdf)
-        (outdir / "MINIMIZATION_REPORT.txt").write_text(
+        engine_input = minimized_sdf
+        report = outdir / "MINIMIZATION_REPORT.txt"
+        report.write_text(
             "\n".join(
                 [
                     f"input_sdf: {hydrogenated_sdf}",
                     f"output_sdf: {minimized_sdf}",
                     f"method: RDKit {minimizer}",
-                    "stage: explicit-H geometry before Antechamber GAFF2/AM1-BCC parameterization",
+                    f"stage: explicit-H geometry of the reference before {engine} parameterization",
                 ]
             )
             + "\n"
         )
-        files.append(outdir / "MINIMIZATION_REPORT.txt")
+        files.extend([minimized_sdf, report])
+    elif engine in ("opls", "gaff2"):
+        unminimized = read_sdf(hydrogenated_sdf)
+        if max((abs(atom.z) for atom in unminimized.atoms), default=0.0) < 1e-4:
+            raise RuntimeError(
+                f"The {engine} charges (CM1A or AM1-BCC) are computed on the 3D geometry, but the "
+                "reference structure is flat; enable geometry minimization."
+            )
 
-    antechamber_mol = read_sdf(antechamber_input)
-    antechamber_mol2 = outdir / "antechamber_input.mol2"
-    write_mol2(antechamber_mol, antechamber_mol2)
-    files.append(antechamber_mol2)
+    reference_mol = read_sdf(engine_input)
+    parameterization = module.parameterize_reference(
+        engine_input,
+        outdir / f"{engine}_reference",
+        net_charge=formal_charge,
+        name="reference",
+        settings=engine_settings,
+    )
+    reference_top = parameterization.topology
+    files.extend(parameterization.files)
+    if len(reference_top.atoms) != len(reference_mol.atoms):
+        raise RuntimeError(
+            f"The {engine} engine returned {len(reference_top.atoms)} atoms for a {len(reference_mol.atoms)}-atom reference."
+        )
 
-    reference_mol2 = outdir / (
-        "reference_typed_charged.mol2" if target_spec is not None else "polymer_typed_charged.mol2"
+    target = target_spec.molecule if target_spec is not None else clone_molecule(reference_mol)
+    target_charge = target_spec.target_charge if target_spec is not None else formal_charge
+    mapping_values = (
+        (target_spec.unit_atom_count, target_spec.reference_dp, target_spec.target_dp)
+        if target_spec is not None
+        else (None, None, None)
     )
-    frcmod = outdir / "polymer.frcmod"
-    prmtop = outdir / "polymer.prmtop"
-    inpcrd = outdir / "polymer.inpcrd"
-    leap_in = outdir / "tleap.in"
-    subprocess.run(
-        [
-            "antechamber",
-            "-i",
-            str(antechamber_mol2),
-            "-fi",
-            "mol2",
-            "-o",
-            str(reference_mol2),
-            "-fo",
-            "mol2",
-            "-c",
-            "bcc",
-            "-s",
-            "2",
-            "-at",
-            "gaff2",
-            "-nc",
-            str(formal_charge),
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ["parmchk2", "-i", str(reference_mol2), "-f", "mol2", "-o", str(frcmod)],
-        check=True,
-    )
+    labels: dict[int, tuple[int, tuple]] | None = None
+    charge_spread = 0.0
+    if all(value is None for value in mapping_values):
+        if len(target.atoms) != len(reference_mol.atoms) or any(
+            a.element != b.element for a, b in zip(target.atoms, reference_mol.atoms)
+        ):
+            raise ValueError("Direct parameterization needs the target and reference atoms in the same order.")
+        transfer = topology_transfer.identity_transfer(reference_top)
+        charges = [atom.charge for atom in reference_top.atoms]
+        copy_coordinates_by_index(reference_mol, target)
+        mode = "direct_target"
+    elif all(value is not None for value in mapping_values):
+        unit_atom_count, reference_dp, target_dp = mapping_values
+        labels = unit_atom_labels(target, unit_atom_count, target_dp)
+        reference_labels = unit_atom_labels(reference_mol, unit_atom_count, reference_dp)
+        transfer = topology_transfer.transfer_topology(
+            reference_top,
+            [(bond.a, bond.b) for bond in reference_mol.bonds],
+            reference_labels,
+            [(bond.a, bond.b) for bond in target.bonds],
+            labels,
+        )
+        candidates = reference_atom_candidates(reference_mol, target, unit_atom_count, reference_dp, target_dp)
+        charges = []
+        for atom in target.atoms:
+            values = [reference_top.atoms[index - 1].charge for index in candidates[atom.index]]
+            charges.append(sum(values) / len(values))
+            charge_spread = max(charge_spread, max(values) - min(values))
+        mode = "reference_to_target"
+    else:
+        raise ValueError(
+            "unit_atom_count, reference_dp, and target_dp must be supplied together "
+            "for reference-to-target parameter transfer."
+        )
 
-    final_mol2 = reference_mol2
+    names, table = topology_transfer.merge_atom_types(transfer.atoms)
+    for atom, charge, type_name in zip(target.atoms, charges, names):
+        atom.charge = charge
+        atom.atom_type = type_name
+    raw, final, correction = normalize_repeat_charges(target, target_charge)
     if target_spec is not None:
-        parameters = read_mol2_atom_parameters(reference_mol2)
-        mapping_values = (
-            target_spec.unit_atom_count,
-            target_spec.reference_dp,
-            target_spec.target_dp,
-        )
-        if all(value is None for value in mapping_values):
-            copy_typed_parameters_by_index(antechamber_mol, parameters, target_spec.molecule)
-        elif all(value is not None for value in mapping_values):
-            transfer_reference_atom_parameters(
-                antechamber_mol,
-                parameters,
-                target_spec.molecule,
-                unit_atom_count=target_spec.unit_atom_count,
-                reference_dp=target_spec.reference_dp,
-                target_dp=target_spec.target_dp,
-            )
-        else:
-            raise ValueError(
-                "unit_atom_count, reference_dp, and target_dp must be supplied together "
-                "for reference-to-target parameter transfer."
-            )
-        raw, final, correction = normalize_repeat_charges(
-            target_spec.molecule,
-            target_spec.target_charge,
-        )
         target_spec.raw_charge = raw
         target_spec.final_charge = final
         target_spec.correction_per_repeat_atom = correction
-
-        stereo_bonds = [
-            bond for bond in target_spec.molecule.bonds if bond.stereo in {1, 6}
-        ]
-        if stereo_bonds:
-            if not minimize_geometry:
-                raise RuntimeError(
-                    "Stereochemical wedge/dash bonds require geometry minimization "
-                    "so the assembled target polymer receives a defined 3D configuration."
-                )
-            target_stereo_input = outdir / "polymer_stereo_input.sdf"
-            target_stereo_minimized = outdir / "polymer_stereo_minimized.sdf"
-            write_sdf(target_spec.molecule, target_stereo_input)
-            minimized_target_path, target_minimizer = minimize_sdf_geometry(
-                target_stereo_input,
-                target_stereo_minimized,
+    walk = None
+    if mode == "reference_to_target":
+        reference_is_3d = max((abs(atom.z) for atom in reference_mol.atoms), default=0.0) > 1e-4
+        if chain_layout == "random-walk" and reference_is_3d:
+            walk = apply_random_walk_coordinates(
+                reference_mol, target, mapping_values[0], mapping_values[1], mapping_values[2], chain_seed
             )
-            minimized_target = read_sdf(minimized_target_path)
-            copy_coordinates_by_index(minimized_target, target_spec.molecule)
-            write_sdf(target_spec.molecule, outdir / "polymer.sdf")
-            stereo_report = outdir / "STEREOCHEMISTRY_REPORT.txt"
-            stereo_report.write_text(
-                "\n".join(
-                    [
-                        f"stereochemical_bonds: {len(stereo_bonds)}",
-                        f"target_geometry_input: {target_stereo_input}",
-                        f"target_geometry_output: {target_stereo_minimized}",
-                        f"method: RDKit {target_minimizer}",
-                        "stage: assembled target-polymer 3D stereochemistry preparation",
-                    ]
-                )
-                + "\n"
-            )
-            files.extend([target_stereo_input, target_stereo_minimized, stereo_report])
+            write_sdf(target, outdir / "polymer.sdf")
+        else:
+            files.extend(prepare_target_stereo_geometry(target, outdir, minimize_geometry))
 
-        final_mol2 = outdir / "polymer_typed_charged.mol2"
-        write_mol2(
-            target_spec.molecule,
-            final_mol2,
-            residue_name="POL",
-            molecule_name="POLYMER",
+    atom_names, residues = target_atom_names_and_residues(target, labels)
+    itp_path = outdir / "polymer.itp"
+    top_path = outdir / "polymer.top"
+    gro_path = outdir / "polymer.gro"
+    typed_mol2 = outdir / "polymer_typed_charged.mol2"
+    info = dict(parameterization.info)
+    header = [
+        f"Generated by polymer_from_oligomer (force-field engine: {engine})",
+        f"Force field: {module.description(engine_settings)}; charge model {info.get('charge_model')}",
+        f"Reference oligomer topology: {reference_top.path}",
+        f"Parameterization mode: {mode}",
+    ]
+    counts = topology_transfer.write_gromacs_files(
+        itp_path,
+        top_path,
+        reference_top,
+        transfer,
+        [atom.charge for atom in target.atoms],
+        atom_names,
+        residues,
+        header=header,
+    )
+    write_gro(target, gro_path, atom_names, residues)
+    write_mol2(target, typed_mol2, residue_name="POL", molecule_name="POLYMER")
+
+    charge_warnings = []
+    if charge_spread > 0.02:
+        charge_warnings.append(
+            f"charges of equivalent reference atoms differ by up to {charge_spread:.4f} e; "
+            "a longer reference oligomer would give better-converged interior charges"
         )
-
-    leap_in.write_text(
+    report_path = outdir / "PARAMETER_TRANSFER_REPORT.txt"
+    report_path.write_text(
         "\n".join(
             [
-                "source leaprc.gaff2",
-                f"loadamberparams {frcmod.name}",
-                f"mol = loadmol2 {final_mol2.name}",
-                f"saveamberparm mol {prmtop.name} {inpcrd.name}",
-                "quit",
+                f"engine: {engine} ({module.description(engine_settings)})",
+                f"mode: {mode}",
+                f"charge_model: {info.get('charge_model')}",
+                f"reference_atoms: {len(reference_top.atoms)}",
+                f"target_atoms: {len(target.atoms)}",
+                f"merged_atom_types: {counts['atomtypes']}",
+                f"target_charge: {target_charge}",
+                f"raw_charge: {raw:.12g}",
+                f"final_charge: {final:.12g}",
+                f"correction_per_repeat_atom: {correction:.12g}",
+                f"max_reference_charge_spread_e: {charge_spread:.6f}",
+                *([f"reference_bonded_rule_counts: {info['bonded_rule_counts']}"] if "bonded_rule_counts" in info else []),
+                f"reference_atom_type_rules: {info.get('atom_type_rules')}",
+                *transfer.report.lines(),
+                *(f"charge warning: {warning}" for warning in charge_warnings),
+                *(walk.lines() if walk is not None else [f"coordinates: {'direct structure' if mode == 'direct_target' else 'flat 2D layout'}"]),
+                *(f"{engine} engine note: {warning}" for warning in info.get("engine_warnings", []) if warning),
+                *(f"{engine} preflight warning: {warning}" for warning in warnings),
             ]
         )
         + "\n"
     )
-    subprocess.run(["tleap", "-f", str(leap_in.name)], cwd=outdir, check=True)
-    structure = pmd.load_file(str(prmtop), str(inpcrd))
-    if target_spec is not None and len(structure.atoms) != len(target_spec.molecule.atoms):
-        raise RuntimeError(
-            "TLeap target atom count mismatch: "
-            f"expected {len(target_spec.molecule.atoms)}, found {len(structure.atoms)}."
-        )
-    top_path = outdir / "polymer.top"
-    gro_path = outdir / "polymer.gro"
-    structure.save(str(top_path), overwrite=True)
-    structure.save(str(gro_path), overwrite=True)
-    itp_path = outdir / "polymer.itp"
-    if target_spec is not None:
-        split_gromacs_topology(top_path, itp_path)
-    generated = [reference_mol2, frcmod]
-    if final_mol2 != reference_mol2:
-        generated.append(final_mol2)
-    generated.extend([leap_in, prmtop, inpcrd, top_path, gro_path])
-    if target_spec is not None:
-        generated.append(itp_path)
-    return files + generated, antechamber_mol2
+    files.extend([typed_mol2, itp_path, top_path, gro_path, report_path])
+    info.update(
+        {
+            "parameterization_mode": mode,
+            "merged_atom_types": counts["atomtypes"],
+            "target_term_counts": {kind: counts[kind] for kind in topology_transfer.KIND_ORDER},
+            "transfer_warnings": transfer.report.warnings + charge_warnings,
+            "max_reference_charge_spread_e": charge_spread,
+            "chain_layout": "random-walk" if walk is not None else ("direct" if mode == "direct_target" else "2d"),
+            "chain_seed": chain_seed if walk is not None else None,
+            "end_to_end_distance_A": walk.end_to_end if walk is not None else None,
+            "radius_of_gyration_A": walk.radius_of_gyration if walk is not None else None,
+        }
+    )
+    return files, engine_input, info
 
 
 def write_outputs_for_polymer(
@@ -1329,30 +1538,45 @@ def write_outputs_for_polymer(
     write_sdf(polymer, polymer_sdf)
     files = [polymer_sdf]
 
-    missing = missing_external_tools()
+    engine = options.ff_engine
+    if engine not in FF_ENGINES:
+        raise ValueError(f"Unknown force-field engine {engine!r}; choose one of {', '.join(FF_ENGINES)}.")
+    missing = missing_engine_requirements(engine, options.engine_settings)
+    if engine in TRANSFER_ENGINES and reference_dp is not None and options.dp < reference_dp:
+        # A target shorter than the reference oligomer is itself a small
+        # oligomer: parameterize it directly. (Near-junction atoms of very
+        # short chains, e.g. DP 2, see both chain ends at once, an environment
+        # the reference does not contain.)
+        external_sdf, external_formal_charge = None, None
+        reference_unit_atom_count, reference_dp = None, None
     requested_antechamber_sdf = external_sdf or polymer_sdf
     actual_antechamber_input = requested_antechamber_sdf
     antechamber_charge = target_charge if external_formal_charge is None else external_formal_charge
     parameterization_mode = "placeholder"
+    engine_info: dict = {}
     if options.run_external and not missing:
         if (reference_unit_atom_count is None) != (reference_dp is None):
             raise ValueError("reference_unit_atom_count and reference_dp must be supplied together.")
         parameterization_mode = (
             "reference_to_target" if reference_dp is not None else "direct_target"
         )
-        target_spec = AmberTargetSpec(
+        target_spec = TargetSpec(
             molecule=polymer,
             target_charge=target_charge,
             unit_atom_count=reference_unit_atom_count,
             reference_dp=reference_dp,
             target_dp=options.dp if reference_dp is not None else None,
         )
-        external_files, actual_antechamber_input = run_ambertools_pipeline(
+        external_files, actual_antechamber_input, engine_info = run_reference_engine_pipeline(
+            engine,
             requested_antechamber_sdf,
             options.outdir,
             antechamber_charge,
             minimize_geometry=options.minimize_geometry,
             target_spec=target_spec,
+            engine_settings=options.engine_settings,
+            chain_layout=options.chain_layout,
+            chain_seed=options.chain_seed,
         )
         files.extend(external_files)
         raw = target_spec.raw_charge
@@ -1374,6 +1598,12 @@ def write_outputs_for_polymer(
         "raw_charge": raw,
         "charge_correction_per_repeat_atom": correction,
         "parameterization_mode": parameterization_mode,
+        "ff_engine": engine,
+        "ff_engine_description": FF_ENGINES[engine],
+        "parameterization_source_sdf": str(requested_antechamber_sdf),
+        "parameterization_input": str(actual_antechamber_input),
+        "parameterization_formal_charge": antechamber_charge,
+        # Legacy key names (kept for existing consumers of build_metadata.json).
         "antechamber_source_sdf": str(requested_antechamber_sdf),
         "antechamber_input": str(actual_antechamber_input),
         "antechamber_input_format": actual_antechamber_input.suffix.lstrip(".").lower() or "unknown",
@@ -1384,6 +1614,8 @@ def write_outputs_for_polymer(
         "missing_tools": missing,
         "files": [str(path) for path in files],
     }
+    if engine_info:
+        metadata["engine"] = engine_info
     if extra_metadata:
         metadata.update(extra_metadata)
     metadata_path = options.outdir / "build_metadata.json"
@@ -1455,6 +1687,10 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             outdir=options.outdir,
             run_external=options.run_external,
             minimize_geometry=options.minimize_geometry,
+            ff_engine=options.ff_engine,
+            engine_settings=options.engine_settings,
+            chain_layout=options.chain_layout,
+            chain_seed=options.chain_seed,
         ),
         extra_metadata={
             "workflow": "monomer",
@@ -1483,32 +1719,110 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input_sdf", type=Path)
+    parser.add_argument("input_sdf", type=Path, nargs="?")
     parser.add_argument("--repeat-atoms", help="Oligomer mode: comma-separated 1-based repeat atom indices, e.g. 2,3,4")
     parser.add_argument("--previous-atom", type=int, help="Monomer mode: atom that connects to the previous monomer.")
     parser.add_argument("--next-atom", type=int, help="Monomer mode: atom that connects to the next monomer.")
     parser.add_argument("--reference-dp", type=int, default=5, help="Monomer mode: hidden reference oligomer size.")
     parser.add_argument("--junction-order", type=int, default=1, help="Monomer mode: monomer-monomer bond order.")
-    parser.add_argument("--dp", type=int, required=True, help="Degree of polymerization")
+    parser.add_argument("--dp", type=int, help="Degree of polymerization (required for a build)")
     parser.add_argument("--oligomer-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--repeat-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--end-charge", type=int, default=0, help="Legacy oligomer mode only.")
     parser.add_argument("--outdir", type=Path, default=Path("polymer_out"))
     parser.add_argument(
+        "--ff-engine",
+        choices=sorted(FF_ENGINES),
+        default=DEFAULT_FF_ENGINE,
+        help="Force-field engine for the reference oligomer: "
+        + "; ".join(f"{name} = {text}" for name, text in FF_ENGINES.items())
+        + f" (default: {DEFAULT_FF_ENGINE}).",
+    )
+    parser.add_argument(
+        "--sage-python",
+        help="sage engine: Python interpreter of your OpenFF environment (default: "
+        "$POLYMER_SAGE_PYTHON, then auto-detected conda environments with openff-toolkit + openff-interchange).",
+    )
+    parser.add_argument(
+        "--sage-forcefield",
+        default=None,
+        help="sage engine: SMIRNOFF force field file (default: openff-2.3.0.offxml, NAGL charges).",
+    )
+    parser.add_argument(
+        "--amber-python",
+        help="gaff2 engine: Python interpreter of your AmberTools environment (default: $POLYMER_AMBER_PYTHON, "
+        "$AMBERHOME, then auto-detected conda environments with ambertools).",
+    )
+    parser.add_argument(
+        "--chain-layout",
+        choices=CHAIN_LAYOUTS,
+        default=DEFAULT_CHAIN_LAYOUT,
+        help="Starting coordinates: self-avoiding random walk of rigid reference units (default) or the flat 2D drawing layout.",
+    )
+    parser.add_argument("--chain-seed", type=int, default=0, help="Random seed of the chain random walk (default 0).")
+    parser.add_argument(
+        "--check-engine",
+        action="store_true",
+        help="Only report whether the chosen --ff-engine is ready (and which OpenFF install is used), then exit.",
+    )
+    parser.add_argument(
         "--no-minimize-geometry",
         action="store_true",
-        help="Skip RDKit MMFF/UFF geometry minimization before Antechamber.",
+        help="Skip RDKit MMFF/UFF geometry minimization of the reference oligomer.",
     )
     parser.add_argument(
         "--no-external",
         action="store_true",
-        help="Skip AmberTools orchestration and write placeholder files for graph/GUI testing.",
+        help="Skip force-field parameterization and write placeholder files for graph/GUI testing.",
     )
     return parser
 
 
+def engine_settings_from_args(args: argparse.Namespace) -> dict:
+    settings = {}
+    if args.sage_python:
+        settings["sage_python"] = args.sage_python
+    if args.sage_forcefield:
+        settings["sage_forcefield"] = args.sage_forcefield
+    if args.amber_python:
+        settings["amber_python"] = args.amber_python
+    return settings
+
+
+def engine_problem_lines(engine: str, settings: dict) -> list[str]:
+    """Human-readable preflight problems of an engine (empty if ready)."""
+
+    module = engine_module(engine)
+    lines = [error for error in module.preflight(settings)[0]]
+    if engine == "opls" and any("SI" in line for line in lines):
+        lines.append("With the bundled copy, install the SI files with:\n    " + module.INSTALL_SI_HINT)
+    return lines
+
+
+def check_engine(engine: str, settings: dict) -> int:
+    print(f"Force-field engine: {engine} - {FF_ENGINES[engine]}")
+    problems = engine_problem_lines(engine, settings)
+    if engine in ("sage", "gaff2"):
+        interpreter, _ = engine_module(engine).find_interpreter(settings)
+        if interpreter is not None:
+            probe = interpreter.probe
+            print(f"  {'OpenFF' if engine == 'sage' else 'AmberTools'} Python: {interpreter.python} ({interpreter.source})")
+            for key in ("versions", "charges", "tools", "parmed", "amberhome"):
+                if key in probe:
+                    print(f"  {key}: {probe[key]}")
+    for line in problems:
+        print("  " + line.replace("\n", "\n  "))
+    print("  ready" if not problems else "  NOT ready")
+    return 0 if not problems else 1
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+    settings = engine_settings_from_args(args)
+    if args.check_engine:
+        return check_engine(args.ff_engine, settings)
+    if args.input_sdf is None or args.dp is None:
+        raise SystemExit("input_sdf and --dp are required for a build (or use --check-engine).")
     monomer_mode = args.previous_atom is not None or args.next_atom is not None
     if monomer_mode:
         if args.previous_atom is None or args.next_atom is None:
@@ -1524,6 +1838,10 @@ def main(argv: Iterable[str] | None = None) -> int:
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,
                 junction_order=args.junction_order,
+                ff_engine=args.ff_engine,
+                engine_settings=settings,
+                chain_layout=args.chain_layout,
+                chain_seed=args.chain_seed,
             ),
         )
     else:
@@ -1540,6 +1858,10 @@ def main(argv: Iterable[str] | None = None) -> int:
                 outdir=args.outdir,
                 run_external=not args.no_external,
                 minimize_geometry=not args.no_minimize_geometry,
+                ff_engine=args.ff_engine,
+                engine_settings=settings,
+                chain_layout=args.chain_layout,
+                chain_seed=args.chain_seed,
             ),
         )
     print(f"Detected repeat units: {result.repeat_units}")
@@ -1547,8 +1869,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(f"Atoms: {len(result.molecule.atoms)}")
     print(f"Bonds: {len(result.molecule.bonds)}")
     print(f"Final charge: {result.final_charge:.12g}")
+    print(f"Force-field engine: {args.ff_engine}")
     if result.missing_tools:
-        print("AmberTools blocked: missing " + ", ".join(result.missing_tools))
+        print(f"{args.ff_engine} engine blocked: missing " + ", ".join(result.missing_tools))
+        for line in engine_problem_lines(args.ff_engine, settings):
+            print("  " + line.replace("\n", "\n  "))
         print("Wrote placeholder GROMACS-shaped files for non-external validation.")
     print(f"Output directory: {result.files[0].parent}")
     return 0

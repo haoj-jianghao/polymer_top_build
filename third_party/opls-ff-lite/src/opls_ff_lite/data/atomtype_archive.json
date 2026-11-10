@@ -1,0 +1,2121 @@
+{
+  "schema_version": 1,
+  "description": "Atom-typing archive extending the Foyer 1.2.0 OPLS-AA SMARTS rules: SMARTS definitions, precedence, and borrowed OPLS-AA types for chemistry the rules do not type. opls2020_types: SMARTS-conditioned refinement of the rule set's GROMACS-numbered types into OPLS/2020 type numbers (first matching rule per type; an empty SMARTS is that type's default; \"from\": \"*\" rules match by SMARTS alone, also untyped atoms). Classes and LJ come from the OPLS/2020 table.",
+  "definitions": [
+    {
+      "type": "opls_227",
+      "smarts": "[C;X3;!r6;!r5]([C;X3;!r6;!r5])(Cl)(Cl)",
+      "note": "Chloroalkene =CCl2 C; Foyer only matches Cl2C=CH2 (pyrethroids untyped).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_141",
+      "smarts": "[C;X3](C)(C)=C",
+      "note": "Alkene R2C= C in six-membered rings (limonene, carvone); explicit C=C keeps aromatic C out.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_908",
+      "smarts": "[C;X4]([H])([H])([C;X4,%opls_235,%opls_267,%opls_277,%opls_280,%opls_465,%opls_471])([N;X3]([C;X4])([C;X4]))",
+      "note": "Tertiary-amine N-CH2 with a carbonyl-C neighbour (lidocaine); LigParGen: CT.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_246",
+      "smarts": "[C;X4](C)(C)(H)[N;%opls_239]",
+      "note": "Tertiary-amide N-CHR2 C (Pro CA); undefined in Foyer 1.2.0.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_474",
+      "smarts": "[S;X4]([O;X1])([O;X1])([N;X3])[#6]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_475",
+      "smarts": "[O;X1][S;%opls_474]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_478",
+      "smarts": "[N;X3](H)(H)[S;%opls_474]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_479",
+      "smarts": "H[N;%opls_478]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_480",
+      "smarts": "[N;X3](H)([#6])[S;%opls_474]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_481",
+      "smarts": "H[N;%opls_480]",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_488",
+      "smarts": "[C;X3;r6]([S;%opls_474])",
+      "note": "OPLS-AA sulfonamide type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_557",
+      "smarts": "[N;X3;r5;!R2]1[C;X3;r5;!R2][N;X2;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_558",
+      "smarts": "[C;X3;r5;!R2]1[N;X3;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2][N;X2;r5;!R2]1",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_559",
+      "smarts": "[N;X2;r5;!R2]1[C;X3;r5;!R2][N;X3;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_560",
+      "smarts": "[C;X3;r5;!R2]1[N;X2;r5;!R2][C;X3;r5;!R2][N;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_561",
+      "smarts": "[C;X3;r5;!R2]1[N;X3;r5;!R2][C;X3;r5;!R2][N;X2;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_562",
+      "smarts": "H[N;%opls_557]",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_563",
+      "smarts": "H[C;%opls_558]",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_564",
+      "smarts": "H[C;%opls_560]",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_565",
+      "smarts": "H[C;%opls_561]",
+      "note": "OPLS-AA imidazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_579",
+      "smarts": "[O;X2;r5;!R2]1[N;X2;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_580",
+      "smarts": "[N;X2;r5;!R2]1[O;X2;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_581",
+      "smarts": "[C;X3;r5;!R2]1[N;X2;r5;!R2][O;X2;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_582",
+      "smarts": "[C;X3;r5;!R2]1[C;X3;r5;!R2][N;X2;r5;!R2][O;X2;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_583",
+      "smarts": "[C;X3;r5;!R2]1[O;X2;r5;!R2][N;X2;r5;!R2][C;X3;r5;!R2][C;X3;r5;!R2]1",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_584",
+      "smarts": "H[C;%opls_581]",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_585",
+      "smarts": "H[C;%opls_582]",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_586",
+      "smarts": "H[C;%opls_583]",
+      "note": "OPLS-AA isoxazole type with no SMARTS in Foyer 1.2.0; ring patterns exclude fused rings (!R2).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_628",
+      "smarts": "[N;X3;r5]1(H)[C;X3;R2][C;X3;R2][N;X2;r5][C;X3;r5]1",
+      "note": "Fused-imidazole N-H (7H/9H-purine, xanthine N7-H): OPLS purine N9 (NA), not amine NT.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_632",
+      "smarts": "H[N;%opls_628]",
+      "note": "H on the fused-imidazole N-H (OPLS purine H9).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_905",
+      "smarts": "[C;X4](H)(H)(H)[N;%opls_902]",
+      "note": "CH3 on a tertiary amine N (OPLS 905); undefined in Foyer 1.2.0 (diphenhydramine).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_915",
+      "smarts": "[C;X4](H)(C)(C)[N;%opls_902]",
+      "note": "CH on a tertiary amine N (OPLS 915, 'tertiary isopropyl amine'); any two C substituents (hydroxyzine benzhydryl C).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_914",
+      "smarts": "[C;X4](H)(C)(C)[N;%opls_901]",
+      "note": "CH on a secondary amine N (OPLS 914); Foyer requires two CH3 substituents, broadened to any C (prilocaine).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_244",
+      "smarts": "[C;X4](C)(H)(H)[N;%opls_238]",
+      "note": "Secondary-amide N-CH2R C (OPLS 244); undefined in Foyer 1.2.0 (lauramide MEA).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_518",
+      "smarts": "[C;X3]([O;X2])(=[C;X3])*",
+      "note": "Vinyl ether / enol C (C=C-OR, C=C-OH), with or without H and in rings (warfarin 4-hydroxycoumarin C4). Foyer 1.2.0's own definition [C;X3;!r6]([O;X2])([C;X3;!r6])([H]) is the special case it replaces.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_147",
+      "smarts": "[C;R2;X3;!%opls_141,%opls_145;!%opls_142,%opls_145]([C,%opls_263])([C;R2;X3])",
+      "note": "Naphthalene ring-fusion C, but not an alkene C (opls_141/142) unless the six-carbon ring rule opls_145 also matches: bridged/fused cycloalkenes (norbornene, steroid C=C, guaiazulene) are alkene CM. Foyer 1.2.0's [C;R2;X3]([C,%opls_263])([C;R2;X3]) collided with 141/142 there; atoms 145 also matches (quinoid dyes) keep 147 as before.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_401",
+      "smarts": "[Cl;X0]",
+      "note": "Cl- ion only. Foyer's [Cl] gave the chloride-ion type (sigma 4.02 A, eps 0.71 kcal/mol) to every covalent Cl no narrower rule matched (vinyl, acyl, heteroaryl, CCl4, Cl on N/S/P/Si); those now take the halogen rules of opls2020_types, else GAFF2 LJ.",
+      "date": "2026-10-29"
+    }
+  ],
+  "precedence": [
+    {
+      "type": "opls_467",
+      "over": [
+        "opls_236",
+        "opls_473"
+      ],
+      "note": "Ester single-bond O over amide carbonyl O and over phenyl-ether O (aryl lactones, coumarin).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_465",
+      "over": [
+        "opls_472"
+      ],
+      "note": "Ester carbonyl C over aryl C (coumarin).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_490",
+      "over": [
+        "opls_218"
+      ],
+      "note": "Ester O-CH2-C over benzyl-alcohol CH2.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_235",
+      "over": [
+        "opls_465"
+      ],
+      "note": "Carbamate carbonyl typed as amide C (LigParGen).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_236",
+      "over": [
+        "opls_466"
+      ],
+      "note": "Carbamate carbonyl typed as amide O (LigParGen).",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_557",
+      "over": [
+        "opls_901"
+      ],
+      "note": "Imidazole N1-H over secondary-amine N.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_562",
+      "over": [
+        "opls_910"
+      ],
+      "note": "Imidazole N1-H hydrogen over secondary-amine H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_563",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_564",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_565",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_582",
+      "over": [
+        "opls_141",
+        "opls_142"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_584",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_585",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_586",
+      "over": [
+        "opls_144"
+      ],
+      "note": "Ring CH/H of imidazole/isoxazole over generic alkene C/H.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_488",
+      "over": [
+        "opls_145"
+      ],
+      "note": "Benzene C bonded to sulfonamide S.",
+      "date": "2026-10-17"
+    },
+    {
+      "type": "opls_235",
+      "over": [
+        "opls_567"
+      ],
+      "note": "Cyclic carbamate C=O in a five-membered aromatic-fused ring (benzoxazolone, chlorzoxazone): carbonyl C, not furan C2.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_147",
+      "over": [
+        "opls_917"
+      ],
+      "note": "Ring-fusion C bonded to ring NH (7H-xanthine C5, theophylline): fusion C (the purine-C5 borrow rule then applies), not N-methylaniline ipso C.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_628",
+      "over": [
+        "opls_900",
+        "opls_901",
+        "opls_902"
+      ],
+      "note": "Purine N-H is aromatic NA, not an amine N.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_632",
+      "over": [
+        "opls_909",
+        "opls_910"
+      ],
+      "note": "H on purine N-H, not an amine H.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_147",
+      "over": [
+        "opls_567"
+      ],
+      "note": "Benzo-fused five-ring C bonded to the ring O (benzoxazolone C7a): ring-fusion CB, not furan C2.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_467",
+      "over": [
+        "opls_566"
+      ],
+      "note": "Ring O bonded to a C=O in a benzo-fused five-ring (benzoxazolone): ester/carbamate OS, not furan OA (same choice as the coumarin lactone, 467 over 473).",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_905",
+      "over": [
+        "opls_135"
+      ],
+      "note": "Amine N-CH3 over alkane CH3.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_915",
+      "over": [
+        "opls_137"
+      ],
+      "note": "Amine N-CH over alkane CH.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_244",
+      "over": [
+        "opls_136"
+      ],
+      "note": "Amide N-CH2R over alkane CH2.",
+      "date": "2026-10-18"
+    },
+    {
+      "type": "opls_521",
+      "over": [
+        "opls_522",
+        "opls_523"
+      ],
+      "note": "Pyridine ring C bonded to N (C1) over C2/C3 (bis-pyridyl rings).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_567",
+      "over": [
+        "opls_568"
+      ],
+      "note": "Furan C bonded to O over C not bonded to O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_917",
+      "over": [
+        "opls_521",
+        "opls_522",
+        "opls_523"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group). Amino-quinoline C-N.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_532",
+      "over": [
+        "opls_917"
+      ],
+      "note": "Purine/pyrimidine C4: opls_917 misfires because opls_901 matches the imidazole ring NH.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_531",
+      "over": [
+        "opls_917"
+      ],
+      "note": "Pyrimidine C2 (CQ, N-C-N) over opls_917 (ring NH as above).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_166",
+      "over": [
+        "opls_522"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_263",
+      "over": [
+        "opls_522"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_768",
+      "over": [
+        "opls_522"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_472",
+      "over": [
+        "opls_523"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_260",
+      "over": [
+        "opls_523",
+        "opls_533"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_221",
+      "over": [
+        "opls_147",
+        "opls_522",
+        "opls_533"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_488",
+      "over": [
+        "opls_147",
+        "opls_532"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_735",
+      "over": [
+        "opls_533"
+      ],
+      "note": "Aromatic ring C: the substituent rule over the heteroaromatic ring-position rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_233",
+      "over": [
+        "opls_145",
+        "opls_522"
+      ],
+      "note": "Non-aromatic ring atom: the rule for its actual group over the ring rule that Foyer's bond-order-free ring SMARTS also matches. Quinone C=O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_518",
+      "over": [
+        "opls_145",
+        "opls_166",
+        "opls_199",
+        "opls_472"
+      ],
+      "note": "Non-aromatic ring atom: the rule for its actual group over the ring rule that Foyer's bond-order-free ring SMARTS also matches. Enol-ether C of pyranones/xanthenes (518 needs a double bond, so it never matches an aromatic C).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_465",
+      "over": [
+        "opls_567"
+      ],
+      "note": "Non-aromatic ring atom: the rule for its actual group over the ring rule that Foyer's bond-order-free ring SMARTS also matches. Lactone/anhydride C=O in a 5-ring.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_570",
+      "over": [
+        "opls_282"
+      ],
+      "note": "Non-aromatic ring atom: the rule for its actual group over the ring rule that Foyer's bond-order-free ring SMARTS also matches. H on ring C=C (maleic anhydride) is HA, not alpha-carbonyl HC.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_185",
+      "over": [
+        "opls_282",
+        "opls_759"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_194",
+      "over": [
+        "opls_140",
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_469",
+      "over": [
+        "opls_282",
+        "opls_930"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_911",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_153",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_153a",
+      "over": [
+        "opls_282",
+        "opls_759"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_153b",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_444",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_485",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_763",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_759",
+      "over": [
+        "opls_282"
+      ],
+      "note": "sp3 C or its H next to two carbon groups: nitrile/nitro over carbonyl/aryl (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_758",
+      "over": [
+        "opls_139"
+      ],
+      "note": "sp3 C or its H next to two carbon groups: nitrile/nitro over carbonyl/aryl (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_756",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two carbon groups: nitrile/nitro over carbonyl/aryl (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_183",
+      "over": [
+        "opls_757"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_184",
+      "over": [
+        "opls_758"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_159",
+      "over": [
+        "opls_758"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_158",
+      "over": [
+        "opls_757"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_152a",
+      "over": [
+        "opls_757"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_157",
+      "over": [
+        "opls_756"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_210",
+      "over": [
+        "opls_756"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_915",
+      "over": [
+        "opls_757"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_907",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_210",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_245",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_484",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_152",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_152d",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_764",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_906",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_244",
+      "over": [
+        "opls_149"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzylic CH2 bonded to N/S/halogen/NO2/SO2.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_672",
+      "over": [
+        "opls_148"
+      ],
+      "note": "Methyl on a heteroaryl ring over toluene CH3 (same class and LJ).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_674",
+      "over": [
+        "opls_670",
+        "opls_672"
+      ],
+      "note": "Methyl on pyrimidine over pyridine/pyridazine methyl (same class and LJ).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_182",
+      "over": [
+        "opls_218"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Benzyl ether CH2 (same class and LJ).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_193",
+      "over": [
+        "opls_158"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Hemiacetal C is the acetal C (CO).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_154",
+      "over": [
+        "opls_186"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Anomeric OH is an alcohol O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_186",
+      "over": [
+        "opls_179"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Acetal O over alkyl-aryl ether O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_467",
+      "over": [
+        "opls_179",
+        "opls_186"
+      ],
+      "note": "sp3 C or its H next to two groups: the group bonded to the atom (heteroatom) over the alpha-group rule (more specific group). Ester single-bond O over ether/acetal O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_141",
+      "over": [
+        "opls_260"
+      ],
+      "note": "Non-aromatic ring C=C bearing CN: alkene C over benzonitrile ring C.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_521",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_522",
+      "over": [
+        "opls_147",
+        "opls_145"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_523",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_532",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_533",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_543",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_544",
+      "over": [
+        "opls_147"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_568",
+      "over": [
+        "opls_147",
+        "opls_145"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_525",
+      "over": [
+        "opls_146"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions). H follows its C (pyridine H2).",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_566",
+      "over": [
+        "opls_473"
+      ],
+      "note": "Fused (hetero)aromatic ring: the heteroaromatic ring-position rule over the generic benzene/naphthalene rule (more specific chemistry, as for the other collisions). Benzofuran/dibenzofuran O is the furan O (OA), not a diaryl-ether O.",
+      "date": "2026-10-28"
+    },
+    {
+      "type": "opls_543",
+      "over": [
+        "opls_145"
+      ],
+      "note": "Indole C7a in an indole with a ring fused across C3/C4 (ergolines, e.g. LSD): the pyrrole ring-position rule over the generic benzene rule, as plain indoles already type it (more specific chemistry wins).",
+      "date": "2026-10-29"
+    },
+    {
+      "type": "opls_544",
+      "over": [
+        "opls_145"
+      ],
+      "note": "Indole C3a in the same ring system (ergolines): the pyrrole C3a rule over the generic benzene rule, as plain indoles already type it.",
+      "date": "2026-10-29"
+    }
+  ],
+  "borrowed": [
+    {
+      "name": "amine-oxide-N",
+      "smarts": "[N+;X4:1][O-;X1]",
+      "type": "opls_288",
+      "replaces": [],
+      "note": "Amine N-oxide: R4N+ N (N3) and carboxylate O (O2), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "amine-oxide-O",
+      "smarts": "[O-;X1:1][N+;X4]",
+      "type": "opls_272",
+      "replaces": [],
+      "note": "Amine N-oxide: R4N+ N (N3) and carboxylate O (O2), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "ammonium-C",
+      "smarts": "[C;X4:1][N+;X4]",
+      "type": "opls_291",
+      "replaces": [],
+      "note": "Amine N-oxide alkyl C: ammonium C, as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "hydrazide-NH",
+      "smarts": "[N;X3;H1:1](C=O)[N;X3]",
+      "type": "opls_238",
+      "replaces": [],
+      "note": "Hydrazide C(=O)-NH-NH2: amide N/H and primary-amine N/H (N/NT), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "hydrazide-HN",
+      "smarts": "[H:1][N;X3;H1](C=O)[N;X3]",
+      "type": "opls_241",
+      "replaces": [],
+      "note": "Hydrazide C(=O)-NH-NH2: amide N/H and primary-amine N/H (N/NT), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "hydrazine-NH2",
+      "smarts": "[N;X3;H2:1][N;X3]",
+      "type": "opls_900",
+      "replaces": [],
+      "note": "Hydrazide C(=O)-NH-NH2: amide N/H and primary-amine N/H (N/NT), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "hydrazine-HN",
+      "smarts": "[H:1][N;X3;H2][N;X3]",
+      "type": "opls_909",
+      "replaces": [],
+      "note": "Hydrazide C(=O)-NH-NH2: amide N/H and primary-amine N/H (N/NT), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "triazole-N1",
+      "smarts": "[n;X3:1]1nc[n;X2]c1",
+      "type": "opls_557",
+      "replaces": [],
+      "note": "1,2,4-triazol-1-yl: imidazole types (NA, NB, CR, HA), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "triazole-N2",
+      "smarts": "[n;X2:1]1[n;X3]c[n;X2]c1",
+      "type": "opls_559",
+      "replaces": [],
+      "note": "1,2,4-triazol-1-yl: imidazole types (NA, NB, CR, HA), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "triazole-N4",
+      "smarts": "[n;X2:1]1c[n;X3][n;X2]c1",
+      "type": "opls_559",
+      "replaces": [],
+      "note": "1,2,4-triazol-1-yl: imidazole types (NA, NB, CR, HA), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "triazole-C",
+      "smarts": "[c:1]1nncn1",
+      "type": "opls_558",
+      "replaces": [],
+      "note": "1,2,4-triazol-1-yl: imidazole types (NA, NB, CR, HA), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "triazole-H",
+      "smarts": "[H:1]c1nncn1",
+      "type": "opls_563",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "1,2,4-triazol-1-yl: imidazole types (NA, NB, CR, HA), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-C4",
+      "smarts": "[c;R2:1]1[n;X2;r5]c[n;X3;r5][c;R2]1",
+      "type": "opls_623",
+      "replaces": [],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-C5",
+      "smarts": "[c;R2:1]1[n;X3;r5]c[n;X2;r5][c;R2]1",
+      "type": "opls_624",
+      "replaces": [
+        "opls_147"
+      ],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-N-subst",
+      "smarts": "[n;X3;r5:1]1[c;R2][c;R2][n;X2]c1",
+      "type": "opls_628",
+      "replaces": [],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-N",
+      "smarts": "[n;X2;r5:1]1c[n;X3][c;R2][c;R2]1",
+      "type": "opls_626",
+      "replaces": [],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-C8",
+      "smarts": "[c;r5;!R2:1]1[n;X3][c;R2][c;R2][n;X2]1",
+      "type": "opls_627",
+      "replaces": [],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "purine-H8",
+      "smarts": "[H:1][c;r5;!R2]1[n][c;R2][c;R2][n]1",
+      "type": "opls_563",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Imidazole fused to a six-ring (xanthines): purine types (CB, NA, NB, CK), as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "ring-N-CH3",
+      "smarts": "[C;X4;H3:1]n",
+      "type": "opls_135",
+      "replaces": [],
+      "note": "sp3 C on an aromatic ring N: CT, as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "ring-N-CH2",
+      "smarts": "[C;X4;H2:1]n",
+      "type": "opls_136",
+      "replaces": [],
+      "note": "sp3 C on an aromatic ring N: CT, as LigParGen. Class and LJ from GROMACS ffnonbonded.itp.",
+      "date": "2026-10-17"
+    },
+    {
+      "name": "ring-N-CH",
+      "smarts": "[C;X4;H1:1]n",
+      "type": "opls_137",
+      "replaces": [],
+      "note": "sp3 CH on an aromatic ring N (as ring-N-CH3/CH2).",
+      "date": "2026-10-18"
+    },
+    {
+      "name": "ring-N-C",
+      "smarts": "[C;X4;H0:1]n",
+      "type": "opls_139",
+      "replaces": [],
+      "note": "Quaternary sp3 C on an aromatic ring N (clotrimazole trityl C), as ring-N-CH3/CH2.",
+      "date": "2026-10-18"
+    },
+    {
+      "name": "pyrazole-N1",
+      "smarts": "[n;X3;r5:1]1:[n;X2;r5]:c:c:c:1",
+      "type": "opls_548",
+      "replaces": [],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-N2",
+      "smarts": "[n;X2;r5:1]1:[n;X3;r5]:c:c:c:1",
+      "type": "opls_549",
+      "replaces": [],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-C3",
+      "smarts": "[c;r5:1]1:[n;X2;r5]:[n;X3;r5]:c:c:1",
+      "type": "opls_550",
+      "replaces": [],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-C4",
+      "smarts": "[c;r5:1]1:c:[n;X2;r5]:[n;X3;r5]:c:1",
+      "type": "opls_551",
+      "replaces": [
+        "opls_142"
+      ],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-C5",
+      "smarts": "[c;r5:1]1:[n;X3;r5]:[n;X2;r5]:c:c:1",
+      "type": "opls_552",
+      "replaces": [],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-H1",
+      "smarts": "[H:1][n;X3;r5]1:[n;X2;r5]:c:c:c:1",
+      "type": "opls_553",
+      "replaces": [],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-H3",
+      "smarts": "[H:1][c;r5]1:[n;X2;r5]:[n;X3;r5]:c:c:1",
+      "type": "opls_554",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-H4",
+      "smarts": "[H:1][c;r5]1:c:[n;X2;r5]:[n;X3;r5]:c:1",
+      "type": "opls_555",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazole-H5",
+      "smarts": "[H:1][c;r5]1:[n;X3;r5]:[n;X2;r5]:c:c:1",
+      "type": "opls_556",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyrazole/indazole ring (exactly two adjacent ring N): OPLS/2020 pyrazole types 548-556, also for N- and C-substituted and fused rings (as 1-methylimidazole uses the imidazole types).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyridazine-N",
+      "smarts": "[n;X2;r6:1]1:[n;X2;r6]:c:c:c:c:1",
+      "type": "opls_537",
+      "replaces": [],
+      "note": "Pyridazine/cinnoline/phthalazine ring (N=N in a 6-ring, no other ring N): OPLS/2020 pyridazine types 537-541.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyridazine-C3",
+      "smarts": "[c;r6:1]1:[n;X2;r6]:[n;X2;r6]:c:c:c:1",
+      "type": "opls_538",
+      "replaces": [],
+      "note": "Pyridazine/cinnoline/phthalazine ring (N=N in a 6-ring, no other ring N): OPLS/2020 pyridazine types 537-541.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyridazine-C4",
+      "smarts": "[c;r6:1]1:c:[n;X2;r6]:[n;X2;r6]:c:c:1",
+      "type": "opls_539",
+      "replaces": [
+        "opls_142"
+      ],
+      "note": "Pyridazine/cinnoline/phthalazine ring (N=N in a 6-ring, no other ring N): OPLS/2020 pyridazine types 537-541.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyridazine-H3",
+      "smarts": "[H:1][c;r6]1:[n;X2;r6]:[n;X2;r6]:c:c:c:1",
+      "type": "opls_540",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyridazine/cinnoline/phthalazine ring (N=N in a 6-ring, no other ring N): OPLS/2020 pyridazine types 537-541.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyridazine-H4",
+      "smarts": "[H:1][c;r6]1:c:[n;X2;r6]:[n;X2;r6]:c:c:1",
+      "type": "opls_541",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyridazine/cinnoline/phthalazine ring (N=N in a 6-ring, no other ring N): OPLS/2020 pyridazine types 537-541.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazine-N",
+      "smarts": "[n;X2;r6:1]1:c:c:[n;X2;r6]:c:c:1",
+      "type": "opls_527",
+      "replaces": [],
+      "note": "Pyrazine/quinoxaline ring (1,4-N, no other ring N): OPLS/2020 pyrazine types 527-529.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazine-C",
+      "smarts": "[c;r6:1]1:[n;X2;r6]:c:c:[n;X2;r6]:c:1",
+      "type": "opls_528",
+      "replaces": [],
+      "note": "Pyrazine/quinoxaline ring (1,4-N, no other ring N): OPLS/2020 pyrazine types 527-529.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "pyrazine-H",
+      "smarts": "[H:1][c;r6]1:[n;X2;r6]:c:c:[n;X2;r6]:c:1",
+      "type": "opls_529",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "Pyrazine/quinoxaline ring (1,4-N, no other ring N): OPLS/2020 pyrazine types 527-529.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "triazine-N",
+      "smarts": "[n;X2;r6:1]1:c:n:c:n:c:1",
+      "type": "opls_641",
+      "replaces": [],
+      "note": "1,3,5-Triazine ring: OPLS/2020 triazine types 641-643, also substituted (melamine, atrazine).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "triazine-C",
+      "smarts": "[c;r6:1]1:n:c:n:c:n:1",
+      "type": "opls_642",
+      "replaces": [],
+      "note": "1,3,5-Triazine ring: OPLS/2020 triazine types 641-643, also substituted (melamine, atrazine).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "triazine-H",
+      "smarts": "[H:1][c;r6]1:n:c:n:c:n:1",
+      "type": "opls_643",
+      "replaces": [
+        "opls_144"
+      ],
+      "note": "1,3,5-Triazine ring: OPLS/2020 triazine types 641-643, also substituted (melamine, atrazine).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "epoxide-O",
+      "smarts": "[O;X2;r3:1]1[C;X4][C;X4]1",
+      "type": "opls_1025",
+      "replaces": [],
+      "note": "Epoxide (oxirane) ring: OPLS/2020 epoxide types 1025-1029.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "epoxide-CH2",
+      "smarts": "[C;X4;H2;r3:1]1O[C;X4]1",
+      "type": "opls_1026",
+      "replaces": [],
+      "note": "Epoxide (oxirane) ring: OPLS/2020 epoxide types 1025-1029.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "epoxide-CH",
+      "smarts": "[C;X4;H1;r3:1]1O[C;X4]1",
+      "type": "opls_1027",
+      "replaces": [],
+      "note": "Epoxide (oxirane) ring: OPLS/2020 epoxide types 1025-1029.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "epoxide-C",
+      "smarts": "[C;X4;H0;r3:1]1O[C;X4]1",
+      "type": "opls_1028",
+      "replaces": [],
+      "note": "Epoxide (oxirane) ring: OPLS/2020 epoxide types 1025-1029.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "epoxide-H",
+      "smarts": "[H:1][C;X4;r3]1O[C;X4]1",
+      "type": "opls_1029",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Epoxide (oxirane) ring: OPLS/2020 epoxide types 1025-1029.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "ammonium-R4N",
+      "smarts": "[N+;X4;H0;!$(N-c):1](-[#6])(-[#6])(-[#6])-[#6]",
+      "type": "opls_288",
+      "replaces": [],
+      "note": "Quaternary ammonium: OPLS/2020 R4N+ N (288); aryl-N+ R3 is the anilinium N (1125).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "anilinium-ArNR3",
+      "smarts": "[N+;X4;H0;$(N-c):1](-[#6])(-[#6])(-[#6])-[#6]",
+      "type": "opls_1125",
+      "replaces": [],
+      "note": "Quaternary ammonium: OPLS/2020 R4N+ N (288); aryl-N+ R3 is the anilinium N (1125).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "alkyl-bromide-R2CHBr",
+      "smarts": "[C;X4;H1:1](-[#6])(-[#6])Br",
+      "type": "opls_978",
+      "replaces": [],
+      "note": "Secondary alkyl bromide R2CHBr: OPLS/2020 types 978 (C, tentative) and 977 (H).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "alkyl-bromide-HCBr",
+      "smarts": "[H:1][C;X4;H1](-[#6])(-[#6])Br",
+      "type": "opls_977",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Secondary alkyl bromide R2CHBr: OPLS/2020 types 978 (C, tentative) and 977 (H).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-N",
+      "smarts": "[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S]):1](-[c,CX4])(-[c,CX4])-[c,CX4]",
+      "type": "opls_902",
+      "replaces": [],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-C(N)",
+      "smarts": "[c;$(c1ccccc1):1]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_918",
+      "replaces": [
+        "opls_145"
+      ],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-CH3",
+      "smarts": "[C;X4;H3:1]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_905",
+      "replaces": [],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-CH2",
+      "smarts": "[C;X4;H2;!$(C-c):1]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_908",
+      "replaces": [],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-CH2Ar",
+      "smarts": "[C;X4;H2;$(C-c):1]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_989",
+      "replaces": [],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-CH",
+      "smarts": "[C;X4;H1:1]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_915",
+      "replaces": [],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "aryl-amine-HC",
+      "smarts": "[H:1][C;X4]-[N;X3;H0;$(N-c);!$(N-[C,S,P,N]=*);!$(N-[N,O,S])](-[c,CX4])-[c,CX4]",
+      "type": "opls_911",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Tertiary aryl amine (N,N-dialkylaniline, N-aryl piperidine, ...): OPLS/2020 tertiary amine N 902, C(NR2) 918 (benzene-ring C only), CH3/CH2/CH on N 905/908/915 (benzylic CH2 989), H(C) 911, as N-methylaniline already types 901/917/904.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-CH3S",
+      "smarts": "[C;X4;H3:1][S;X4](=O)(=O)[N;X3]",
+      "type": "opls_476",
+      "replaces": [],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-HCS",
+      "smarts": "[H:1][C;X4;H3][S;X4](=O)(=O)[N;X3]",
+      "type": "opls_477",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-CH3N",
+      "smarts": "[C;X4;H3:1][N;X3][S;X4](=O)=O",
+      "type": "opls_482",
+      "replaces": [],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-HCN3",
+      "smarts": "[H:1][C;X4;H3][N;X3][S;X4](=O)=O",
+      "type": "opls_483",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-CH2N",
+      "smarts": "[C;X4;H2:1][N;X3][S;X4](=O)=O",
+      "type": "opls_484",
+      "replaces": [],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "sulfonamide-HCN2",
+      "smarts": "[H:1][C;X4;H2][N;X3][S;X4](=O)=O",
+      "type": "opls_485",
+      "replaces": [
+        "opls_140"
+      ],
+      "note": "Sulfonamide alkyl groups: OPLS/2020 CH3 on S (476/477) and alpha CH3/CH2 on N (482-485).",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "ketal-C",
+      "smarts": "[C;X4;H0:1](-[#6])(-[#6])(-[O;X2]-[#6])-[O;X2]-[#6]",
+      "type": "opls_197",
+      "replaces": [],
+      "note": "Ketal C(C2O2) and its ether O: OPLS/2020 acetal types 197 and 186.",
+      "date": "2026-10-29"
+    },
+    {
+      "name": "ketal-O",
+      "smarts": "[O;X2:1](-[#6])-[C;X4;H0](-[#6])(-[#6])-[O;X2]-[#6]",
+      "type": "opls_186",
+      "replaces": [
+        "opls_180"
+      ],
+      "note": "Ketal C(C2O2) and its ether O: OPLS/2020 acetal types 197 and 186.",
+      "date": "2026-10-29"
+    }
+  ],
+  "opls2020_types": [
+    {
+      "from": "*",
+      "to": "opls_302",
+      "smarts": "[CX3:1](=[NX3+])(-[NX3])-[NX3]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). C+.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_300",
+      "smarts": "[NX3;H2:1]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). NH2.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_303",
+      "smarts": "[NX3;H1:1]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). NHR.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_301",
+      "smarts": "[#1:1][NX3;H2]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). H on NH2.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_304",
+      "smarts": "[#1:1][NX3;H1]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). H on NHR.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_305",
+      "smarts": "[CX4;H3:1][NX3]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). CH3 on N (methylguanidinium).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_307",
+      "smarts": "[CX4;H2:1][NX3]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). CH2 on N (ARG CD, ethylguanidinium).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_306",
+      "smarts": "[CX4;H3:1][CX4;H2][NX3]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). CH3 of ethylguanidinium.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_140",
+      "smarts": "[#1:1][CX4][NX3]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). H on a C bonded to the N: alkane H (HC).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_793",
+      "smarts": "[c:1][NX3]~[CX3;$([CX3](=[NX3+])(-[NX3])-[NX3])]",
+      "note": "Guanidinium cation (user decision 2026-10-29): OPLS/2020 guanidinium types 300-307 and the phenylguanidinium ipso C 793, which have no SMARTS; matched by SMARTS alone (the rule set types the N as amines). Only a protonated guanidinium (C=N+). Ipso C of phenylguanidinium.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_123",
+      "smarts": "[Cl:1][CX4](Cl)(Cl)Cl",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl in CCl4.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_121",
+      "smarts": "[Cl:1][CX4;H1](Cl)Cl",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl in chloroform.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_119",
+      "smarts": "[Cl:1][CX4;H2]Cl",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl in methylene chloride.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_981",
+      "smarts": "[Cl:1][CX3]=O",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl in acyl chloride.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_398",
+      "smarts": "[Cl:1][CX3](Cl)=C",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Chloroalkene Cl (Cl2C=).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_226",
+      "smarts": "[Cl:1][CX3]=C",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Chloroalkene Cl (ClC=).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_264",
+      "smarts": "[Cl:1]c",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl on an aromatic C (chlorobenzene; also heteroaryl).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_151",
+      "smarts": "[Cl:1][CX4]",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Cl in alkyl chlorides (also Foyer's 151a/b/c, same parameters).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_982",
+      "smarts": "[Br:1][CX3]=O",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Br in acyl bromide.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_975",
+      "smarts": "[Br:1][CX4]",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Br in alkyl bromides (replaces Foyer's united-atom 722/722a, same LJ).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_730",
+      "smarts": "[Br:1]c",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. Br on an aromatic C (bromobenzene; also heteroaryl).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1014",
+      "smarts": "[I:1][CX4]",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. I in iodoalkanes (Foyer gave some the iodobenzene type 732).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_732",
+      "smarts": "[I:1]c",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. I on an aromatic C (iodobenzene; also heteroaryl).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_980",
+      "smarts": "[F:1][CX3]=O",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. F in acyl fluoride.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_956",
+      "smarts": "[F:1][CX4;!$(C(F)F)]",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. F in monoalkyl fluorides (Foyer gave the perfluoroalkane type 965).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_719",
+      "smarts": "[F:1][c;!$(c1ccccc1)]",
+      "note": "Halogens (user decision 2026-10-29): OPLS/2020 type of the halogen's environment; halogens on N, O, S, P, Si and other unlisted environments are left to GAFF2 LJ. F on a heteroaromatic C (fluorobenzene type; F on benzene rings keeps Foyer's 719/721/728).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1070",
+      "smarts": "[Si;H0:1][OX2;H1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R3SiOH.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1071",
+      "smarts": "[Si;H1:1][OX2;H1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R2SiHOH.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1072",
+      "smarts": "[Si;H2:1][OX2;H1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in RSiH2OH.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1084",
+      "smarts": "[Si;H3:1][OX2;H1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in SiH3OH.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1075",
+      "smarts": "[Si;H0:1][OX2;H0]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R3SiOR silyl ether (also siloxane Si).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1076",
+      "smarts": "[Si;H1:1][OX2;H0]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R2SiHOR.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1077",
+      "smarts": "[Si;H2,H3:1][OX2;H0]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in RSiH2OR (also H3SiOR).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1079",
+      "smarts": "[Si;H0:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R3SiSi disilane.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1080",
+      "smarts": "[Si;H1:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R2SiHSi disilane.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1081",
+      "smarts": "[Si;H2:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in RSiH2Si disilane.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1082",
+      "smarts": "[Si;H3:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in H3Si-Si disilane.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1083",
+      "smarts": "[Si;H4:1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in SiH4.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1060",
+      "smarts": "[Si;H0:1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in tetraalkylsilane R4Si (also aryl, halo).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1061",
+      "smarts": "[Si;H1:1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R3SiH.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1062",
+      "smarts": "[Si;H2:1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in R2SiH2.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1063",
+      "smarts": "[Si;H3:1]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. Si in RSiH3.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1064",
+      "smarts": "[#1:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. H on Si.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1065",
+      "smarts": "[CX4;H3:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. CH3 on Si.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1066",
+      "smarts": "[CX4;H2:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. CH2 on Si.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1067",
+      "smarts": "[CX4;H1:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. CH on Si.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1068",
+      "smarts": "[CX4;H0:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. C on Si.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1069",
+      "smarts": "[c:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. C ipso in phenyl silane.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1073",
+      "smarts": "[OX2;H1:1][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. O in SiOH silanol.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1074",
+      "smarts": "[#1:1][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. H in SiOH silanol.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1078",
+      "smarts": "[OX2;H0:1]([Si])[#6,Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. Si by its first matching environment: silanol, silyl ether (also siloxane), disilane, else silane; by H count. O in silyl ether (also siloxane Si-O-Si).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_181",
+      "smarts": "[CX4;H3:1][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. CH3 on silyl ether O (1078: R on O is 181-185).",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_182",
+      "smarts": "[CX4;H2:1][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. CH2 on silyl ether O.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_183",
+      "smarts": "[CX4;H1:1][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. CH on silyl ether O.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_184",
+      "smarts": "[CX4;H0:1][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. C on silyl ether O.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_185",
+      "smarts": "[#1:1][CX4][OX2][Si]",
+      "note": "Silicon (OPLS/2020 1060-1084, wlj unpublished); the OPLS-AA rule set has no Si rules and GAFF2 no Si type. H alpha to silyl ether O.",
+      "date": "2026-10-29"
+    },
+    {
+      "from": "*",
+      "to": "opls_1157",
+      "smarts": "[CX2:1](=[CX3])=[CX3]",
+      "note": "Allene C2 (class C:). Allene (OPLS/2020 1153-1157); \"*\" rules apply whatever Foyer gave (its opls_927 rule types the centre as an alkyne C, and leaves tetrasubstituted centres untyped).",
+      "date": "2026-10-19"
+    },
+    {
+      "from": "*",
+      "to": "opls_1154",
+      "smarts": "[CH2X3:1]=[CX2]=[CX3]",
+      "note": "Allene C1 CH2. Allene (OPLS/2020 1153-1157); \"*\" rules apply whatever Foyer gave (its opls_927 rule types the centre as an alkyne C, and leaves tetrasubstituted centres untyped).",
+      "date": "2026-10-19"
+    },
+    {
+      "from": "*",
+      "to": "opls_1155",
+      "smarts": "[CH1X3:1]=[CX2]=[CX3]",
+      "note": "Allene C1 CHR. Allene (OPLS/2020 1153-1157); \"*\" rules apply whatever Foyer gave (its opls_927 rule types the centre as an alkyne C, and leaves tetrasubstituted centres untyped).",
+      "date": "2026-10-19"
+    },
+    {
+      "from": "*",
+      "to": "opls_1156",
+      "smarts": "[CH0X3:1]=[CX2]=[CX3]",
+      "note": "Allene C1 CR2. Allene (OPLS/2020 1153-1157); \"*\" rules apply whatever Foyer gave (its opls_927 rule types the centre as an alkyne C, and leaves tetrasubstituted centres untyped).",
+      "date": "2026-10-19"
+    },
+    {
+      "from": "*",
+      "to": "opls_1153",
+      "smarts": "[H:1][CX3]=[CX2]=[CX3]",
+      "note": "Allene H. Allene (OPLS/2020 1153-1157); \"*\" rules apply whatever Foyer gave (its opls_927 rule types the centre as an alkyne C, and leaves tetrasubstituted centres untyped).",
+      "date": "2026-10-19"
+    },
+    {
+      "from": "opls_135",
+      "to": "opls_927",
+      "smarts": "[CH3:1]C#*",
+      "note": "H3C-C#C (OPLS/2020 927).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_136",
+      "to": "opls_928",
+      "smarts": "[CH2:1]C#*",
+      "note": "RCH2-C#C (OPLS/2020 928).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_137",
+      "to": "opls_929",
+      "smarts": "[CH1:1]C#*",
+      "note": "R2CH-C#C (OPLS/2020 929).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_139",
+      "to": "opls_930",
+      "smarts": "[CH0;X4:1]C#*",
+      "note": "R3C-C#C (OPLS/2020 930).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_136",
+      "to": "opls_714",
+      "smarts": "[CH2;X4;r4:1]",
+      "note": "Cyclobutane CH2 (OPLS/2020 714, class CY).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_137",
+      "to": "opls_715",
+      "smarts": "[CH1;X4;r4:1]",
+      "note": "Cyclobutane CHR (OPLS/2020 715, class CY).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_139",
+      "to": "opls_716",
+      "smarts": "[CH0;X4;r4:1]",
+      "note": "Cyclobutane CR2 (OPLS/2020 716, class CY).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_712",
+      "to": "opls_1268",
+      "smarts": "[CH1;r3:1]C=C",
+      "note": "Vinylcyclopropane CH (OPLS/2020 1268).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_712",
+      "to": "opls_1270",
+      "smarts": "[CH1;r3:1]C#C",
+      "note": "Ethynylcyclopropane CH (OPLS/2020 1270).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_135",
+      "to": "opls_55",
+      "smarts": "[CH3:1][CX4;H1]",
+      "note": "iso-CH3. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_135",
+      "to": "opls_56",
+      "smarts": "[CH3:1][CX4;H0]",
+      "note": "neo-CH3. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_135",
+      "to": "opls_54",
+      "smarts": "",
+      "note": "n-CH3 (CH3 on CH2/CH3 or on a non-sp3 C). OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_136",
+      "to": "opls_57",
+      "smarts": "",
+      "note": "CH2. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_137",
+      "to": "opls_58",
+      "smarts": "",
+      "note": "CH. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_139",
+      "to": "opls_59",
+      "smarts": "",
+      "note": "Quaternary C. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_140",
+      "to": "opls_60",
+      "smarts": "",
+      "note": "H on alkyl C. OPLS/2020 alkane type (Ghahremanpour et al., J. Phys. Chem. B 2022, 126, 5896); the par file marks 135-140 as old OPLS-AA alkane parameters.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_930",
+      "to": "opls_60",
+      "smarts": "",
+      "note": "Foyer opls_930 (H on the C next to a terminal alkyne) is an alkyl H; OPLS/2020 930 is now R3C-C#C.",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_148",
+      "to": "opls_61",
+      "smarts": "",
+      "note": "CH3 on benzene (OPLS/2020 61, sigma 3.55).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_149",
+      "to": "opls_62",
+      "smarts": "",
+      "note": "CH2 on benzene (OPLS/2020 62, sigma 3.51).",
+      "date": "2026-10-18"
+    },
+    {
+      "from": "opls_927",
+      "to": "opls_939",
+      "smarts": "",
+      "note": "Internal alkyne C (Foyer opls_927 meaning); OPLS/2020 type 939 RC#CR.",
+      "date": "2026-10-18"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+opls-ff-lite: sources of the bundled data and of the data it reads
+
+The opls-ff-lite code (a reduced copy of opls-ff-gen) is released under the MIT
+License (LICENSE). The data files in src/opls_ff_lite/data/ come from the sources below, which keep their
+own terms.
+
+NOT DISTRIBUTED
+  OPLS/2020 parameters (oplsaa2020.par, oplsaa2020.sb). Supporting Information
+  of W. L. Jorgensen, M. M. Ghahremanpour, A. Saar and J. Tirado-Rives,
+  "OPLS/2020 Force Field for Unsaturated Hydrocarbons, Alcohols, and Ethers",
+  J. Phys. Chem. B (2024), doi:10.1021/acs.jpcb.3c06602 (American Chemical
+  Society). They may not be redistributed. Each user downloads them and
+  installs them with `opls-ff-lite install-si`.
+
+DERIVED FROM FOYER (MIT License, Copyright (c) 2015 Vanderbilt University;
+https://github.com/mosdef-hub/foyer; C. Klein et al., Comput. Phys. Commun.
+2019, doi:10.1016/j.cpc.2018.10.023)
+  opls_rules.json: the OPLS-AA atom types, SMARTS rules and overrides of
+  Foyer 1.2.0 forcefields/xml/oplsaa.xml. The XML's sigma/epsilon values
+  (from GROMACS oplsaa.ff) are not included.
+
+  The MIT License text of Foyer:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to permit
+    persons to whom the Software is furnished to do so, subject to the
+    following conditions: The above copyright notice and this permission
+    notice shall be included in all copies or substantial portions of the
+    Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+DERIVED FROM GAFF2 (public domain)
+  gaff2_lj.json, gaff2_bonded.json: GAFF2 parameters from gaff2.dat (AMBER
+    General Force Field, version 2.2.30, Oct 2025; J. Wang et al., J. Comput.
+    Chem. 25, 1157 (2004)), with our own SMARTS typing rules.
+  gaff2_general_torsions.par: GAFF2 general torsions converted to OPLS form;
+    six central pairs were refitted to GFN2-xTB scans by this project.
+  AmberTools/LICENSE (AmberTools 26): "The force field parameter files in the
+  dat/leap subdirectory have been placed in the public domain by their
+  authors." gaff2.dat is dat/leap/parm/gaff2.dat.
+
+COPIED FROM AMBERTOOLS 26 (GNU GPL, version 3)
+  parmchk/PARMCHK.DAT, parmchk/PARM_BLBA_GAFF2.DAT: parmchk2 data files from
+  dat/antechamber/, copied unchanged and distributed under the GPL v3 (the
+  AmberTools default; the public-domain exception does not cover
+  dat/antechamber). The GPL text is in parmchk/AmberTools-LICENSE.txt (the
+  unchanged AmberTools/LICENSE); see parmchk/README.txt. opls-ff-lite reads
+  them as data. parmchk.py and bonded_substitution.py reimplement the
+  parmchk2 substitution steps in Python, following the behaviour of
+  AmberTools' parmchk2.c.
+
+OWN WORK OF THIS PROJECT (MIT License)
+  atomtype_archive.json, gaff2_opls_analogs.json, gaff2_display_types.json:
+    typing rules, precedence and analogs.
+  qm_bonded_terms.json, qm_bonded_terms.par: bonds and angles from this
+    project's GFN2-xTB fits (modified Seminario method).
+  MANIFEST.json: checksums of the files above.
+
+PROGRAM USED AT RUN TIME (installed by the user, not distributed)
+  MOPAC (Apache-2.0, https://github.com/openmopac/mopac).
