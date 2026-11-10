@@ -1,17 +1,16 @@
-# Polymer GROMACS Builder
+# Polymer Topology Builder for Molecular Dynamics Simulation
 
 A tool to build force-field topologies and starting structures of polymers
-for molecular dynamics (MD) with GROMACS. It writes ready-to-use `.top`,
-`.itp` and `.gro` files. The main input is the monomer structure, which you
-draw in a GUI or give as a MOL/SDF file.
+for molecular dynamics (MD) (currently only support GROMACS). 
+It writes ready-to-use `.top`, `.itp` and `.gro` files. 
+The main input is the monomer structure, which you can draw in a GUI or give as a MOL/SDF file.
 
-You draw a monomer and choose the atoms that connect it to the previous and
-next monomer. The program then works as follows:
+You draw a monomer and select the connection atoms between monomers, then the program then works as follows:
 
 - **Reference oligomer.** It builds a small hidden reference oligomer (5
   units by default) and parameterizes only that oligomer, with one of three
   force-field engines:
-  - **OPLS-AA/2020** (default; bundled opls-ff-lite);
+  - **OPLS-AA/2020** (default);
   - **OpenFF Sage** (your own OpenFF installation);
   - **GAFF2/AM1-BCC** (your own AmberTools installation).
 - **Transfer.** The same engine-neutral step transfers the reference
@@ -41,7 +40,7 @@ draw monomer
 
 | engine | `--ff-engine` | force field and charges | needs |
 |---|---|---|---|
-| **OPLS-AA/2020** (default) | `opls` | OPLS/2020 atom types and bonded terms; CM1A charges (ions) or 1.14*CM1A-LBCC (neutral) | bundled opls-ff-lite, MOPAC, the OPLS/2020 SI files |
+| **OPLS-AA/2020** (default) | `opls` | OPLS/2020 atom types and bonded terms; CM1A charges (ions) or 1.14*CM1A-LBCC (neutral) 
 | OpenFF Sage | `sage` | Sage 2.3.0 (`openff-2.3.0.offxml`) by default; NAGL (AshGC) charges | your own OpenFF installation (openff-toolkit, openff-interchange, openff-nagl + models); nothing is installed for it |
 | GAFF2 | `gaff2` | GAFF2 types; AM1-BCC charges | your own AmberTools installation (`antechamber`, `parmchk2`, `tleap`, ParmEd); nothing is installed for it |
 
