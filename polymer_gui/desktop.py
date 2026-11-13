@@ -134,7 +134,7 @@ class PolymerBuilderApp:
         self.amber_python_var = tk.StringVar()
         self.layout_var = tk.StringVar(value=LAYOUT_LABELS[backend.DEFAULT_CHAIN_LAYOUT])
         self.seed_var = tk.IntVar(value=0)
-        self.run_external_var = tk.BooleanVar(value=True)
+        self.dry_run_var = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar(value="Draw a monomer, or load the PEG example.")
         self.summary_var = tk.StringVar(value="")
         for variable in (self.previous_var, self.next_var):
@@ -282,7 +282,9 @@ class PolymerBuilderApp:
             ttk.Button(tab, text="...", width=3, command=self._browse_outdir),
         )
         ttk.Checkbutton(
-            tab, text="Run force-field parameterization (otherwise placeholder files)", variable=self.run_external_var
+            tab,
+            text="Dry run: do not parameterize, write placeholder files only (not for simulation)",
+            variable=self.dry_run_var,
         ).grid(row=row, column=0, columnspan=3, sticky=tk.W, pady=(6, 2))
         row += 1
         buttons = ttk.Frame(tab)
@@ -627,7 +629,7 @@ class PolymerBuilderApp:
                 next_atom=nxt,
                 reference_dp=int(self.reference_dp_var.get()),
                 polymer_dp=int(self.dp_var.get()),
-                run_external=bool(self.run_external_var.get()),
+                run_external=not self.dry_run_var.get(),
                 ff_engine=self._engine(),
                 engine_settings=self._engine_settings(),
                 chain_layout=next(key for key, label in LAYOUT_LABELS.items() if label == self.layout_var.get()),
@@ -662,6 +664,8 @@ class PolymerBuilderApp:
             f"Force field: {metadata.get('ff_engine_description', metadata.get('ff_engine'))}",
             f"Mode: {metadata.get('parameterization_mode')}; final charge {result.final_charge:+.6f}",
         ]
+        if not options.run_external:
+            lines.append("DRY RUN: placeholder files only (no force-field parameters); not for simulation.")
         if result.missing_tools:
             lines.append("Placeholder files only; missing: " + ", ".join(result.missing_tools))
             lines += backend.engine_problem_lines(options.ff_engine, options.engine_settings)
