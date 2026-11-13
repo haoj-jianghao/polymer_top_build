@@ -7,6 +7,8 @@ without a display. Behaviour follows the original web sketcher:
 * drag between two points draws a single bond, creating carbon atoms at free ends;
 * click an atom to change its element (and choose it as a connection atom);
 * click a bond to cycle single -> double -> triple -> single;
+* bond-order tool: click a bond to make it single/double/triple, or drag to
+  draw a bond of that order (bonds win over nearby atoms, so short bonds work);
 * click empty space to add an atom of the current element;
 * charge tool: click an atom to set its formal charge;
 * stereo tool: draw or click a single bond to make it a wedge (1) or dash (6);
@@ -27,6 +29,7 @@ ELEMENT_COLORS = {
     "H": "#64717b", "Cl": "#11824c", "Si": "#8a5a44", "P": "#db6f00",
     "F": "#5a9c3f", "Br": "#8b3a10", "I": "#5e2f8a",
 }
+BOND_ORDER_NAMES = {1: "single", 2: "double", 3: "triple"}
 V2000_CHARGE_CODE = {1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3}
 ATOM_HIT_RADIUS = 20.0
 BOND_HIT_DISTANCE = 8.0
@@ -72,12 +75,16 @@ class SketchModel:
     atoms: list[SketchAtom] = field(default_factory=list)
     bonds: list[SketchBond] = field(default_factory=list)
     element: str = "C"
-    tool: str = "atom"  # "atom" | "charge" | "stereo"
+    tool: str = "atom"  # "atom" | "order" | "charge" | "stereo"
+    bond_order: int = 1  # order used by the "order" tool
     formal_charge: int = 0
     bond_stereo: int = 0
     selected_atom: int | None = None
     selected_bond: SketchBond | None = None
     name: str = "Drawn_monomer"
+    # {old id: new id} after an atom deletion renumbered the atoms; the GUI
+    # uses it to follow the connection atoms (see take_renumbering).
+    last_renumbering: dict[int, int] | None = None
 
     # -- queries -------------------------------------------------------------
 
@@ -118,20 +125,27 @@ class SketchModel:
             None,
         )
         if existing is not None:
-            if self.tool == "stereo":
+            if self.tool == "order":
+                existing.order = self.bond_order
+                if existing.order != 1:
+                    existing.stereo = 0
+            elif self.tool == "stereo":
                 if existing.order == 1:
                     existing.stereo = self.bond_stereo
             else:
                 self.cycle_bond_order(existing)
         else:
-            self.bonds.append(SketchBond(a.id, b.id, 1, self.bond_stereo if self.tool == "stereo" else 0))
+            order = self.bond_order if self.tool == "order" else 1
+            self.bonds.append(SketchBond(a.id, b.id, order, self.bond_stereo if self.tool == "stereo" else 0))
 
     @staticmethod
     def cycle_bond_order(bond: SketchBond) -> None:
         bond.order = 1 if bond.order >= 3 else bond.order + 1
         bond.stereo = 0
 
-    def renumber(self) -> None:
+    def renumber(self) -> dict[int, int]:
+        """Renumber atoms 1..N in drawing order; returns {old id: new id}."""
+
         old_to_new = {}
         for index, atom in enumerate(self.atoms, start=1):
             old_to_new[atom.id] = index
@@ -141,13 +155,23 @@ class SketchModel:
             for bond in self.bonds
             if bond.a in old_to_new and bond.b in old_to_new
         ]
+        return old_to_new
 
-    def erase_atom(self, atom: SketchAtom) -> None:
+    def erase_atom(self, atom: SketchAtom) -> dict[int, int]:
+        """Delete an atom and its bonds; returns {old id: new id} of the remaining atoms."""
+
         self.atoms = [item for item in self.atoms if item.id != atom.id]
         self.bonds = [bond for bond in self.bonds if atom.id not in (bond.a, bond.b)]
         self.selected_atom = None
         self.selected_bond = None
-        self.renumber()
+        self.last_renumbering = self.renumber()
+        return self.last_renumbering
+
+    def take_renumbering(self) -> dict[int, int] | None:
+        """The {old id: new id} map of the last atom deletion, once (None if none since)."""
+
+        mapping, self.last_renumbering = self.last_renumbering, None
+        return mapping
 
     def erase_bond(self, bond: SketchBond) -> None:
         self.bonds = [item for item in self.bonds if item is not bond]
@@ -187,6 +211,16 @@ class SketchModel:
             label = charge_label(self.formal_charge) or "0"
             return f"Assigned formal charge {label} to atom {end_atom.id}.", None
 
+        if self.tool == "order" and not dragged:
+            bond = self.bond_at(*end)
+            if bond is None:
+                return "Click a bond to set its order, or drag to draw a new bond of that order.", None
+            bond.order = self.bond_order
+            if bond.order != 1:
+                bond.stereo = 0
+            self.selected_bond, self.selected_atom = bond, None
+            return f"Bond {bond.a}-{bond.b} is now {BOND_ORDER_NAMES[bond.order]}.", None
+
         if self.tool == "stereo" and not dragged:
             bond = self.bond_at(*end)
             if bond is None:
@@ -211,7 +245,7 @@ class SketchModel:
         if bond is not None:
             self.cycle_bond_order(bond)
             self.selected_bond, self.selected_atom = bond, None
-            return f"Bond {bond.a}-{bond.b} is now of order {bond.order}.", None
+            return f"Bond {bond.a}-{bond.b} is now {BOND_ORDER_NAMES[bond.order]}.", None
         atom = self.add_atom(self.element, *end)
         self.selected_atom, self.selected_bond = atom.id, None
         return f"Added atom {atom.id} ({atom.element}).", None

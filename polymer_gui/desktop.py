@@ -47,6 +47,16 @@ ENGINE_LABELS = {
     "gaff2": "GAFF2 / AM1-BCC (your AmberTools install)",
 }
 LAYOUT_LABELS = {"random-walk": "3D random walk of monomers", "2d": "Flat 2D layout"}
+END_GROUP_LABELS = {
+    "H": "H (hydrogen, default)",
+    "F": "F (e.g. CF2 end -> CF3)",
+    "Cl": "Cl",
+    "CH3": "CH3 (methyl)",
+    "CF3": "CF3 (trifluoromethyl)",
+    "OH": "OH (hydroxyl)",
+    "OCH3": "OCH3 (methoxy)",
+    "NH2": "NH2 (amine)",
+}
 PREVIOUS_COLOR, NEXT_COLOR = "#1a8f3c", "#d9730d"
 
 
@@ -133,6 +143,8 @@ class PolymerBuilderApp:
         self.sage_python_var = tk.StringVar()
         self.amber_python_var = tk.StringVar()
         self.layout_var = tk.StringVar(value=LAYOUT_LABELS[backend.DEFAULT_CHAIN_LAYOUT])
+        self.head_group_var = tk.StringVar(value=END_GROUP_LABELS[backend.DEFAULT_END_GROUP])
+        self.tail_group_var = tk.StringVar(value=END_GROUP_LABELS[backend.DEFAULT_END_GROUP])
         self.seed_var = tk.IntVar(value=0)
         self.dry_run_var = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar(value="Draw a monomer, or load the PEG example.")
@@ -211,6 +223,13 @@ class PolymerBuilderApp:
                 style="Tool.TRadiobutton", command=lambda: self._set_tool(self.tool_var.get()),
             ).grid(row=index // 3, column=index % 3, sticky=tk.EW)
 
+        orders = group("Bond order")
+        for column, (label, value) in enumerate((("Single", 1), ("Double", 2), ("Triple", 3))):
+            ttk.Radiobutton(
+                orders, text=label, value=f"order:{value}", variable=self.tool_var,
+                style="Tool.TRadiobutton", command=lambda: self._set_tool(self.tool_var.get()),
+            ).grid(row=0, column=column, sticky=tk.EW)
+
         charges = group("Formal charge")
         for column, (label, value) in enumerate((("-1", -1), ("0", 0), ("+1", 1))):
             ttk.Radiobutton(
@@ -274,6 +293,9 @@ class PolymerBuilderApp:
         )
         row += 1
         add("Starting structure", ttk.Combobox(tab, textvariable=self.layout_var, values=list(LAYOUT_LABELS.values()), state="readonly"))
+        for label, variable in (("Head end group (on previous atom)", self.head_group_var),
+                                ("Tail end group (on next atom)", self.tail_group_var)):
+            add(label, ttk.Combobox(tab, textvariable=variable, values=list(END_GROUP_LABELS.values()), state="readonly"))
         add("Random-walk seed", ttk.Spinbox(tab, from_=0, to=10**6, textvariable=self.seed_var, width=8))
         add("Job name", ttk.Entry(tab, textvariable=self.job_var))
         add(
@@ -348,6 +370,10 @@ class PolymerBuilderApp:
         if kind == "atom":
             model.tool, model.element = "atom", argument
             self.set_status(f"Atom tool ({argument}): drag to draw bonds, click an atom to change its element.")
+        elif kind == "order":
+            model.tool, model.bond_order = "order", int(argument)
+            name = {1: "single", 2: "double", 3: "triple"}[model.bond_order]
+            self.set_status(f"Bond-order tool ({name}): click a bond to make it {name}, or drag to draw a {name} bond.")
         elif kind == "charge":
             model.tool, model.formal_charge = "charge", int(argument)
             if model.selected_atom is not None and model.atom(model.selected_atom):
@@ -402,8 +428,36 @@ class PolymerBuilderApp:
     def _on_erase(self, event: tk.Event) -> None:
         message = self.model.erase_at(event.x, event.y)
         if message:
-            self.set_status(message)
+            self.set_status(self._follow_renumbering(message))
         self.redraw()
+
+    def _follow_renumbering(self, message: str) -> str:
+        """Keep the connection atoms on the same drawn atoms after a deletion renumbered them.
+
+        A connection atom that was itself deleted is cleared (the user has to
+        pick it again). Returns ``message`` with a note of what changed.
+        """
+
+        mapping = self.model.take_renumbering()
+        if mapping is None:
+            return message
+        notes = []
+        for role, variable in (("previous", self.previous_var), ("next", self.next_var)):
+            old = self._safe_int(variable)
+            if old is None:
+                continue
+            new = mapping.get(old)
+            if new is None:
+                variable.set("")
+                notes.append(f"the {role} connection atom was deleted; pick it again")
+            elif new != old:
+                variable.set(new)
+                notes.append(f"{role} connection atom {old} is now atom {new}")
+        return message + (" (" + "; ".join(notes) + ")" if notes else "")
+
+    def _clear_connection_atoms(self) -> None:
+        self.previous_var.set("")
+        self.next_var.set("")
 
     def redraw(self) -> None:
         canvas = self.canvas
@@ -497,11 +551,12 @@ class PolymerBuilderApp:
         self.status_var.set(text)
 
     def delete_selected(self) -> None:
-        self.set_status(self.model.delete_selected())
+        self.set_status(self._follow_renumbering(self.model.delete_selected()))
         self.redraw()
 
     def clear_drawing(self) -> None:
         self.model.clear()
+        self._clear_connection_atoms()
         self.mol_text.delete("1.0", tk.END)
         self.redraw()
         self.set_status("Cleared the drawing.")
@@ -527,6 +582,8 @@ class PolymerBuilderApp:
             try:
                 self.load_molblock(Path(path).read_text(), Path(path).name)
                 self.job_var.set(Path(path).stem)
+                self._clear_connection_atoms()
+                self.set_status(f"Loaded {Path(path).name}. Now pick the previous and next connection atoms.")
             except Exception as exc:
                 messagebox.showerror(APP_TITLE, f"Could not load {path}:\n{exc}")
 
@@ -569,7 +626,8 @@ class PolymerBuilderApp:
             "- Drag to draw a bond (free ends become carbon atoms).\n"
             "- Click empty space to add an atom of the chosen element.\n"
             "- Click an atom to change its element.\n"
-            "- Click a bond to cycle single -> double -> triple.\n"
+            "- Bond order tool: click a bond to make it single, double or triple\n"
+            "  (with an element tool, clicking a bond cycles single -> double -> triple).\n"
             "- Right-click an atom or bond to delete it; Del deletes the selection.\n"
             "- Charge tool: click an atom. Bond style: draw a bond from its narrow end or click it.\n\n"
             "Connection atoms\n"
@@ -616,7 +674,9 @@ class PolymerBuilderApp:
             raise ValueError("Draw a monomer first.")
         previous, nxt = self._safe_int(self.previous_var), self._safe_int(self.next_var)
         count = len(self.model.atoms)
-        if previous is None or nxt is None or not (1 <= previous <= count and 1 <= nxt <= count):
+        if previous is None or nxt is None:
+            raise ValueError("Pick the previous and next connection atoms first (\"Pick previous/next\" tool).")
+        if not (1 <= previous <= count and 1 <= nxt <= count):
             raise ValueError(f"Connection atoms must be between 1 and {count}.")
         if previous == nxt:
             raise ValueError("The previous and next connection atoms must be different.")
@@ -633,6 +693,8 @@ class PolymerBuilderApp:
                 ff_engine=self._engine(),
                 engine_settings=self._engine_settings(),
                 chain_layout=next(key for key, label in LAYOUT_LABELS.items() if label == self.layout_var.get()),
+                head_group=next(key for key, label in END_GROUP_LABELS.items() if label == self.head_group_var.get()),
+                tail_group=next(key for key, label in END_GROUP_LABELS.items() if label == self.tail_group_var.get()),
                 chain_seed=int(self.seed_var.get()),
             ),
         }
@@ -664,6 +726,13 @@ class PolymerBuilderApp:
             f"Force field: {metadata.get('ff_engine_description', metadata.get('ff_engine'))}",
             f"Mode: {metadata.get('parameterization_mode')}; final charge {result.final_charge:+.6f}",
         ]
+        lines.append(f"End groups: head {metadata.get('head_end_group', 'H')}, tail {metadata.get('tail_end_group', 'H')}")
+        if metadata.get("leaving_hydrogens_removed"):
+            atoms = ", ".join(str(index) for index in metadata["leaving_hydrogens_removed"])
+            lines.append(
+                f"Leaving hydrogens: drawn H atom(s) {atoms} on the connection atoms were removed to make "
+                "room for the inter-unit bonds (chain ends get them back as end-cap hydrogens)."
+            )
         if not options.run_external:
             lines.append("DRY RUN: placeholder files only (no force-field parameters); not for simulation.")
         if result.missing_tools:

@@ -44,6 +44,26 @@ class SketchModelTests(unittest.TestCase):
         model.release((300, 300), (300, 300))                          # click empty space -> new atom
         self.assertEqual(model.atoms[-1].element, "N")
 
+    def test_bond_order_tool(self):
+        model = self.draw_chain()
+        model.tool, model.bond_order = "order", 2
+        message, _ = model.release((130, 100), (130, 100))             # click bond 1-2
+        self.assertEqual((model.bonds[0].order, message), (2, "Bond 1-2 is now double."))
+        model.release((130, 100), (130, 100))                          # same tool again: stays double
+        self.assertEqual(model.bonds[0].order, 2)
+        model.bond_order = 3
+        model.release((220, 100), (280, 100))                          # drag: new triple bond to a new atom
+        self.assertEqual((model.bonds[-1].order, len(model.atoms)), (3, 4))
+        model.bond_order = 1
+        model.release((160, 100), (220, 100))                          # drag over an existing bond sets its order
+        self.assertEqual(model.bonds[1].order, 1)
+        short = SketchModel()
+        short.release((100, 100), (130, 100))                          # 30 px bond: its middle is within atom reach
+        short.tool, short.bond_order = "order", 2
+        short.release((115, 100), (115, 100))
+        self.assertEqual(short.bonds[0].order, 2)
+        self.assertIn("Click a bond", short.release((300, 300), (300, 300))[0])
+
     def test_charge_and_stereo_tools(self):
         model = self.draw_chain()
         model.tool, model.formal_charge = "charge", -1
@@ -61,6 +81,15 @@ class SketchModelTests(unittest.TestCase):
         model.erase_at(160, 100)                                       # delete the middle atom
         self.assertEqual([(a.id, a.element) for a in model.atoms], [(1, "C"), (2, "C"), (3, "O")])
         self.assertEqual(model.bonds, [])
+
+    def test_delete_reports_the_renumbering_once(self):
+        model = self.draw_chain()
+        model.add_atom("O", 400, 400)
+        model.erase_at(100, 100)                                       # delete atom 1
+        self.assertEqual(model.take_renumbering(), {2: 1, 3: 2, 4: 3})
+        self.assertIsNone(model.take_renumbering())
+        model.erase_bond(model.bonds[0])                               # bond deletions do not renumber
+        self.assertIsNone(model.take_renumbering())
 
     def test_molblock_round_trip_through_the_backend_reader(self):
         model = self.draw_chain()
@@ -130,6 +159,49 @@ class DesktopWindowTests(unittest.TestCase):
         self.assertEqual((self.app.previous_var.get(), self.app.next_var.get()), (1, 3))
         self.assertIn("C2H6O", self.app.summary_var.get())
         self.assertTrue(self.app.canvas.find_all())
+
+    def test_bond_order_tool_in_the_window(self):
+        app = self.app
+        self.gesture(200, 200, 260, 200)
+        app._set_tool("order:2")
+        self.gesture(230, 200)
+        self.assertEqual(app.model.bonds[0].order, 2)
+        self.assertEqual(app.status_var.get(), "Bond 1-2 is now double.")
+        black = [app.canvas.coords(item) for item in app.canvas.find_all()
+                 if app.canvas.type(item) == "line" and app.canvas.itemcget(item, "fill") == "#111111"]
+        self.assertEqual(len(black), 2)                                 # drawn as two parallel lines
+
+    def test_connection_atoms_follow_deletions(self):
+        app = self.app
+        self.gesture(200, 200, 260, 200)                                # atoms 1-2
+        self.gesture(260, 200, 320, 200)                                # atom 3
+        self.gesture(320, 200, 380, 200)                                # atom 4
+        app.previous_var.set(2)
+        app.next_var.set(4)
+        app.canvas.event_generate("<Button-3>", x=200, y=200)          # delete atom 1
+        self.root.update()
+        self.assertEqual((app.previous_var.get(), app.next_var.get()), (1, 3))
+        self.assertIn("next connection atom 4 is now atom 3", app.status_var.get())
+        self.gesture(440, 200, 500, 200)                                # adding atoms keeps the picks
+        self.assertEqual((app.previous_var.get(), app.next_var.get()), (1, 3))
+        app.canvas.event_generate("<Button-3>", x=380, y=200)          # delete the next atom itself
+        self.root.update()
+        self.assertEqual(app.previous_var.get(), 1)
+        self.assertIsNone(app._safe_int(app.next_var))
+        self.assertIn("next connection atom was deleted", app.status_var.get())
+        with self.assertRaisesRegex(ValueError, "Pick the previous and next connection atoms"):
+            app._build_parameters()
+        app.clear_drawing()
+        self.assertIsNone(app._safe_int(app.previous_var))
+
+    def test_end_group_choices_reach_the_build_options(self):
+        app = self.app
+        app.load_peg_example()
+        self.assertEqual(app._build_parameters()["options"]["head_group"], "H")
+        app.head_group_var.set(self.desktop.END_GROUP_LABELS["OCH3"])
+        app.tail_group_var.set(self.desktop.END_GROUP_LABELS["CF3"])
+        options = app._build_parameters()["options"]
+        self.assertEqual((options["head_group"], options["tail_group"]), ("OCH3", "CF3"))
 
     def test_placeholder_build_runs_in_the_background_and_reports(self):
         app = self.app

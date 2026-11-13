@@ -91,6 +91,50 @@ class RandomWalkTests(unittest.TestCase):
                 z_spread = max(atom.z for atom in target.atoms) - min(atom.z for atom in target.atoms)
                 self.assertGreater(z_spread, 1.0)  # genuinely three-dimensional
 
+    def test_perfluorinated_chain_uses_the_reference_contacts_as_limit(self):
+        # -CF2-CF2-: the minimized reference has F...F contacts below the plain
+        # clash limit, which used to stop the walk at the second unit.
+        monomer = Molecule(
+            "PTFE",
+            atoms=[Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0), Atom(3, "F", 1.5, 1.3),
+                   Atom(4, "F", 1.5, -1.3), Atom(5, "F", 0, 1.3), Atom(6, "F", 0, -1.3)],
+            bonds=[Bond(1, 2), Bond(1, 5), Bond(1, 6), Bond(2, 3), Bond(2, 4)],
+        )
+        tmp = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        reference = minimized_reference(monomer, 1, 2, 5, tmp)
+        target = target_for(monomer, 1, 2, 12)
+        result = apply_random_walk_coordinates(reference, target, len(monomer.atoms), 5, 12, 0)
+        self.assertEqual(len(result.rotamers), 11)
+        self.assertLess(result.limit_scale, 1.0)
+        self.assertGreaterEqual(result.min_contact_ratio, 1.0)
+        self.assertTrue(any("scaled by" in line for line in result.lines()))
+
+    def test_walk_with_end_groups(self):
+        from polymer_from_oligomer import add_end_groups
+
+        monomer = Molecule(
+            "PTFE",
+            atoms=[Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0), Atom(3, "F", 1.5, 1.3),
+                   Atom(4, "F", 1.5, -1.3), Atom(5, "F", 0, 1.3), Atom(6, "F", 0, -1.3)],
+            bonds=[Bond(1, 2), Bond(1, 5), Bond(1, 6), Bond(2, 3), Bond(2, 4)],
+        )
+        tmp = Path(self.enterContext(tempfile.TemporaryDirectory()))
+
+        def capped(dp):
+            chain, _ = build_reference_oligomer_from_monomer(monomer, 1, 2, dp)
+            end_atoms = add_end_groups(chain, 1, (dp - 1) * 6 + 2, "F", "CF3")
+            add_valence_hydrogens(chain)
+            return chain, end_atoms
+
+        reference, end_atoms = capped(5)
+        write_sdf(reference, tmp / "reference.sdf")
+        reference = read_sdf(minimize_sdf_geometry(tmp / "reference.sdf", tmp / "reference_min.sdf")[0])
+        target, _ = capped(12)
+        result = apply_random_walk_coordinates(reference, target, 6, 5, 12, 0, end_atoms=end_atoms)
+        self.assertEqual(len(result.rotamers), 11)
+        self.assertGreaterEqual(result.min_contact_ratio, 1.0)
+        self.assertEqual(len(result.coordinates), len(target.atoms))
+
     def test_walk_is_reproducible_for_a_seed(self):
         _, _, first, _ = self.walk("acrylate", 20, seed=3)
         _, _, again, _ = self.walk("acrylate", 20, seed=3)

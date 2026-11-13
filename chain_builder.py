@@ -15,12 +15,17 @@ units serve as rigid templates:
 * the one random degree of freedom is the rotation about the junction bond:
   a staggered rotamer (0, 120 or 240 degrees from the reference conformation;
   0 or 180 for a double-bond junction, none for a triple bond) plus a small
-  uniform jitter;
+  uniform jitter (if no jittered rotamer fits, the exact rotamers are tried
+  before backtracking);
 * a placement is rejected if any new atom comes closer than
   ``CLASH_SCALE`` x (sum of van der Waals radii) to an already placed atom
   more than three bonds away (``HBOND_SCALE`` for a polar hydrogen and an
   N/O/F acceptor, which hydrogen-bond); when no rotamer of a unit fits, the
   walk backtracks. The random generator is seeded, so a build is reproducible.
+  Contacts the minimized reference itself has are never clashes: if its
+  closest non-bonded contact is below those limits (perfluorocarbons put 1-6
+  F...F pairs at about 2.3 A against a 2.35 A limit), every limit is scaled
+  down to ``REFERENCE_MARGIN`` x that contact.
 
 Units are rigid copies of reference units, so stereocentres keep the
 configuration of the reference (the drawn wedges and dashes).
@@ -50,6 +55,7 @@ HBOND_SCALE = 0.60
 HBOND_DONOR_PARENTS = frozenset({"N", "O", "S"})
 HBOND_ACCEPTORS = frozenset({"N", "O", "F"})
 EXCLUDED_BOND_SEPARATION = 3  # pairs up to 1-4 are bonded neighbours, never clashes
+REFERENCE_MARGIN = 0.95  # limits scaled to 95 % of the reference's own closest contact
 ROTAMERS = {1: (0.0, 120.0, 240.0), 2: (0.0, 180.0)}  # by junction bond order; triple: (0,)
 DEFAULT_JITTER_DEG = 15.0
 
@@ -61,6 +67,8 @@ class WalkResult:
     placements_tried: int = 0
     backtracks: int = 0
     min_contact_ratio: float = math.inf
+    # 1.0, or < 1 when the reference's own closest contact required looser limits
+    limit_scale: float = 1.0
     end_to_end: float = 0.0
     radius_of_gyration: float = 0.0
     seed: int = 0
@@ -72,7 +80,12 @@ class WalkResult:
             f"  junction rotations (deg, first 12): {[round(value, 1) for value in self.rotamers[:12]]}",
             f"  placements tried: {self.placements_tried}; backtracks: {self.backtracks}",
             "  closest non-bonded contact (beyond 1-4) relative to its clash limit: "
-            f"{self.min_contact_ratio:.3f} (>= 1; limits {CLASH_SCALE} x vdW sum, {HBOND_SCALE} for H-bond pairs)",
+            f"{self.min_contact_ratio:.3f} (>= 1; limits {CLASH_SCALE} x vdW sum, {HBOND_SCALE} for H-bond pairs"
+            + (
+                f", scaled by {self.limit_scale:.3f} to the reference's own closest contact)"
+                if self.limit_scale < 1.0
+                else ")"
+            ),
             f"  end-to-end distance: {self.end_to_end:.2f} A; radius of gyration (heavy atoms): "
             f"{self.radius_of_gyration:.2f} A",
         ]
@@ -222,7 +235,12 @@ def random_walk_coordinates(
 
     def limit_for(a: int, b: int) -> float:
         hbond = (a in polar_h and b in acceptor) or (b in polar_h and a in acceptor)
-        return HBOND_SCALE if hbond else CLASH_SCALE
+        return (HBOND_SCALE if hbond else CLASH_SCALE) * limit_scale
+
+    limit_scale = 1.0
+    reference_ratio = _reference_min_contact(reference_position, reference_labels, reference_graph, target_labels, target_elements)
+    if reference_ratio < 1.0:
+        limit_scale = REFERENCE_MARGIN * reference_ratio
 
     cell = CLASH_SCALE * 2 * max(radius.values())
     grid = _Grid(cell)
@@ -266,7 +284,7 @@ def random_walk_coordinates(
     commit(head)
     transforms.append((np.eye(3), np.zeros(3)))
 
-    result = WalkResult(coordinates={}, seed=seed)
+    result = WalkResult(coordinates={}, seed=seed, limit_scale=limit_scale)
     limit = max_placements or 200 * target_dp + 1000
     options: list[list[float]] = [[]]
     unit = 1
@@ -276,7 +294,11 @@ def random_walk_coordinates(
             order = junction[unit][2]
             rotamers = list(ROTAMERS.get(order, (0.0,)))
             rng.shuffle(rotamers)
-            options.append([value + rng.uniform(-jitter_deg, jitter_deg) * (order == 1) for value in rotamers])
+            jittered = [value + rng.uniform(-jitter_deg, jitter_deg) * (order == 1) for value in rotamers]
+            # Tried last to first: the jittered rotamers, then (crowded chains such as
+            # perfluorocarbons, where jitter alone can cause a clash) the exact ones.
+            exact = [value for value in reversed(rotamers)] if order == 1 and jitter_deg else []
+            options.append(exact + jittered)
         if not options[unit]:
             # every rotamer of this unit clashed: undo the previous unit and try its next rotamer
             options.pop()
@@ -332,6 +354,31 @@ def random_walk_coordinates(
         last = next(index for index in units[target_dp - 1] if target_labels[index][1] == junction[1][0])
         result.end_to_end = float(np.linalg.norm(positions[last] - positions[first]))
     return result
+
+
+def _reference_min_contact(reference_position, reference_labels, reference_graph, target_labels, target_elements) -> float:
+    """The reference's closest non-bonded contact (beyond 1-4) relative to the unscaled clash limits."""
+
+    element_of_key = {key: target_elements[index] for index, (_, key) in target_labels.items()}
+    element = {index: element_of_key.get(key, "C") for index, (_, key) in reference_labels.items()}
+    radius = {index: VDW_RADIUS.get(value, 1.8) for index, value in element.items()}
+    polar_h = {
+        index for index, value in element.items()
+        if value == "H" and any(element[n] in HBOND_DONOR_PARENTS for n in reference_graph[index])
+    }
+    acceptor = {index for index, value in element.items() if value in HBOND_ACCEPTORS}
+    indices = sorted(reference_position)
+    worst = math.inf
+    for position, index in enumerate(indices):
+        excluded = _bond_neighbourhood(reference_graph, index, EXCLUDED_BOND_SEPARATION)
+        for other in indices[position + 1:]:
+            if other in excluded:
+                continue
+            hbond = (index in polar_h and other in acceptor) or (other in polar_h and index in acceptor)
+            limit = (HBOND_SCALE if hbond else CLASH_SCALE) * (radius[index] + radius[other])
+            distance = float(np.linalg.norm(reference_position[index] - reference_position[other]))
+            worst = min(worst, distance / limit)
+    return worst
 
 
 def _overall_min_contact(positions, radius, grid, neighbourhood, limit_for) -> float:

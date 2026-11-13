@@ -71,6 +71,23 @@ FF_ENGINES = {
 # topology_transfer copies to the polymer.
 TRANSFER_ENGINES = ("opls", "sage", "gaff2")
 
+# End groups that cap the free valence of a chain end in monomer mode. Each is
+# a list of (element, parent) atoms: parent -1 is the chain-end connection
+# atom, otherwise the index of an earlier atom of the group. All bonds are
+# single; remaining valences are filled with hydrogens. "H" adds nothing (the
+# connection atom simply keeps a hydrogen).
+END_GROUPS: dict[str, tuple[tuple[str, int], ...]] = {
+    "H": (),
+    "F": (("F", -1),),
+    "Cl": (("Cl", -1),),
+    "CH3": (("C", -1),),
+    "CF3": (("C", -1), ("F", 0), ("F", 0), ("F", 0)),
+    "OH": (("O", -1),),
+    "OCH3": (("O", -1), ("C", 0)),
+    "NH2": (("N", -1),),
+}
+DEFAULT_END_GROUP = "H"
+
 
 def engine_module(engine: str):
     """The module that parameterizes the reference oligomer for a transfer engine."""
@@ -196,6 +213,8 @@ class MonomerBuildOptions:
     engine_settings: dict = field(default_factory=dict)
     chain_layout: str = DEFAULT_CHAIN_LAYOUT
     chain_seed: int = 0
+    head_group: str = DEFAULT_END_GROUP  # caps the previous connection atom of the first unit
+    tail_group: str = DEFAULT_END_GROUP  # caps the next connection atom of the last unit
 
 
 @dataclass
@@ -219,6 +238,9 @@ class TargetSpec:
     unit_atom_count: int | None = None
     reference_dp: int | None = None
     target_dp: int | None = None
+    # (head, tail) end-group atom counts; they follow the monomer atoms of
+    # every unit in both the reference and the target (see unit_atom_labels).
+    end_atoms: tuple[int, int] = (0, 0)
     raw_charge: float = 0.0
     final_charge: float = 0.0
     correction_per_repeat_atom: float = 0.0
@@ -535,14 +557,16 @@ def reference_atom_candidates(
     unit_atom_count: int,
     reference_dp: int,
     target_dp: int,
+    end_atoms: tuple[int, int] = (0, 0),
 ) -> dict[int, list[int]]:
     """Reference atoms equivalent to each target atom, by repeat-unit role.
 
     The first target unit maps to the reference head unit, the last to the
     reference tail unit, and every interior unit to all reference interior
-    units (a DP-1 target maps to both reference ends). Hydrogens added to an
-    atom map by their slot on that atom; candidates whose hydrogen count
-    differs from the target atom's are dropped.
+    units (a DP-1 target maps to both reference ends). End-group atoms map to
+    the same end-group atom of the reference. Hydrogens added to an atom map
+    by their slot on that atom; candidates whose hydrogen count differs from
+    the target atom's are dropped.
     """
 
     if unit_atom_count < 1:
@@ -559,8 +583,9 @@ def reference_atom_candidates(
     if len(target.atoms) < target_base_count:
         raise ValueError("Target molecule is missing one or more monomer base atoms.")
 
-    reference_h = _generated_hydrogens_by_parent(reference, reference_base_count)
-    target_h = _generated_hydrogens_by_parent(target, target_base_count)
+    end_count = sum(end_atoms)
+    reference_h = _generated_hydrogens_by_parent(reference, reference_base_count + end_count)
+    target_h = _generated_hydrogens_by_parent(target, target_base_count + end_count)
 
     def reference_units_for(target_unit: int) -> list[int]:
         if target_dp == 1:
@@ -599,24 +624,42 @@ def reference_atom_candidates(
                 candidates[target_hydrogen] = [
                     indices[hydrogen_position] for indices in reference_hydrogen_lists
                 ]
+    for offset in range(1, end_count + 1):
+        target_index, reference_index = target_base_count + offset, reference_base_count + offset
+        if len(reference_h[reference_index]) != len(target_h[target_index]):
+            raise ValueError(f"Reference/target hydrogen environments disagree for end-group atom {offset}.")
+        candidates[target_index] = [reference_index]
+        for target_hydrogen, reference_hydrogen in zip(target_h[target_index], reference_h[reference_index]):
+            candidates[target_hydrogen] = [reference_hydrogen]
     return candidates
 
 
-def unit_atom_labels(mol: Molecule, unit_atom_count: int, dp: int) -> dict[int, tuple[int, tuple]]:
+def unit_atom_labels(
+    mol: Molecule, unit_atom_count: int, dp: int, end_atoms: tuple[int, int] = (0, 0)
+) -> dict[int, tuple[int, tuple]]:
     """Label every atom as (repeat unit, position in the unit) for topology transfer.
 
     Monomer atoms are ``("A", position)``; hydrogens added by
-    ``add_valence_hydrogens`` are ``("H", parent position, slot)``.
+    ``add_valence_hydrogens`` are ``("H", parent position, slot)``. The
+    ``end_atoms = (head, tail)`` end-group atoms follow the monomer atoms of
+    all units; they belong to the first/last unit and continue its positions
+    (``("A", unit_atom_count + k)``), so an end unit is simply a larger unit.
     """
 
     base_count = unit_atom_count * dp
-    if len(mol.atoms) < base_count:
+    head_count, tail_count = end_atoms
+    if len(mol.atoms) < base_count + head_count + tail_count:
         raise ValueError("Molecule is missing one or more monomer base atoms.")
     labels: dict[int, tuple[int, tuple]] = {
         index: ((index - 1) // unit_atom_count, ("A", (index - 1) % unit_atom_count))
         for index in range(1, base_count + 1)
     }
-    for parent, hydrogens in _generated_hydrogens_by_parent(mol, base_count).items():
+    for k in range(head_count):
+        labels[base_count + 1 + k] = (0, ("A", unit_atom_count + k))
+    for k in range(tail_count):
+        labels[base_count + head_count + 1 + k] = (dp - 1, ("A", unit_atom_count + head_count + k))
+    fixed_count = base_count + head_count + tail_count
+    for parent, hydrogens in _generated_hydrogens_by_parent(mol, fixed_count).items():
         unit, (_, position) = labels[parent]
         for slot, hydrogen in enumerate(hydrogens):
             labels[hydrogen] = (unit, ("H", position, slot))
@@ -875,6 +918,136 @@ def monomer_spacing(monomer: Molecule, previous_atom: int, next_atom: int) -> fl
     return max(3.0, width + connection_distance + 1.5)
 
 
+@dataclass
+class PreparedMonomer:
+    """A drawn monomer made ready for chaining (leaving hydrogens removed)."""
+
+    molecule: Molecule
+    previous_atom: int
+    next_atom: int
+    # Drawn (input) indices of the explicit hydrogens removed as leaving hydrogens.
+    leaving_hydrogens: list[int]
+    # Prepared-monomer index -> drawn index.
+    drawn_index: dict[int, int]
+
+
+def prepare_monomer_connections(
+    monomer: Molecule, previous_atom: int, next_atom: int, junction_order: int = 1
+) -> PreparedMonomer:
+    """Check that both connection atoms can take the inter-unit bond.
+
+    Each connection atom gains one bond of ``junction_order`` per repeat unit.
+    When that would exceed its normal valence and explicit hydrogens are drawn
+    on it, those hydrogens are leaving hydrogens: just enough of them are
+    removed (highest index first) to make room. Anything that still does not
+    fit raises ``ValueError`` naming the drawn atom, before any file is written.
+    """
+
+    count = len(monomer.atoms)
+    for role, index in (("Previous", previous_atom), ("Next", next_atom)):
+        if not 1 <= index <= count:
+            raise ValueError(f"{role} connection atom {index} is outside the monomer (atoms 1-{count}).")
+    if previous_atom == next_atom:
+        raise ValueError("The previous and next connection atoms must be different.")
+
+    graph = monomer.adjacency()
+    sums = bond_order_sums(monomer)
+    removed: set[int] = set()
+    for role, index in (("Previous", previous_atom), ("Next", next_atom)):
+        atom = monomer.atom(index)
+        if atom.element == "H":
+            raise ValueError(
+                f"{role} connection atom {index} is a hydrogen. Choose the heavy atom it is bonded to; "
+                "an explicit hydrogen on a connection atom is removed automatically as a leaving hydrogen."
+            )
+        normal = maximum_valence(atom)
+        if normal is None:
+            continue
+        excess = sums[index] + junction_order - normal
+        if excess <= 0:
+            continue
+        hydrogens = sorted(
+            (
+                neighbor
+                for neighbor in graph[index]
+                if monomer.atom(neighbor).element == "H"
+                and len(graph[neighbor]) == 1
+                and neighbor not in (previous_atom, next_atom)
+            ),
+            reverse=True,
+        )
+        removed.update(hydrogens[:excess])
+
+    kept = [atom for atom in monomer.atoms if atom.index not in removed]
+    new_index = {atom.index: position for position, atom in enumerate(kept, start=1)}
+    prepared = Molecule(
+        name=monomer.name,
+        atoms=[
+            Atom(
+                index=new_index[atom.index],
+                element=atom.element,
+                x=atom.x,
+                y=atom.y,
+                z=atom.z,
+                formal_charge=atom.formal_charge,
+            )
+            for atom in kept
+        ],
+        bonds=[
+            Bond(new_index[bond.a], new_index[bond.b], bond.order, bond.stereo)
+            for bond in monomer.bonds
+            if bond.a in new_index and bond.b in new_index
+        ],
+    )
+    drawn_index = {new: old for old, new in new_index.items()}
+    previous_new, next_new = new_index[previous_atom], new_index[next_atom]
+    problems = valence_problems(
+        prepared,
+        extra={previous_new: junction_order, next_new: junction_order},
+        label=lambda index: f"atom {drawn_index[index]}",
+    )
+    if problems:
+        raise ValueError(
+            "The monomer cannot be chained (each connection atom gains one inter-unit bond): "
+            + "; ".join(problems)
+            + ". Remove a bond or hydrogen from that atom, or check its formal charge."
+        )
+    return PreparedMonomer(prepared, previous_new, next_new, sorted(removed), drawn_index)
+
+
+def widest_term_span(mol: Molecule, unit_of: dict[int, int]) -> int:
+    """Most repeat units spanned by any bonded term (bond, angle, torsion, 1-4 pair).
+
+    Every such term lies on a path of at most three bonds, so this is the
+    widest unit range over those paths; impropers stay within it as well.
+    """
+
+    graph = mol.adjacency()
+    widest = 1
+    for a in graph:
+        for b in graph[a]:
+            for c in graph[b]:
+                if c == a:
+                    continue
+                ends = [d for d in graph[c] if d not in (a, b)] or [c]
+                for d in ends:
+                    units = (unit_of[a], unit_of[b], unit_of[c], unit_of[d])
+                    widest = max(widest, max(units) - min(units) + 1)
+            units = (unit_of[a], unit_of[b])
+            widest = max(widest, max(units) - min(units) + 1)
+    return widest
+
+
+def minimum_reference_dp(
+    reference_with_h: Molecule, unit_atom_count: int, reference_dp: int, end_atoms: tuple[int, int] = (0, 0)
+) -> tuple[int, int]:
+    """(widest term span, smallest reference size the index-shift transfer accepts)."""
+
+    labels = unit_atom_labels(reference_with_h, unit_atom_count, reference_dp, end_atoms)
+    widest = widest_term_span(reference_with_h, {index: unit for index, (unit, _) in labels.items()})
+    return widest, max(3, widest + 2)
+
+
 def build_reference_oligomer_from_monomer(
     monomer: Molecule,
     previous_atom: int,
@@ -902,6 +1075,42 @@ def build_reference_oligomer_from_monomer(
             oligomer.bonds.append(Bond(mappings[unit_idx - 1][next_atom], mapping[previous_atom], junction_order))
     repeat_atoms = [mappings[0][atom.index] for atom in monomer.atoms]
     return oligomer, repeat_atoms
+
+
+def add_end_groups(chain: Molecule, head_atom: int, tail_atom: int, head_group: str, tail_group: str) -> tuple[int, int]:
+    """Append the head and tail end-group atoms (before any hydrogens are added).
+
+    ``head_atom``/``tail_atom`` are the free connection atoms of the first and
+    last unit. Returns the (head, tail) atom counts used by unit_atom_labels.
+    """
+
+    counts = []
+    for group, anchor, direction in ((head_group, head_atom, -1.0), (tail_group, tail_atom, 1.0)):
+        if group not in END_GROUPS:
+            raise ValueError(f"Unknown end group {group!r}; choose one of {', '.join(END_GROUPS)}.")
+        spec = END_GROUPS[group]
+        base = chain.atom(anchor)
+        placed: list[int] = []
+        for position, (element, parent) in enumerate(spec):
+            parent_index = anchor if parent < 0 else placed[parent]
+            parent_atom = chain.atom(parent_index)
+            depth = 1 if parent < 0 else 2
+            spread = 0.0 if parent < 0 else (position - (len(spec) - 1) / 2) * 1.0
+            index = len(chain.atoms) + 1
+            chain.atoms.append(
+                Atom(
+                    index=index,
+                    element=element,
+                    x=base.x + direction * 1.4 * depth,
+                    y=parent_atom.y + spread,
+                    z=base.z,
+                    repeat_atom=True,
+                )
+            )
+            chain.bonds.append(Bond(parent_index, index, 1))
+            placed.append(index)
+        counts.append(len(spec))
+    return counts[0], counts[1]
 
 
 def build_polymer_graph(mol: Molecule, plan: RepeatPlan, dp: int) -> Molecule:
@@ -973,11 +1182,65 @@ def maximum_valence(atom: Atom) -> int | None:
     )
 
 
-def add_valence_hydrogens(mol: Molecule) -> None:
-    degree = {atom.index: 0 for atom in mol.atoms}
+# Highest bond-order sum accepted for elements that can expand their octet
+# (sulfones, sulfonates, phosphates, PF6-, perchlorate). Hydrogens are still
+# only added up to ``maximum_valence``.
+EXPANDED_VALENCE = {"S": 6, "P": 6, "Cl": 7, "Br": 7, "I": 7}
+
+
+def valence_limit(atom: Atom) -> int | None:
+    """Largest bond-order sum accepted for an atom (None: element not checked)."""
+
+    base = maximum_valence(atom)
+    if base is None:
+        return None
+    return max(base, EXPANDED_VALENCE.get(atom.element, base))
+
+
+def bond_order_sums(mol: Molecule) -> dict[int, int]:
+    sums = {atom.index: 0 for atom in mol.atoms}
     for bond in mol.bonds:
-        degree[bond.a] += bond.order
-        degree[bond.b] += bond.order
+        sums[bond.a] += bond.order
+        sums[bond.b] += bond.order
+    return sums
+
+
+def valence_problems(mol: Molecule, extra: dict[int, int] | None = None, label=None) -> list[str]:
+    """Atoms whose bond-order sum (plus ``extra`` bonds) exceeds their valence.
+
+    ``label(index)`` names an atom in the messages (default "atom <index>").
+    """
+
+    label = label or (lambda index: f"atom {index}")
+    problems = [
+        f"bond {label(bond.a)}-{label(bond.b)} has order {bond.order}; only single, double and triple "
+        "bonds are supported (draw aromatic rings in their Kekule form)"
+        for bond in mol.bonds
+        if bond.order not in (1, 2, 3)
+    ]
+    sums = bond_order_sums(mol)
+    for atom in mol.atoms:
+        limit = valence_limit(atom)
+        total = sums[atom.index] + (extra or {}).get(atom.index, 0)
+        if limit is not None and total > limit:
+            problems.append(
+                f"{label(atom.index)} ({atom.element}{charge_suffix(atom.formal_charge)}) has bond-order "
+                f"sum {total}, more than its maximum valence {limit}"
+            )
+    return problems
+
+
+def charge_suffix(charge: int) -> str:
+    if not charge:
+        return ""
+    return ("" if abs(charge) == 1 else str(abs(charge))) + ("+" if charge > 0 else "-")
+
+
+def add_valence_hydrogens(mol: Molecule) -> None:
+    problems = valence_problems(mol)
+    if problems:
+        raise ValueError("Valence exceeded in " + mol.name + ": " + "; ".join(problems) + ".")
+    degree = bond_order_sums(mol)
     next_idx = len(mol.atoms) + 1
     new_bonds: list[Bond] = []
     for atom in list(mol.atoms):
@@ -1296,6 +1559,7 @@ def apply_random_walk_coordinates(
     reference_dp: int,
     target_dp: int,
     seed: int = 0,
+    end_atoms: tuple[int, int] = (0, 0),
 ):
     """Give the target 3D coordinates by a self-avoiding random walk of reference units."""
 
@@ -1303,9 +1567,9 @@ def apply_random_walk_coordinates(
 
     walk = chain_builder.random_walk_coordinates(
         {atom.index: (atom.x, atom.y, atom.z) for atom in reference_mol.atoms},
-        unit_atom_labels(reference_mol, unit_atom_count, reference_dp),
+        unit_atom_labels(reference_mol, unit_atom_count, reference_dp, end_atoms),
         [(bond.a, bond.b) for bond in reference_mol.bonds],
-        unit_atom_labels(target, unit_atom_count, target_dp),
+        unit_atom_labels(target, unit_atom_count, target_dp, end_atoms),
         [(bond.a, bond.b, bond.order) for bond in target.bonds],
         {atom.index: atom.element for atom in target.atoms},
         seed=seed,
@@ -1405,8 +1669,9 @@ def run_reference_engine_pipeline(
         mode = "direct_target"
     elif all(value is not None for value in mapping_values):
         unit_atom_count, reference_dp, target_dp = mapping_values
-        labels = unit_atom_labels(target, unit_atom_count, target_dp)
-        reference_labels = unit_atom_labels(reference_mol, unit_atom_count, reference_dp)
+        end_atoms = target_spec.end_atoms
+        labels = unit_atom_labels(target, unit_atom_count, target_dp, end_atoms)
+        reference_labels = unit_atom_labels(reference_mol, unit_atom_count, reference_dp, end_atoms)
         transfer = topology_transfer.transfer_topology(
             reference_top,
             [(bond.a, bond.b) for bond in reference_mol.bonds],
@@ -1414,7 +1679,9 @@ def run_reference_engine_pipeline(
             [(bond.a, bond.b) for bond in target.bonds],
             labels,
         )
-        candidates = reference_atom_candidates(reference_mol, target, unit_atom_count, reference_dp, target_dp)
+        candidates = reference_atom_candidates(
+            reference_mol, target, unit_atom_count, reference_dp, target_dp, end_atoms
+        )
         charges = []
         for atom in target.atoms:
             values = [reference_top.atoms[index - 1].charge for index in candidates[atom.index]]
@@ -1441,7 +1708,8 @@ def run_reference_engine_pipeline(
         reference_is_3d = max((abs(atom.z) for atom in reference_mol.atoms), default=0.0) > 1e-4
         if chain_layout == "random-walk" and reference_is_3d:
             walk = apply_random_walk_coordinates(
-                reference_mol, target, mapping_values[0], mapping_values[1], mapping_values[2], chain_seed
+                reference_mol, target, mapping_values[0], mapping_values[1], mapping_values[2], chain_seed,
+                end_atoms=target_spec.end_atoms,
             )
             write_sdf(target, outdir / "polymer.sdf")
         else:
@@ -1532,6 +1800,7 @@ def write_outputs_for_polymer(
     external_formal_charge: int | None = None,
     reference_unit_atom_count: int | None = None,
     reference_dp: int | None = None,
+    end_atoms: tuple[int, int] = (0, 0),
 ) -> BuildResult:
     target_charge = options.dp * options.repeat_charge + options.end_charge
     options.outdir.mkdir(parents=True, exist_ok=True)
@@ -1567,6 +1836,7 @@ def write_outputs_for_polymer(
             unit_atom_count=reference_unit_atom_count,
             reference_dp=reference_dp,
             target_dp=options.dp if reference_dp is not None else None,
+            end_atoms=end_atoms,
         )
         external_files, actual_antechamber_input, engine_info = run_reference_engine_pipeline(
             engine,
@@ -1644,38 +1914,66 @@ def build_polymer_from_oligomer(input_sdf: Path, options: BuildOptions) -> Build
 
 
 def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) -> BuildResult:
-    monomer = read_sdf(input_sdf)
+    drawn = read_sdf(input_sdf)
+    if options.polymer_dp < 1:
+        raise ValueError("Polymer DP must be at least 1.")
+    # Everything that can reject the input is checked before any file is written.
+    prepared = prepare_monomer_connections(drawn, options.previous_atom, options.next_atom, options.junction_order)
+    monomer = prepared.molecule
+    unit_atom_count = len(monomer.atoms)
     monomer_formal_charge = monomer.total_formal_charge()
-    options.outdir.mkdir(parents=True, exist_ok=True)
-    reference_oligomer, repeat_atoms = build_reference_oligomer_from_monomer(
-        monomer,
-        previous_atom=options.previous_atom,
-        next_atom=options.next_atom,
-        reference_dp=options.reference_dp,
-        junction_order=options.junction_order,
-    )
+
+    def capped_chain(dp: int) -> tuple[Molecule, list[int], tuple[int, int]]:
+        """dp monomer units joined head to tail, then the end groups (no hydrogens yet).
+
+        The reference oligomer and the target polymer are built the same way,
+        so their end units carry the same end groups.
+        """
+
+        chain, unit_atoms = build_reference_oligomer_from_monomer(
+            monomer,
+            previous_atom=prepared.previous_atom,
+            next_atom=prepared.next_atom,
+            reference_dp=dp,
+            junction_order=options.junction_order,
+        )
+        end_atoms = add_end_groups(
+            chain,
+            prepared.previous_atom,
+            (dp - 1) * unit_atom_count + prepared.next_atom,
+            options.head_group,
+            options.tail_group,
+        )
+        return chain, unit_atoms, end_atoms
+
+    reference_oligomer, repeat_atoms, end_atoms = capped_chain(options.reference_dp)
     reference_formal_charge = reference_oligomer.total_formal_charge()
-    reference_sdf = options.outdir / "reference_oligomer_from_monomer.sdf"
-    write_sdf(reference_oligomer, reference_sdf)
     reference_for_antechamber = clone_molecule(reference_oligomer, name=f"{reference_oligomer.name}_H")
     add_valence_hydrogens(reference_for_antechamber)
+    widest_span, minimum_reference = minimum_reference_dp(
+        reference_for_antechamber, unit_atom_count, options.reference_dp, end_atoms
+    )
+    if options.polymer_dp > options.reference_dp and options.reference_dp < minimum_reference:
+        raise ValueError(
+            f"Reference oligomer size {options.reference_dp} is too small for a DP {options.polymer_dp} "
+            f"polymer: bonded terms of this monomer span up to {widest_span} repeat unit(s), so the "
+            f"parameter transfer needs a reference of at least {minimum_reference} units (an interior "
+            f"window of {widest_span} unit(s) plus one unit at each chain end). Set the reference "
+            f"oligomer size to {minimum_reference} or more."
+        )
+
+    options.outdir.mkdir(parents=True, exist_ok=True)
+    reference_sdf = options.outdir / "reference_oligomer_from_monomer.sdf"
+    write_sdf(reference_oligomer, reference_sdf)
     reference_antechamber_sdf = options.outdir / "reference_oligomer_for_antechamber.sdf"
     write_sdf(reference_for_antechamber, reference_antechamber_sdf)
-    monomer_atom_order = [atom.index for atom in monomer.atoms]
     occurrence_atoms = [
-        [unit_idx * len(monomer_atom_order) + atom_idx for atom_idx in range(1, len(monomer_atom_order) + 1)]
+        [unit_idx * unit_atom_count + atom_idx for atom_idx in range(1, unit_atom_count + 1)]
         for unit_idx in range(options.reference_dp)
     ]
-    previous_pos = monomer_atom_order.index(options.previous_atom)
-    next_pos = monomer_atom_order.index(options.next_atom)
-    plan = RepeatPlan(
-        query_atoms=repeat_atoms,
-        occurrences=[RepeatOccurrence(atoms=atoms) for atoms in occurrence_atoms],
-        junction_left_pos=next_pos,
-        junction_right_pos=previous_pos,
-        junction_order=options.junction_order,
-    )
-    polymer = build_polymer_graph(reference_oligomer, plan, options.polymer_dp)
+    polymer, _, _ = capped_chain(options.polymer_dp)
+    polymer.name = f"{reference_oligomer.name}_DP{options.polymer_dp}"
+    add_valence_hydrogens(polymer)
     result = write_outputs_for_polymer(
         polymer,
         occurrence_atoms,
@@ -1698,6 +1996,11 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
             "monomer_input": str(input_sdf),
             "previous_connection_atom": options.previous_atom,
             "next_connection_atom": options.next_atom,
+            "leaving_hydrogens_removed": prepared.leaving_hydrogens,
+            "head_end_group": options.head_group,
+            "tail_end_group": options.tail_group,
+            "widest_term_span_units": widest_span,
+            "minimum_reference_dp_for_transfer": minimum_reference,
             "reference_oligomer_dp": options.reference_dp,
             "reference_oligomer_sdf": str(reference_sdf),
             "reference_oligomer_antechamber_sdf": str(reference_antechamber_sdf),
@@ -1709,8 +2012,9 @@ def build_polymer_from_monomer(input_sdf: Path, options: MonomerBuildOptions) ->
         },
         external_sdf=reference_antechamber_sdf,
         external_formal_charge=reference_formal_charge,
-        reference_unit_atom_count=len(monomer_atom_order),
+        reference_unit_atom_count=unit_atom_count,
         reference_dp=options.reference_dp,
+        end_atoms=end_atoms,
     )
     for path in [reference_sdf, reference_antechamber_sdf]:
         if path not in result.files:
@@ -1761,6 +2065,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Starting coordinates: self-avoiding random walk of rigid reference units (default) or the flat 2D drawing layout.",
     )
     parser.add_argument("--chain-seed", type=int, default=0, help="Random seed of the chain random walk (default 0).")
+    for end, atom in (("head", "previous"), ("tail", "next")):
+        parser.add_argument(
+            f"--{end}-group",
+            choices=list(END_GROUPS),
+            default=DEFAULT_END_GROUP,
+            help=f"Monomer mode: end group on the {atom} connection atom of the {'first' if end == 'head' else 'last'} "
+            f"unit (default {DEFAULT_END_GROUP}).",
+        )
     parser.add_argument(
         "--check-engine",
         action="store_true",
@@ -1843,6 +2155,8 @@ def main(argv: Iterable[str] | None = None) -> int:
                 engine_settings=settings,
                 chain_layout=args.chain_layout,
                 chain_seed=args.chain_seed,
+                head_group=args.head_group,
+                tail_group=args.tail_group,
             ),
         )
     else:

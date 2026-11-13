@@ -123,7 +123,8 @@ class PolymerNonAmberTests(unittest.TestCase):
                     )
                 for i in range(6):
                     bonds.append(Bond(base + i + 1, base + ((i + 1) % 6) + 1, 2 if i % 2 == 0 else 1))
-            bonds.append(Bond(1, 7, 1))
+            # para-linked (C4 of one ring to C1 of the next), so interior rings keep valence 4
+            bonds.append(Bond(4, 7, 1))
             sdf = tmp_path / "ring.sdf"
             write_sdf(Molecule("ring_dimer", atoms, bonds), sdf)
 
@@ -150,6 +151,163 @@ class PolymerNonAmberTests(unittest.TestCase):
             self.assertEqual(len(heavy_atoms), 18)
             self.assertEqual(len(heavy_bonds), 20)
             self.assertTrue(any(bond.order == 2 for bond in heavy_bonds))
+
+    def test_rejects_ring_chain_that_overloads_a_junction_carbon(self):
+        # Rings joined C1-C1: interior units would bond both neighbours to C1
+        # (bond-order sum 5), which must be rejected before files are written.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            atoms, bonds = [], []
+            for ring_idx, x_offset in enumerate([0.0, 3.2]):
+                base = ring_idx * 6
+                for i in range(6):
+                    atoms.append(Atom(base + i + 1, "C", x_offset + 1.1 * math.cos(i * math.pi / 3), 1.1 * math.sin(i * math.pi / 3)))
+                for i in range(6):
+                    bonds.append(Bond(base + i + 1, base + ((i + 1) % 6) + 1, 2 if i % 2 == 0 else 1))
+            bonds.append(Bond(1, 7, 1))
+            sdf = tmp_path / "ring.sdf"
+            write_sdf(Molecule("ring_dimer", atoms, bonds), sdf)
+            outdir = tmp_path / "out"
+            with self.assertRaisesRegex(ValueError, "maximum valence 4"):
+                build_polymer_from_oligomer(
+                    sdf, BuildOptions(repeat_atoms=[1, 2, 3, 4, 5, 6], dp=3, outdir=outdir, run_external=False)
+                )
+            self.assertFalse(outdir.exists())
+
+    def _write_monomer(self, tmp_path, atoms, bonds, name="monomer"):
+        path = tmp_path / f"{name}.sdf"
+        write_sdf(Molecule(name, atoms, bonds), path)
+        return path
+
+    def test_explicit_hydrogens_on_connection_atoms_leave(self):
+        # Ethylene glycol unit drawn with every hydrogen: C1 and O3 each carry an
+        # explicit H that must make room for the inter-unit bond.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            atoms = [Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0), Atom(3, "O", 3.0, 0),
+                     Atom(4, "H", -0.5, 0.9), Atom(5, "H", -0.5, -0.9), Atom(6, "H", -1.0, 0),
+                     Atom(7, "H", 1.5, 1.0), Atom(8, "H", 1.5, -1.0), Atom(9, "H", 3.5, 0.8)]
+            bonds = [Bond(1, 2), Bond(2, 3), Bond(1, 4), Bond(1, 5), Bond(1, 6), Bond(2, 7), Bond(2, 8), Bond(3, 9)]
+            sdf = self._write_monomer(tmp_path, atoms, bonds)
+            result = build_polymer_from_monomer(
+                sdf,
+                MonomerBuildOptions(previous_atom=1, next_atom=3, polymer_dp=6, outdir=tmp_path / "out", run_external=False),
+            )
+            self.assertEqual(result.molecule.formula(), "C12H26O6")
+            metadata = json.loads((tmp_path / "out" / "build_metadata.json").read_text())
+            self.assertEqual(metadata["leaving_hydrogens_removed"], [6, 9])
+            self.assertEqual(metadata["previous_connection_atom"], 1)
+
+    def test_rejects_connection_valence_without_leaving_hydrogen(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            # C1 is a quaternary carbon (four heavy neighbours): no room for a junction bond.
+            atoms = [Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0), Atom(3, "C", -1.5, 0),
+                     Atom(4, "C", 0, 1.5), Atom(5, "C", 0, -1.5)]
+            bonds = [Bond(1, 2), Bond(1, 3), Bond(1, 4), Bond(1, 5)]
+            sdf = self._write_monomer(tmp_path, atoms, bonds)
+            outdir = tmp_path / "out"
+            with self.assertRaisesRegex(ValueError, "atom 1 \\(C\\) has bond-order sum 5"):
+                build_polymer_from_monomer(
+                    sdf, MonomerBuildOptions(previous_atom=1, next_atom=2, polymer_dp=4, outdir=outdir, run_external=False)
+                )
+            self.assertFalse(outdir.exists())
+            with self.assertRaisesRegex(ValueError, "is a hydrogen"):
+                build_polymer_from_monomer(
+                    self._write_monomer(tmp_path, [Atom(1, "C"), Atom(2, "H", 1, 0)], [Bond(1, 2)], "ch"),
+                    MonomerBuildOptions(previous_atom=1, next_atom=2, polymer_dp=4, outdir=outdir, run_external=False),
+                )
+
+    def test_sulfone_is_not_reported_as_overvalent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            # -CH2-S(=O)(=O)-CH2- unit: S has bond-order sum 6, which is allowed.
+            atoms = [Atom(1, "C", 0, 0), Atom(2, "S", 1.6, 0), Atom(3, "O", 1.6, 1.4), Atom(4, "O", 1.6, -1.4),
+                     Atom(5, "C", 3.2, 0)]
+            bonds = [Bond(1, 2), Bond(2, 3, 2), Bond(2, 4, 2), Bond(2, 5)]
+            sdf = self._write_monomer(tmp_path, atoms, bonds)
+            result = build_polymer_from_monomer(
+                sdf,
+                MonomerBuildOptions(previous_atom=1, next_atom=5, polymer_dp=5, outdir=tmp_path / "out", run_external=False),
+            )
+            self.assertEqual(result.molecule.formula(), "C10H22O10S5")
+
+    def test_rejects_reference_too_short_for_transfer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            sdf = self._write_monomer(
+                tmp_path, [Atom(1, "C", 0, 0), Atom(2, "C", 1.45, 0), Atom(3, "O", 2.9, 0)], [Bond(1, 2), Bond(2, 3)], "peg"
+            )
+            outdir = tmp_path / "out"
+            for reference_dp in (2, 3):
+                with self.assertRaisesRegex(ValueError, "needs a reference of at least 4 units"):
+                    build_polymer_from_monomer(
+                        sdf,
+                        MonomerBuildOptions(previous_atom=1, next_atom=3, reference_dp=reference_dp,
+                                            polymer_dp=12, outdir=outdir, run_external=False),
+                    )
+            self.assertFalse(outdir.exists())
+            # A target no longer than the reference is parameterized directly: allowed.
+            build_polymer_from_monomer(
+                sdf,
+                MonomerBuildOptions(previous_atom=1, next_atom=3, reference_dp=2, polymer_dp=2,
+                                    outdir=outdir, run_external=False),
+            )
+            build_polymer_from_monomer(
+                sdf,
+                MonomerBuildOptions(previous_atom=1, next_atom=3, reference_dp=4, polymer_dp=12,
+                                    outdir=outdir, run_external=False),
+            )
+
+    def test_end_groups_cap_the_chain_ends(self):
+        from polymer_from_oligomer import unit_atom_labels
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            cf2 = self._write_monomer(
+                tmp_path,
+                [Atom(1, "C", 0, 0), Atom(2, "C", 1.5, 0), Atom(3, "F", 1.5, 1.3), Atom(4, "F", 1.5, -1.3),
+                 Atom(5, "F", 0, 1.3), Atom(6, "F", 0, -1.3)],
+                [Bond(1, 2), Bond(1, 5), Bond(1, 6), Bond(2, 3), Bond(2, 4)],
+                "cf2",
+            )
+            peg = self._write_monomer(
+                tmp_path, [Atom(1, "C", 0, 0), Atom(2, "C", 1.45, 0), Atom(3, "O", 2.9, 0)], [Bond(1, 2), Bond(2, 3)], "peg"
+            )
+            for sdf, previous, nxt, head, tail, formula in (
+                (cf2, 1, 2, "H", "H", "C12H2F24"),
+                (cf2, 1, 2, "F", "F", "C12F26"),          # CF3-(CF2)10-CF3
+                (cf2, 1, 2, "CF3", "Cl", "C13ClF27"),
+                (peg, 1, 3, "OCH3", "CH3", "C14H30O7"),    # CH3O-(CH2CH2O)6-CH3
+                (peg, 1, 3, "OH", "H", "C12H26O7"),        # HO-(CH2CH2O)6-H
+            ):
+                with self.subTest(head=head, tail=tail):
+                    outdir = tmp_path / f"{sdf.stem}_{head}_{tail}"
+                    result = build_polymer_from_monomer(
+                        sdf,
+                        MonomerBuildOptions(previous_atom=previous, next_atom=nxt, polymer_dp=6, outdir=outdir,
+                                            run_external=False, head_group=head, tail_group=tail),
+                    )
+                    self.assertEqual(result.molecule.formula(), formula)
+                    self.assertAlmostEqual(result.final_charge, 0.0)
+                    metadata = json.loads((outdir / "build_metadata.json").read_text())
+                    self.assertEqual((metadata["head_end_group"], metadata["tail_end_group"]), (head, tail))
+
+            # end-group atoms extend the first/last unit, after all monomer atoms
+            monomer = read_sdf(cf2)
+            chain, _ = build_reference_oligomer_from_monomer(monomer, 1, 2, 3)
+            from polymer_from_oligomer import add_end_groups
+            end_atoms = add_end_groups(chain, 1, 2 * 6 + 2, "CF3", "F")
+            self.assertEqual(end_atoms, (4, 1))
+            add_valence_hydrogens(chain)
+            labels = unit_atom_labels(chain, 6, 3, end_atoms)
+            self.assertEqual(labels[19], (0, ("A", 6)))      # head CF3 carbon
+            self.assertEqual(labels[23], (2, ("A", 10)))     # tail F
+            with self.assertRaisesRegex(ValueError, "Unknown end group"):
+                build_polymer_from_monomer(
+                    peg, MonomerBuildOptions(previous_atom=1, next_atom=3, polymer_dp=6, outdir=tmp_path / "x",
+                                             run_external=False, head_group="Br3")
+                )
 
     def test_generates_hidden_reference_oligomer_from_monomer(self):
         monomer = Molecule(
@@ -233,7 +391,8 @@ class PolymerNonAmberTests(unittest.TestCase):
                 MonomerBuildOptions(
                     previous_atom=2,
                     next_atom=3,
-                    reference_dp=3,
+                    # a torsion crosses the junction (2 units), so DP 4 needs a 4-unit reference
+                    reference_dp=4,
                     polymer_dp=4,
                     outdir=Path(tmp) / "chiral_DP4",
                     run_external=False,
