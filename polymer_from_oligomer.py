@@ -1087,8 +1087,9 @@ def write_gromacs_placeholders(mol: Molecule, outdir: Path, target_charge: int) 
                 f"final_charge: {final:.12g}",
                 f"correction_per_repeat_atom: {correction:.12g}",
                 "",
-                "These are standard-library placeholder topology files for GUI/backend testing.",
-                "Install AmberTools and ParmEd for real GAFF2/AM1-BCC GROMACS topology generation.",
+                "PLACEHOLDER FILES - NOT FOR SIMULATION. No force-field parameterization was run",
+                "(dry run, or the selected engine is not ready): every atom has a generic type and",
+                "the target charge is spread evenly over the repeat atoms.",
             ]
         )
         + "\n"
