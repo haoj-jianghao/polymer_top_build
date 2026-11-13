@@ -134,7 +134,7 @@ class DesktopWindowTests(unittest.TestCase):
     def test_placeholder_build_runs_in_the_background_and_reports(self):
         app = self.app
         app.load_peg_example()
-        app.run_external_var.set(False)
+        app.dry_run_var.set(True)
         app.dp_var.set(6)
         with tempfile.TemporaryDirectory() as tmp:
             app.outdir_var.set(tmp)
