@@ -144,8 +144,8 @@ class PolymerBuilderApp:
         menu = tk.Menu(self.root)
         file_menu = tk.Menu(menu, tearoff=False)
         file_menu.add_command(label="New drawing", command=self.clear_drawing, accelerator="Ctrl+N")
-        file_menu.add_command(label="Open MOL/SDF…", command=self.open_molfile, accelerator="Ctrl+O")
-        file_menu.add_command(label="Save drawing as MOL…", command=self.save_molfile, accelerator="Ctrl+S")
+        file_menu.add_command(label="Open MOL/SDF...", command=self.open_molfile, accelerator="Ctrl+O")
+        file_menu.add_command(label="Save drawing as MOL...", command=self.save_molfile, accelerator="Ctrl+S")
         file_menu.add_command(label="Load PEG example", command=self.load_peg_example)
         file_menu.add_separator()
         file_menu.add_command(label="Open output folder", command=self.open_output_folder)
@@ -212,7 +212,7 @@ class PolymerBuilderApp:
             ).grid(row=index // 3, column=index % 3, sticky=tk.EW)
 
         charges = group("Formal charge")
-        for column, (label, value) in enumerate((("−1", -1), ("0", 0), ("+1", 1))):
+        for column, (label, value) in enumerate((("-1", -1), ("0", 0), ("+1", 1))):
             ttk.Radiobutton(
                 charges, text=label, value=f"charge:{value}", variable=self.tool_var,
                 style="Tool.TRadiobutton", command=lambda: self._set_tool(self.tool_var.get()),
@@ -232,8 +232,8 @@ class PolymerBuilderApp:
         ).pack(fill=tk.X)
         legend = ttk.Frame(connect)
         legend.pack(fill=tk.X, pady=(3, 0))
-        tk.Label(legend, text="● previous", foreground=PREVIOUS_COLOR).pack(side=tk.LEFT)
-        tk.Label(legend, text="● next", foreground=NEXT_COLOR).pack(side=tk.LEFT, padx=(8, 0))
+        tk.Label(legend, text="* previous", foreground=PREVIOUS_COLOR).pack(side=tk.LEFT)
+        tk.Label(legend, text="* next", foreground=NEXT_COLOR).pack(side=tk.LEFT, padx=(8, 0))
 
         actions = group("Drawing")
         ttk.Button(actions, text="PEG example", command=self.load_peg_example).pack(fill=tk.X)
@@ -262,12 +262,12 @@ class PolymerBuilderApp:
         add(
             "OpenFF Python (Sage)",
             ttk.Entry(tab, textvariable=self.sage_python_var),
-            ttk.Button(tab, text="…", width=3, command=lambda: self._browse_python(self.sage_python_var)),
+            ttk.Button(tab, text="...", width=3, command=lambda: self._browse_python(self.sage_python_var)),
         )
         add(
             "AmberTools Python (GAFF2)",
             ttk.Entry(tab, textvariable=self.amber_python_var),
-            ttk.Button(tab, text="…", width=3, command=lambda: self._browse_python(self.amber_python_var)),
+            ttk.Button(tab, text="...", width=3, command=lambda: self._browse_python(self.amber_python_var)),
         )
         ttk.Label(tab, text="Leave blank to auto-detect an installed environment.", foreground="#5b6b77").grid(
             row=row, column=1, sticky=tk.W
@@ -279,7 +279,7 @@ class PolymerBuilderApp:
         add(
             "Output folder",
             ttk.Entry(tab, textvariable=self.outdir_var),
-            ttk.Button(tab, text="…", width=3, command=self._browse_outdir),
+            ttk.Button(tab, text="...", width=3, command=self._browse_outdir),
         )
         ttk.Checkbutton(
             tab, text="Run force-field parameterization (otherwise placeholder files)", variable=self.run_external_var
@@ -564,14 +564,14 @@ class PolymerBuilderApp:
         messagebox.showinfo(
             APP_TITLE,
             "Drawing\n"
-            "• Drag to draw a bond (free ends become carbon atoms).\n"
-            "• Click empty space to add an atom of the chosen element.\n"
-            "• Click an atom to change its element.\n"
-            "• Click a bond to cycle single → double → triple.\n"
-            "• Right-click an atom or bond to delete it; Del deletes the selection.\n"
-            "• Charge tool: click an atom. Bond style: draw a bond from its narrow end or click it.\n\n"
+            "- Drag to draw a bond (free ends become carbon atoms).\n"
+            "- Click empty space to add an atom of the chosen element.\n"
+            "- Click an atom to change its element.\n"
+            "- Click a bond to cycle single -> double -> triple.\n"
+            "- Right-click an atom or bond to delete it; Del deletes the selection.\n"
+            "- Charge tool: click an atom. Bond style: draw a bond from its narrow end or click it.\n\n"
             "Connection atoms\n"
-            "• 'Pick previous/next', then click the atom bonded to the previous monomer\n"
+            "- 'Pick previous/next', then click the atom bonded to the previous monomer\n"
             "  and the atom bonded to the next monomer (green = previous, orange = next).",
         )
 
@@ -590,7 +590,7 @@ class PolymerBuilderApp:
 
     def check_engine(self) -> None:
         engine, settings = self._engine(), self._engine_settings()
-        self._start_job(f"Checking the {engine} engine…", self._check_engine_job, engine, settings)
+        self._start_job(f"Checking the {engine} engine...", self._check_engine_job, engine, settings)
 
     @staticmethod
     def _check_engine_job(engine: str, settings: dict) -> dict:
@@ -645,7 +645,7 @@ class PolymerBuilderApp:
         if outdir.exists() and any(outdir.iterdir()):
             if not messagebox.askyesno(APP_TITLE, f"{outdir} already contains files. Overwrite them?"):
                 return
-        self._start_job(f"Building in {outdir}…", self._build_job, parameters)
+        self._start_job(f"Building in {outdir}...", self._build_job, parameters)
 
     @staticmethod
     def _build_job(parameters: dict) -> dict:
@@ -734,7 +734,7 @@ class PolymerBuilderApp:
     def _append_log(self, text: str) -> None:
         self.log.configure(state=tk.NORMAL)
         if self.log.get("1.0", tk.END).strip():
-            self.log.insert(tk.END, "\n" + "─" * 60 + "\n")
+            self.log.insert(tk.END, "\n" + "-" * 60 + "\n")
         self.log.insert(tk.END, text.rstrip() + "\n")
         self.log.see(tk.END)
         self.log.configure(state=tk.DISABLED)
@@ -757,9 +757,38 @@ class PolymerBuilderApp:
             messagebox.showerror(APP_TITLE, str(exc))
 
 
+def _bring_to_front(root: tk.Tk) -> None:
+    """Make sure the main window really appears on screen.
+
+    Under WSLg (and some other compositors) a Tk window can be mapped on the
+    X side yet stay stuck as a taskbar entry on Windows. Re-showing it after
+    the event loop starts, placing it explicitly on the visible screen and
+    briefly raising it above other windows gets the compositor to present it.
+    """
+
+    root.update_idletasks()
+    screen_w, screen_h = root.winfo_screenwidth(), root.winfo_screenheight()
+    width = min(max(root.winfo_reqwidth(), 1100), screen_w - 40)
+    height = min(max(root.winfo_reqheight(), 650), screen_h - 80)
+    x = max((screen_w - width) // 2, 0)
+    y = max((screen_h - height) // 3, 0)
+    root.geometry(f"{width}x{height}+{x}+{y}")
+    root.deiconify()
+    root.lift()
+    root.attributes("-topmost", True)
+    root.focus_force()
+    # Drop "always on top" again so the window behaves normally afterwards.
+    root.after(300, lambda: root.attributes("-topmost", False))
+
+
 def main() -> None:
     root = tk.Tk()
+    # Build the UI hidden, then show it once the event loop is running: a
+    # window that is mapped before it is fully built is what WSLg tends to
+    # leave stuck in the Windows taskbar.
+    root.withdraw()
     PolymerBuilderApp(root)
+    root.after(100, lambda: _bring_to_front(root))
     root.mainloop()
 
 

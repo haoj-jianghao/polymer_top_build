@@ -55,7 +55,7 @@ def charge_label(charge: int) -> str:
     if not charge:
         return ""
     magnitude = abs(charge)
-    return ("" if magnitude == 1 else str(magnitude)) + ("+" if charge > 0 else "−")
+    return ("" if magnitude == 1 else str(magnitude)) + ("+" if charge > 0 else "-")
 
 
 def _distance_to_segment(px: float, py: float, a: SketchAtom, b: SketchAtom) -> float:
