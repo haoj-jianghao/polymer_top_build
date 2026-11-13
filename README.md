@@ -5,7 +5,7 @@ for molecular dynamics (MD) (currently only support GROMACS).
 It writes ready-to-use `.top`, `.itp` and `.gro` files. 
 The main input is the monomer structure, which you can draw in a GUI.
 
-You draw a monomer and select the connection atoms between monomers, then the program then works as follows:
+You draw a monomer and select the connecting atoms between monomers, then the program works as follows:
 
 - **Reference oligomer.** It builds a small hidden reference oligomer (5
   units by default) and parameterizes only that oligomer, with one of three
@@ -71,8 +71,8 @@ Linux distribution's own Python may need its Tk package
 (`sudo apt install python3-tk` on Debian/Ubuntu).
 
 The OPLS/2020 parameters are the Supporting Information of W. L. Jorgensen et
-al., *J. Phys. Chem. B* 2024, https://doi.org/10.1021/acs.jpcb.3c06602. They
-may not be redistributed. Download `jp3c06602_si_002.txt` and
+al., *J. Phys. Chem. B* 2024, https://doi.org/10.1021/acs.jpcb.3c06602. Since they
+may not be redistributed, please download your own copies of `jp3c06602_si_002.txt` and
 `jp3c06602_si_003.txt` from the article page, then install them once:
 
 ```bash
@@ -132,57 +132,9 @@ on the force-field engine.
 
 ## Run the GUI
 
-The desktop GUI uses Tkinter, which ships with Python. It needs no web
-browser, no server and no extra package:
+The desktop GUI uses Tkinter, which ships with Python. 
 
 ```bash
 python polymer_gui/desktop.py
 ```
-
-## Run the CLI
-
-Monomer-mode non-external smoke test:
-
-```bash
-python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
-  --previous-atom 1 \
-  --next-atom 3 \
-  --reference-dp 5 \
-  --dp 12 \
-  --outdir outputs/PEG_repeat_DP12_cli \
-  --no-external
-```
-
-Monomer-mode OPLS-AA/2020 build (default engine):
-
-```bash
-python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
-  --previous-atom 1 \
-  --next-atom 3 \
-  --reference-dp 5 \
-  --dp 12 \
-  --outdir outputs/PEG_repeat_DP12_opls
-```
-
-Add `--ff-engine gaff2` to use AmberTools instead. If the engine's
-requirements are missing, the backend reports them and still writes
-placeholder GROMACS-shaped files for non-external GUI/backend testing.
-
-Geometry minimization of the reference oligomer is enabled by default. Only
-the Sage engine can skip it, because its NAGL charges do not depend on the
-geometry; the OPLS CM1A and GAFF2 AM1-BCC charges need a 3D structure:
-
-```bash
-python polymer_from_oligomer.py examples/PEG_repeat_monomer.sdf \
-  --previous-atom 1 \
-  --next-atom 3 \
-  --reference-dp 5 \
-  --dp 12 \
-  --ff-engine sage \
-  --outdir outputs/PEG_repeat_DP12_sage_unminimized \
-  --no-minimize-geometry
-```
-
-The older oligomer mode is still available for compatibility by passing
-`--repeat-atoms` instead of `--previous-atom` and `--next-atom`.
 
